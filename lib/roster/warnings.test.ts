@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { NaNote } from './notAvailable'
 import { EVERY_DAY } from './staff'
 import { buildWarnings, overlappingShifts } from './warnings'
 
@@ -20,8 +21,8 @@ const h = (hours: number) => hours * 60
 const JOHN = { id: 7, name: 'John Reyes', expectedHours: null, available: EVERY_DAY }
 const LISA = { id: 8, name: 'Lisa Chen', expectedHours: 20, available: EVERY_DAY }
 
-const warnings = (staff: (typeof JOHN | typeof LISA)[], shifts: ReturnType<typeof shift>[]) =>
-  buildWarnings({ staff, shifts, weekStart: WEEK })
+const warnings = (staff: (typeof JOHN | typeof LISA)[], shifts: ReturnType<typeof shift>[], naNotes: NaNote[] = []) =>
+  buildWarnings({ staff, shifts, naNotes, weekStart: WEEK })
 
 const texts = (...args: Parameters<typeof warnings>) => warnings(...args).map((w) => w.text)
 
@@ -188,6 +189,40 @@ describe('buildWarnings', () => {
         '44h rostered — over the 38h week.',
         'Rostered on Sat — not usually available.',
       ])
+    })
+  })
+
+  describe('marked not available this week', () => {
+    const FRI_NOTE = { staffId: 7, date: FRI }
+
+    it('warns for a shift on a day marked not available', () => {
+      expect(texts([JOHN], [shift(7, FRI, h(10), h(18))], [FRI_NOTE])).toEqual([
+        'Rostered on Fri, marked not available this week.',
+      ])
+    })
+
+    it('warns once a day, however many shifts are on it', () => {
+      const shifts = [shift(7, FRI, h(10), h(14)), shift(7, FRI, h(17), h(21))]
+      expect(texts([JOHN], shifts, [FRI_NOTE])).toEqual(['Rostered on Fri, marked not available this week.'])
+    })
+
+    it('replaces the availability warning when both apply', () => {
+      const weekdaysOnly = { ...JOHN, available: [true, true, true, true, true, false, false] }
+      const shifts = [shift(7, SAT, h(10), h(18)), shift(7, SUN, h(10), h(18))]
+      expect(texts([weekdaysOnly], shifts, [{ staffId: 7, date: SUN }])).toEqual([
+        'Rostered on Sat — not usually available.',
+        'Rostered on Sun, marked not available this week.',
+      ])
+    })
+
+    it("doesn't warn for a marked day left off, or someone else's note", () => {
+      expect(texts([JOHN], [shift(7, THU, h(10), h(18))], [FRI_NOTE])).toEqual([])
+      expect(texts([LISA], [shift(8, FRI, h(10), h(20)), shift(8, SAT, h(10), h(20))], [FRI_NOTE])).toEqual([])
+    })
+
+    it('is serious', () => {
+      const [w] = warnings([JOHN], [shift(7, FRI, h(10), h(18))], [FRI_NOTE])
+      expect(w.level).toBe('high')
     })
   })
 

@@ -2,9 +2,9 @@
 // person each time. Warnings only ever advise. Nothing here stops a shift
 // being saved or the week being published.
 
-import { isUsuallyAvailable } from './availability'
 import { addDays, dayName, weekDates, type IsoDate } from './dates'
 import { againstExpected, hoursFor, percentOff } from './hours'
+import { naReason, type NaNote, type NaReason } from './notAvailable'
 import { shiftsByCell, type Shift } from './shifts'
 import { DAY_END, formatHours, type Minutes } from './time'
 
@@ -17,6 +17,11 @@ const MAX_WEEK: Minutes = 38 * 60
 const MIN_REST: Minutes = 10 * 60
 
 const rank = { high: 0, low: 1 }
+
+const naWarning: Record<NaReason, (date: IsoDate) => string> = {
+  marked: (date) => `Rostered on ${dayName(date)}, marked not available this week.`,
+  usual: (date) => `Rostered on ${dayName(date)} — not usually available.`,
+}
 
 const overlap = (a: Shift, b: Shift) => a.start < b.end && b.start < a.end
 
@@ -38,10 +43,12 @@ export function overlappingShifts(shifts: Shift[]): Set<number> {
 export function buildWarnings({
   staff,
   shifts,
+  naNotes,
   weekStart,
 }: {
   staff: Person[]
   shifts: Shift[]
+  naNotes: NaNote[]
   weekStart: IsoDate
 }): Warning[] {
   const overlapping = overlappingShifts(shifts)
@@ -66,9 +73,11 @@ export function buildWarnings({
       }
     }
 
+    // Marked this week or outside their pattern, the warning says which, and never both
     for (const date of weekDates(weekStart)) {
       if (!theirs.some((s) => s.date === date)) continue
-      if (!isUsuallyAvailable(person.available, date)) warn('high', `Rostered on ${dayName(date)} — not usually available.`)
+      const na = naReason(person, date, naNotes)
+      if (na) warn('high', naWarning[na](date))
     }
 
     const { expectedHours } = person
