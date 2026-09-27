@@ -1,8 +1,9 @@
 # xiaopai
 
 The weekly staff roster for Ah Ma. One manager, running on a laptop. See
-[SPEC.md](SPEC.md) for what it does and [ARCHITECTURE.md](ARCHITECTURE.md) for
-how it's built.
+[SPEC.md](SPEC.md) for what it does, [ARCHITECTURE.md](ARCHITECTURE.md) for
+how it's built, and [tickets/](tickets/README.md) for the build, one ticket at a
+time.
 
 ## First run
 
