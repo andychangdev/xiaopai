@@ -96,6 +96,12 @@ describe('buildWarnings', () => {
       expect(texts([JOHN], shifts)).toEqual(['38.5h rostered — over the 38h week.'])
     })
 
+    it('is serious', () => {
+      const shifts = [...days.map((d) => shift(7, d, h(10), h(20))), shift(7, SAT, h(10), h(11))]
+      const [w] = buildWarnings({ staff: [JOHN], shifts, weekStart: WEEK })
+      expect(w.level).toBe('high')
+    })
+
     it("doesn't warn at exactly 38 hours", () => {
       const shifts = [...days.map((d) => shift(7, d, h(10), h(19))), shift(7, SAT, h(10), h(12))]
       expect(texts([JOHN], shifts)).toEqual([])
