@@ -9,8 +9,8 @@ import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } 
 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
- * inactive staff with shifts that week) with their expected hours, its
- * shifts and its closed days.
+ * inactive staff with shifts that week) with their expected hours and
+ * availability, its shifts and its closed days.
  */
 export function rosterWeek(week: IsoDate) {
   const db = getDb()
@@ -26,6 +26,7 @@ export function rosterWeek(week: IsoDate) {
       active: staff.active,
       sortOrder: staff.sortOrder,
       expectedHours: staff.expectedHours,
+      available: staff.available,
     })
     .from(staff)
     .all()

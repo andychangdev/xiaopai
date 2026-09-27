@@ -2,6 +2,7 @@
 // person each time. Warnings only ever advise. Nothing here stops a shift
 // being saved or the week being published.
 
+import { isUsuallyAvailable } from './availability'
 import { addDays, dayName, weekDates, type IsoDate } from './dates'
 import { againstExpected, hoursFor, percentOff } from './hours'
 import { shiftsByCell, type Shift } from './shifts'
@@ -10,7 +11,7 @@ import { DAY_END, formatHours, type Minutes } from './time'
 /** 'high' is something that shouldn't happen; 'low' is worth a second look. */
 export type Warning = { level: 'high' | 'low'; who: string; text: string }
 
-type Person = { id: number; name: string; expectedHours: number | null }
+type Person = { id: number; name: string; expectedHours: number | null; available: boolean[] }
 
 const MAX_WEEK: Minutes = 38 * 60
 const MIN_REST: Minutes = 10 * 60
@@ -63,6 +64,11 @@ export function buildWarnings({
       if (rest < MIN_REST) {
         warn('low', `Only ${formatHours(rest)} between ${dayName(date)} close and ${dayName(next)} start.`)
       }
+    }
+
+    for (const date of weekDates(weekStart)) {
+      if (!theirs.some((s) => s.date === date)) continue
+      if (!isUsuallyAvailable(person.available, date)) warn('high', `Rostered on ${dayName(date)} — not usually available.`)
     }
 
     const { expectedHours } = person

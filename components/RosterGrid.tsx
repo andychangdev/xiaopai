@@ -18,8 +18,8 @@ import { WarningsPanel } from './WarningsPanel'
 
 type Person = { id: number; name: string }
 
-/** Someone with a row on the grid, and the hours they usually work. */
-type StaffRow = Person & { expectedHours: number | null }
+/** Someone with a row on the grid, the hours they usually work and the weekdays they can. */
+type StaffRow = Person & { expectedHours: number | null; available: boolean[] }
 
 /** A shift picked up with Copy, whose it is and the chip it came from, until Esc or Done puts it down. */
 type Copying = { shift: Shift; person: Person; chip: HTMLElement }

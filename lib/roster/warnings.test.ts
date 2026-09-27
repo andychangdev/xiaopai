@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { EVERY_DAY } from './staff'
 import { buildWarnings, overlappingShifts } from './warnings'
 
 // 5 – 11 Oct 2026
 const WEEK = '2026-10-05'
-const [MON, TUE, , THU, FRI, SAT, SUN] = ['05', '06', '07', '08', '09', '10', '11'].map((d) => `2026-10-${d}`)
+const [MON, TUE, WED, THU, FRI, SAT, SUN] = ['05', '06', '07', '08', '09', '10', '11'].map((d) => `2026-10-${d}`)
 
 let nextId = 1
 const shift = (staffId: number, date: string, start: number, end: number) => ({
@@ -16,8 +17,8 @@ const shift = (staffId: number, date: string, start: number, end: number) => ({
 
 const h = (hours: number) => hours * 60
 
-const JOHN = { id: 7, name: 'John Reyes', expectedHours: null }
-const LISA = { id: 8, name: 'Lisa Chen', expectedHours: 20 }
+const JOHN = { id: 7, name: 'John Reyes', expectedHours: null, available: EVERY_DAY }
+const LISA = { id: 8, name: 'Lisa Chen', expectedHours: 20, available: EVERY_DAY }
 
 const texts = (staff: (typeof JOHN | typeof LISA)[], shifts: ReturnType<typeof shift>[]) =>
   buildWarnings({ staff, shifts, weekStart: WEEK }).map((w) => w.text)
@@ -159,6 +160,44 @@ describe('buildWarnings', () => {
         weekStart: WEEK,
       })
       expect(w.level).toBe('low')
+    })
+  })
+
+  describe('not usually available', () => {
+    const WEEKDAYS_ONLY = { ...JOHN, available: [true, true, true, true, true, false, false] }
+
+    it('warns for a shift on a weekday outside their pattern', () => {
+      expect(texts([WEEKDAYS_ONLY], [shift(7, SUN, h(10), h(18))])).toEqual(['Rostered on Sun — not usually available.'])
+    })
+
+    it('warns once a day, however many shifts are on it', () => {
+      const shifts = [shift(7, SAT, h(10), h(14)), shift(7, SAT, h(17), h(21)), shift(7, SUN, h(10), h(18))]
+      expect(texts([WEEKDAYS_ONLY], shifts)).toEqual([
+        'Rostered on Sat — not usually available.',
+        'Rostered on Sun — not usually available.',
+      ])
+    })
+
+    it("doesn't warn on a day they're usually available, or a day off outside it", () => {
+      expect(texts([WEEKDAYS_ONLY], [shift(7, MON, h(10), h(18))])).toEqual([])
+    })
+
+    it('is serious', () => {
+      const [w] = buildWarnings({ staff: [WEEKDAYS_ONLY], shifts: [shift(7, SUN, h(10), h(18))], weekStart: WEEK })
+      expect(w.level).toBe('high')
+    })
+
+    it("comes after the person's overlap and 38h warnings", () => {
+      const shifts = [
+        ...[MON, TUE, WED, THU].map((d) => shift(7, d, h(10), h(20))),
+        shift(7, SAT, h(10), h(12)),
+        shift(7, SAT, h(11), h(13)),
+      ]
+      expect(texts([WEEKDAYS_ONLY], shifts)).toEqual([
+        'Two shifts overlap on the same day.',
+        '44h rostered — over the 38h week.',
+        'Rostered on Sat — not usually available.',
+      ])
     })
   })
 
