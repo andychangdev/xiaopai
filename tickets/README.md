@@ -23,6 +23,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 17 | [Undo](to-do/17-undo.md) | 06, 08, 12 |
 | 18 | [JSON export](to-do/18-json-export.md) | 05 |
 | 19 | [Dock launcher](to-do/19-dock-launcher.md) | 01 |
+| 20 | [Roster toolbar tidy and This week](to-do/20-roster-toolbar-tidy.md) | 07, 15 |
 
 ## Calls made where the docs disagree
 
@@ -30,6 +31,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 - **Deactivating someone** (02, 03): never deletes their shifts, and any week where they have shifts keeps their row. The mockup deletes them from the open week.
 - **Copy previous week with every shift skipped** (07): changes nothing and says why, rather than emptying this week for nothing. The mockup replaces the week anyway.
 - **The schema** (01): lands whole in ticket 01, so parallel tickets don't collide on migration files. This is the one piece that isn't a vertical slice.
+- **Roster buttons** (20): drops Manage staff and Trading hours, since the tabs already cover them, and puts Copy previous week in the grid footer. Roster text leaves the tab bar, is renamed Share roster, and sits next to Publish roster. The mockup and ARCHITECTURE §4 have the old layout.
 - **Undo and JSON export** (17, 18): SPEC includes them, and ARCHITECTURE §9 says "later". Both are kept, at the end.
 
 ## Not ticketed
