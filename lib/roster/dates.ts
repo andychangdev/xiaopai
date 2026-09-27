@@ -51,8 +51,17 @@ export function mondayOf(date: IsoDate): IsoDate {
   return addDays(date, -weekdayIndex(date))
 }
 
+/** A real date that falls on a Monday, so it can name a week. */
+export function isMonday(s: string): boolean {
+  return parseIsoDate(s) !== null && weekdayIndex(s) === 0
+}
+
 export function weekDates(monday: IsoDate): IsoDate[] {
   return DAY_NAMES.map((_, i) => addDays(monday, i))
+}
+
+export function isInWeek(monday: IsoDate, date: string): boolean {
+  return weekDates(monday).includes(date)
 }
 
 /** The Monday a /roster/[week] URL should show: its own week, or this week if it isn't a date. */
@@ -74,6 +83,11 @@ export function shortDate(date: IsoDate): string {
 /** 'Mon 5 Oct' */
 export function dayLabel(date: IsoDate): string {
   return `${dayName(date)} ${shortDate(date)}`
+}
+
+/** '5 Oct – 11 Oct' */
+export function weekRange(monday: IsoDate): string {
+  return `${shortDate(monday)} – ${shortDate(addDays(monday, 6))}`
 }
 
 /** '5 – 11 October 2026', or '28 Sep – 4 Oct 2026' when the week crosses a month. */

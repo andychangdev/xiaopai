@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { moveInOrder, parseExpectedHours, parseName, parseNotes, rosterRows, whyNotRemovable } from './staff'
+import { firstName, moveInOrder, parseExpectedHours, parseName, parseNotes, rosterRows, whyNotRemovable } from './staff'
 
 const person = (id: number, sortOrder: number, active = true) => ({ id, sortOrder, active, name: `P${id}` })
 
@@ -47,6 +47,17 @@ describe('moveInOrder', () => {
     const ids = [1, 2, 3]
     moveInOrder(ids, 1, 1)
     expect(ids).toEqual([1, 2, 3])
+  })
+})
+
+describe('firstName', () => {
+  it('is the first word of the name', () => {
+    expect(firstName('John Reyes')).toBe('John')
+    expect(firstName('Mary Anne  Lee')).toBe('Mary')
+  })
+
+  it('is the whole name when there is only one word', () => {
+    expect(firstName('Priya')).toBe('Priya')
   })
 })
 

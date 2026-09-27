@@ -27,6 +27,11 @@ export function moveInOrder(ids: number[], id: number, dir: -1 | 1): number[] {
   return out
 }
 
+/** How the grid and the chat address someone: 'John' for John Reyes. */
+export function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0]
+}
+
 /** Where a new person starts: available every day of the week. */
 export const EVERY_DAY = [true, true, true, true, true, true, true]
 

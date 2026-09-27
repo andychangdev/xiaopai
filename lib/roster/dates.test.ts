@@ -4,11 +4,14 @@ import {
   canonicalWeek,
   dayLabel,
   dayName,
+  isInWeek,
+  isMonday,
   isoDateOf,
   mondayOf,
   parseIsoDate,
   shortDate,
   weekDates,
+  weekRange,
   weekTitle,
   weekdayIndex,
 } from './dates'
@@ -78,6 +81,38 @@ describe('mondayOf', () => {
   })
 })
 
+describe('isMonday', () => {
+  it('accepts a real date that falls on a Monday', () => {
+    expect(isMonday('2026-10-05')).toBe(true)
+    expect(isMonday('2026-12-28')).toBe(true)
+  })
+
+  it('refuses any other day, and anything that is not a date', () => {
+    expect(isMonday('2026-10-06')).toBe(false)
+    expect(isMonday('2026-10-11')).toBe(false)
+    expect(isMonday('2026-02-30')).toBe(false)
+    expect(isMonday('banana')).toBe(false)
+  })
+})
+
+describe('isInWeek', () => {
+  it('includes Monday through Sunday', () => {
+    expect(isInWeek('2026-09-28', '2026-09-28')).toBe(true)
+    expect(isInWeek('2026-09-28', '2026-10-01')).toBe(true)
+    expect(isInWeek('2026-09-28', '2026-10-04')).toBe(true)
+  })
+
+  it('excludes the days either side', () => {
+    expect(isInWeek('2026-09-28', '2026-09-27')).toBe(false)
+    expect(isInWeek('2026-09-28', '2026-10-05')).toBe(false)
+  })
+
+  it('excludes anything that is not a date', () => {
+    expect(isInWeek('2026-09-28', '2026-9-29')).toBe(false)
+    expect(isInWeek('2026-09-28', '')).toBe(false)
+  })
+})
+
 describe('weekDates', () => {
   it('lists the seven dates from Monday to Sunday', () => {
     expect(weekDates('2026-09-28')).toEqual([
@@ -122,6 +157,13 @@ describe('day labels', () => {
 
   it('combines both', () => {
     expect(dayLabel('2026-10-05')).toBe('Mon 5 Oct')
+  })
+})
+
+describe('weekRange', () => {
+  it('names the first and last day', () => {
+    expect(weekRange('2026-10-05')).toBe('5 Oct – 11 Oct')
+    expect(weekRange('2026-09-28')).toBe('28 Sep – 4 Oct')
   })
 })
 
