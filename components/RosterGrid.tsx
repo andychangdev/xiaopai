@@ -6,13 +6,18 @@ import { addShift, clearWeek, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
+import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
-import { formatRange } from '@/lib/roster/time'
+import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
+import { HoursThisWeek } from './HoursThisWeek'
 import { ShiftPopover, UNREACHABLE, actionError, type PopoverTarget } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
 type Person = { id: number; name: string }
+
+/** Someone with a row on the grid, and the hours they usually work. */
+type StaffRow = Person & { expectedHours: number | null }
 
 /** A shift picked up with Copy, whose it is and the chip it came from, until Esc or Done puts it down. */
 type Copying = { shift: Shift; person: Person; chip: HTMLElement }
@@ -25,7 +30,7 @@ type CellMode = 'edit' | 'paste' | 'holds'
 
 type Props = {
   week: IsoDate
-  staff: Person[]
+  staff: StaffRow[]
   shifts: Shift[]
   templates: Template[]
   /** The week's trading hours in one line, for the footer */
@@ -144,7 +149,7 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours, close
             ))}
 
             {staff.map((person) => (
-              <Row key={person.id} person={person}>
+              <Row key={person.id} person={person} hours={hoursFor(person.id, shifts)}>
                 {days.map((date, i) => {
                   if (closedDays[i]) return <ClosedCell key={date} />
                   const inCell = cells.get(cellKey(person.id, date)) ?? []
@@ -179,10 +184,17 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours, close
           <button className="btn btn-danger" onClick={clear}>
             Clear week
           </button>
+          <span className="ml-auto self-center font-mono text-[12.5px] text-ink-2 tabular-nums">
+            Total rostered <b className="font-semibold text-ink">{formatHours(weekTotal(shifts))}</b>
+          </span>
           <span className="order-last basis-full self-center text-[11.5px] text-ink-3">
             {[tradingHours, closedThisWeek(closedDays)].filter(Boolean).join(' · ')}
           </span>
         </div>
+      </div>
+      {/* Below the grid rather than beside it, so the roster keeps the full width */}
+      <div className="mt-4 min-[820px]:ml-auto min-[820px]:w-[330px]">
+        <HoursThisWeek staff={staff} shifts={shifts} />
       </div>
       {open && (
         <ShiftPopover
@@ -243,11 +255,22 @@ function ClosedCell() {
   )
 }
 
-function Row({ person, children }: { person: Person; children: React.ReactNode }) {
+const hoursColour = { over: 'font-semibold text-crit', under: 'font-semibold text-warn' }
+
+/** A person's row: their name and hours this week, then a cell for each day. */
+function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; children: React.ReactNode }) {
+  const mark = againstExpected(hours, person.expectedHours)
   return (
     <>
       <div className="border-r border-b border-line bg-surface-3 px-2.5 py-[9px]">
         <div className="text-[13.5px] font-semibold tracking-[-0.005em]">{person.name}</div>
+        <div
+          title={mark ? AGAINST_EXPECTED[mark] : undefined}
+          className={`mt-1 font-mono text-[12px] tabular-nums ${mark ? hoursColour[mark] : 'text-ink-2'}`}
+        >
+          {hoursAgainst(hours, person.expectedHours)}
+          {mark && <span className="sr-only">. {AGAINST_EXPECTED[mark]}</span>}
+        </div>
       </div>
       {children}
     </>
