@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-// On a week's grid or its text, the Roster and Roster text tabs keep to that
-// week. Anywhere else, `/` and `/share` pick the week themselves.
+// `/` redirects to the right week, so the Roster tab points there, and is the
+// way back to it from any other. Roster text keeps to the week on screen, and
+// anywhere else lets `/share` pick one the same way.
 const TABS = [
-  { label: 'Roster', section: '/roster', href: (week?: string) => (week ? `/roster/${week}` : '/') },
+  { label: 'Roster', section: '/roster', href: () => '/' },
   { label: 'Staff', section: '/staff', href: () => '/staff' },
   { label: 'Settings', section: '/settings', href: () => '/settings' },
   { label: 'Roster text', section: '/share', href: (week?: string) => (week ? `/share/${week}` : '/share') },
