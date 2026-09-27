@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
-import { dayLabel, dayName, shortDate, weekDates, type IsoDate } from '@/lib/roster/dates'
+import { clearWeek } from '@/app/actions'
+import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { cellKey, shiftsByCell, type Shift } from '@/lib/roster/shifts'
 import { formatRange } from '@/lib/roster/time'
-import { ShiftPopover, type PopoverTarget } from './ShiftPopover'
+import { ShiftPopover, UNREACHABLE, type PopoverTarget } from './ShiftPopover'
+import { useAsk } from './useAsk'
 
 type Person = { id: number; name: string }
 
@@ -21,11 +23,32 @@ const headCell =
 export function RosterGrid({ week, staff, shifts }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
+  const [dialog, ask] = useAsk()
   const [open, setOpen] = useState<PopoverTarget | null>(null)
 
   // Only closes the popover it's asked about, so a save that finishes after
   // you've moved on to another cell leaves that one open
   const close = useCallback((which: PopoverTarget) => setOpen((o) => (o === which ? null : o)), [])
+
+  async function clear() {
+    const n = shifts.length
+    if (!n) {
+      await ask({ title: 'Nothing to clear', body: 'This week has no shifts on it yet.', ok: 'OK', cancel: null })
+      return
+    }
+    const yes = await ask({
+      title: 'Clear this week?',
+      body: `Removes every shift from ${weekRange(week)}. Booked leave, N/A notes and closed days stay as they are.`,
+      ok: `Clear ${n} shift${n === 1 ? '' : 's'}`,
+      danger: true,
+    })
+    if (!yes) return
+    try {
+      await clearWeek(week)
+    } catch {
+      await ask({ title: "Couldn't clear the week", body: UNREACHABLE, ok: 'OK', cancel: null })
+    }
+  }
 
   return (
     <>
@@ -61,9 +84,13 @@ export function RosterGrid({ week, staff, shifts }: Props) {
           <Link href="/staff" className="btn">
             Manage staff
           </Link>
+          <button className="btn btn-danger" onClick={clear}>
+            Clear week
+          </button>
         </div>
       </div>
       {open && <ShiftPopover key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')} week={week} target={open} onClose={close} />}
+      {dialog}
     </>
   )
 }

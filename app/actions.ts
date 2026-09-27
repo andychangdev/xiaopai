@@ -178,3 +178,11 @@ export async function removeShift(id: number): Promise<ActionResult> {
   gridChanged()
   return {}
 }
+
+/** Every shift in the week. Leave, N/A notes and closed days aren't shifts, so they stay. */
+export async function clearWeek(week: string): Promise<ActionResult> {
+  checkWeek(week)
+  getDb().delete(shifts).where(eq(shifts.weekStart, week)).run()
+  gridChanged()
+  return {}
+}
