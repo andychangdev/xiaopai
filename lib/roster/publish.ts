@@ -75,6 +75,14 @@ export function weekSubtitle(weekStart: IsoDate, state: PublishState): string {
 export const NOTHING_TO_PUBLISH = 'This week has no shifts on it yet.'
 
 /**
+ * A week never published with no shifts has nothing to say. One published
+ * and emptied since does: staff need telling the week they have is gone.
+ */
+export function nothingToPublish(state: PublishState, shifts: number): boolean {
+  return state.status === 'draft' && shifts === 0
+}
+
+/**
  * The confirm dialog: what's going out, the version an update becomes, and
  * any warnings outstanding. Warnings never stop it: the manager already knows
  * the week is unusual.
@@ -94,7 +102,9 @@ export function publishQuestion({
   warnings: number
   today: IsoDate
 }): { title: string; body: string; ok: string } {
-  const what = `${shiftsLabel(shifts)}, ${formatHours(minutes)} across ${weekRange(weekStart)}.`
+  const what = shifts
+    ? `${shiftsLabel(shifts)}, ${formatHours(minutes)} across ${weekRange(weekStart)}.`
+    : `No shifts across ${weekRange(weekStart)}.`
   const warned =
     warnings > 0
       ? ` ${warnings} warning${warnings === 1 ? ' is' : 's are'} outstanding — publishing goes ahead anyway.`

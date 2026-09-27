@@ -3,6 +3,7 @@ import {
   NOTHING_TO_PUBLISH,
   changedSince,
   landingWeek,
+  nothingToPublish,
   publishBadge,
   publishQuestion,
   publishState,
@@ -156,10 +157,30 @@ describe('publishQuestion', () => {
     expect(body(1)).toMatch(/ 1 warning is outstanding — publishing goes ahead anyway\.$/)
   })
 
+  it('says there are no shifts in an update that took them all out', () => {
+    const state = { status: 'published' as const, version: 1, publishedAt: '2026-09-26', changed: true }
+    expect(publishQuestion({ ...ask, shifts: 0, minutes: 0, state, warnings: 0 }).body).toMatch(
+      /^No shifts across 5 Oct – 11 Oct\. This becomes version 2/,
+    )
+  })
+
   it('says shift, not shifts, for one', () => {
     expect(publishQuestion({ ...ask, shifts: 1, minutes: h(8), state: { status: 'draft' }, warnings: 0 }).body).toMatch(
       /^1 shift, 8h across/,
     )
+  })
+})
+
+describe('nothingToPublish', () => {
+  const published = { status: 'published' as const, version: 1, publishedAt: '2026-09-26' }
+
+  it('is true of a week never published that has no shifts', () => {
+    expect(nothingToPublish({ status: 'draft' }, 0)).toBe(true)
+    expect(nothingToPublish({ status: 'draft' }, 3)).toBe(false)
+  })
+
+  it("is false of a published week emptied since, so staff can be told it's changed", () => {
+    expect(nothingToPublish({ ...published, changed: true }, 0)).toBe(false)
   })
 })
 

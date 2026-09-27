@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useRef } from 'react'
 import { publishWeek } from '@/app/actions'
 import type { IsoDate } from '@/lib/roster/dates'
-import { NOTHING_TO_PUBLISH, publishQuestion, type PublishState } from '@/lib/roster/publish'
+import { NOTHING_TO_PUBLISH, nothingToPublish, publishQuestion, type PublishState } from '@/lib/roster/publish'
 import type { Minutes } from '@/lib/roster/time'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
@@ -49,7 +49,7 @@ export function PublishButton({
 
   async function publish() {
     if (publishing.current) return
-    if (!shifts) {
+    if (nothingToPublish(state, shifts)) {
       await notify('Nothing to publish', NOTHING_TO_PUBLISH)
       return
     }
