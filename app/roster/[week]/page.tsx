@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { CopyPreviousWeek } from '@/components/CopyPreviousWeek'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
-import { hasStaff, rosterWeek, templateList, tradingHoursWeek } from '@/lib/db/queries'
+import { hasStaff, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
 import { addDays, canonicalWeek, dayLabel, weekTitle } from '@/lib/roster/dates'
 import { tradingSummary } from '@/lib/roster/settings'
 
@@ -40,6 +41,14 @@ export default async function RosterPage({ params }: Props) {
               Week of {dayLabel(week)}
             </div>
           </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <CopyPreviousWeek
+            key={week}
+            week={week}
+            shifts={shifts.length}
+            previousShifts={shiftCount(addDays(week, -7))}
+          />
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
 import { staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
@@ -190,6 +191,37 @@ export async function clearWeek(week: string): Promise<ActionResult> {
   getDb().delete(shifts).where(eq(shifts.weekStart, week)).run()
   gridChanged()
   return {}
+}
+
+/**
+ * Replaces one week's shifts with a copy of another's, each on the same
+ * weekday for the same person, less the ones planCopy skips. Only shifts come
+ * across: the week's N/A notes are its own, and stay. A copy with nothing to
+ * bring across changes nothing, rather than emptying the week.
+ */
+export async function copyWeek(input: { from: string; to: string }): Promise<ActionResult & { report?: string }> {
+  const { from, to } = input ?? {}
+  checkWeek(from)
+  checkWeek(to)
+  if (from === to) throw new Error('Expected two different weeks')
+
+  const db = getDb()
+  const source = db
+    .select({ staffId: shifts.staffId, date: shifts.date, start: shifts.start, end: shifts.end })
+    .from(shifts)
+    .where(eq(shifts.weekStart, from))
+    .orderBy(asc(shifts.id))
+    .all()
+  const plan = planCopy({ from: source, to, staff: db.select({ id: staff.id, active: staff.active }).from(staff).all() })
+  if (!plan.shifts.length) return { error: nothingToCopy(from, plan.skipped) }
+
+  db.transaction((tx) => {
+    tx.insert(rosters).values({ weekStart: to }).onConflictDoNothing().run()
+    tx.delete(shifts).where(eq(shifts.weekStart, to)).run()
+    tx.insert(shifts).values(plan.shifts.map((s) => ({ weekStart: to, ...s }))).run()
+  })
+  gridChanged()
+  return { report: copyReport(plan, from) }
 }
 
 /** One weekday's opening or closing time, or both. A day with nothing stored starts from its default. */

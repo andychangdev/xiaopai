@@ -24,6 +24,11 @@ export function rosterWeek(week: IsoDate) {
   return { staff: rosterRows(people, weekShifts), shifts: weekShifts }
 }
 
+/** How many shifts a week has, without loading them. */
+export function shiftCount(week: IsoDate) {
+  return getDb().select({ n: count() }).from(shifts).where(eq(shifts.weekStart, week)).get()!.n
+}
+
 /** Everyone, active or not, in the set order, with what they have on record. */
 export function staffList() {
   const historyOf = staffHistory()
