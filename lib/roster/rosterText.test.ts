@@ -57,6 +57,16 @@ describe('rosterDays', () => {
     expect(days[1]).toEqual({ date: TUE, closed: true, on: [] })
   })
 
+  it('lists no one on a closed day even if shifts are somehow still there', () => {
+    const [, tue] = rosterDays({
+      weekStart: WEEK,
+      staff: STAFF,
+      shifts: [shift(JOHN, TUE, 10, 18)],
+      closedDays: TUE_CLOSED,
+    })
+    expect(tue).toEqual({ date: TUE, closed: true, on: [] })
+  })
+
   it('leaves an open day with no shifts empty', () => {
     expect(days[4]).toEqual({ date: FRI, closed: false, on: [] })
   })
