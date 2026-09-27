@@ -3,7 +3,8 @@
 set -e
 cd "$(dirname "$0")"
 
-[ -f icon.png ] || python3 make-icon.py
+# Drawn again if it's missing or make-icon.py has changed since
+if [ ! -f icon.png ] || [ make-icon.py -nt icon.png ]; then python3 make-icon.py; fi
 
 rm -rf icon.iconset && mkdir icon.iconset
 while read -r px name; do

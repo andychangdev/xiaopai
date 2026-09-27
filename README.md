@@ -30,3 +30,34 @@ Name the business on the Settings page; until then it's *Your restaurant*.
 
 `xiaopai.db` holds real staff names and is never committed. Back it up by
 copying the file somewhere outside the project folder.
+
+## The Dock icon
+
+Once it's in real use, one click starts the app: the icon starts the
+production server on port 3210 if it isn't already up, then opens it in a
+Chrome window with no address bar or tabs. The server only listens on this
+machine, since the app has no login.
+
+```bash
+npm run build                    # the icon serves the last build
+scripts/launcher/make-app.sh     # builds ~/Applications/Roster.app
+```
+
+Drag `Roster.app` from `~/Applications` to the Dock. The first click may ask
+whether Roster can use the folder the project is in; allow it, as that's
+where the server runs. The app runs `scripts/launcher/run` from the project,
+so run `make-app.sh` again only if the project folder moves.
+
+**After changing code**, run `npm run db:migrate` if there's a new migration,
+then `npm run build`. The icon never builds, as that would put a 30-second
+wait on every open. A server that's already running keeps serving the old
+build, so stop it too, and the next click starts the new one:
+
+```bash
+kill $(lsof -ti tcp:3210 -sTCP:LISTEN)
+```
+
+Closing the window leaves the server running until you log out. The icon
+always uses the project's own `xiaopai.db`, even if `XIAOPAI_DB` is exported.
+If it can't start the server, it says so and points at the server's log,
+`/tmp/xiaopai.log`.

@@ -1,0 +1,46 @@
+#!/bin/bash
+# What the Dock icon does: start the production server if it isn't up, wait
+# for it, then open the app in a Chrome window with no address bar or tabs.
+# It never builds: after changing code, run `npm run build` (see README).
+# Roster.app runs this file where it is, so it finds the project from here.
+
+APP_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+PORT=3210
+URL="http://localhost:$PORT"
+LOG=/tmp/xiaopai.log
+
+# An alert rather than nothing, so the icon never seems to do nothing
+fail() {
+  osascript -e 'on run argv' -e 'display alert (item 1 of argv) message (item 2 of argv)' -e 'end run' "$1" "$2" >/dev/null
+  exit 1
+}
+
+# Anything answering at all. The icon, not a page, as pages read the database
+up() { curl -s -o /dev/null --max-time 1 "$URL/icon.png"; }
+
+if ! up; then
+  cd "$APP_DIR" || fail "Roster didn’t start" "It couldn’t open $APP_DIR."
+  # Opened from Finder or the Dock, PATH is only the system's: no Homebrew, no nvm
+  export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+  [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh"
+  # The real thing, so the project's own xiaopai.db whatever a terminal has
+  # exported, and only this machine can reach it: there's no login
+  unset XIAOPAI_DB
+  PORT=$PORT nohup npm start -- -H 127.0.0.1 >"$LOG" 2>&1 &
+  server=$!
+  answered=
+  for _ in $(seq 1 40); do # wait up to 10s for it to answer, unless it's already given up
+    if up; then answered=1 && break; fi
+    kill -0 "$server" 2>/dev/null || break
+    sleep 0.25
+  done
+  if [ -z "$answered" ]; then
+    kill -0 "$server" 2>/dev/null &&
+      fail "Roster is still starting" "It’s taking longer than usual. Click the icon again in a moment. The server’s log is $LOG."
+    fail "Roster didn’t start" "The server stopped. Its log is $LOG. If it can’t find a production build, run npm run build in $APP_DIR."
+  fi
+fi
+
+# -n, so the flags reach Chrome even when it's already open; without Chrome,
+# the default browser
+open -n -a "Google Chrome" --args --app="$URL" 2>/dev/null || open "$URL"
