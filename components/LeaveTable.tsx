@@ -32,6 +32,7 @@ export function LeaveTable({
    * them. Removing them is the answer Enter gives.
    */
   async function book(booking: Booking): Promise<boolean> {
+    setError(undefined) // whatever went wrong last time, this is a new try
     const send = (shifts?: 'remove' | 'keep') => bookLeave({ ...booking, shifts }).catch(() => ({ error: UNREACHABLE }))
     let result: Awaited<ReturnType<typeof send>> = await send()
     if ('clashes' in result && result.clashes) {
