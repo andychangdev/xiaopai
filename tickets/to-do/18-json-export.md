@@ -6,6 +6,6 @@
 
 **Status:** ready-for-agent
 
-- [ ] An Export backup button on Settings downloads one JSON file named with the date, e.g. `ah-ma-roster-2026-09-27.json`.
-- [ ] The file holds every table: staff, shift templates, trading hours, rosters with their snapshots, shifts, N/A notes and leave.
+- [ ] An Export backup button on Settings downloads one JSON file named with the date, e.g. `xiaopai-2026-09-27.json`.
+- [ ] The file holds every table: settings, staff, shift templates, trading hours, rosters with their snapshots, shifts, N/A notes and leave.
 - [ ] Exporting changes nothing, and there's no import.

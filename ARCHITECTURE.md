@@ -393,7 +393,7 @@ URL="http://localhost:$PORT"
 # already running? just open it
 if ! curl -sf "$URL" >/dev/null 2>&1; then
   cd "$APP_DIR" || exit 1
-  PORT=$PORT nohup npm start >/tmp/ahma-roster.log 2>&1 &
+  PORT=$PORT nohup npm start >/tmp/xiaopai.log 2>&1 &
   for _ in $(seq 1 40); do                 # wait up to 10s for it to answer
     curl -sf "$URL" >/dev/null 2>&1 && break
     sleep 0.25
@@ -422,8 +422,8 @@ scripts/launcher/
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Ah Ma Roster</string>
-  <key>CFBundleIdentifier</key><string>com.ahma.roster</string>
+  <key>CFBundleName</key><string>Roster</string>
+  <key>CFBundleIdentifier</key><string>com.xiaopai.roster</string>
   <key>CFBundleExecutable</key><string>run</string>
   <key>CFBundleIconFile</key><string>icon</string>
   <key>CFBundlePackageType</key><string>APPL</string>
@@ -437,7 +437,7 @@ set -e
 cd "$(dirname "$0")"
 [ -f icon.icns ] || ./make-icns.sh
 
-APP="$HOME/Applications/Ah Ma Roster.app"
+APP="$HOME/Applications/Roster.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/"
 cp run        "$APP/Contents/MacOS/run"

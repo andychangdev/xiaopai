@@ -6,7 +6,7 @@
 
 **Status:** ready-for-agent
 
-- [ ] One build script assembles `Ah Ma Roster.app` in `~/Applications` with the existing icon, generating the icon first if it's missing.
+- [ ] One build script assembles `Roster.app` in `~/Applications` with the existing icon, generating the icon first if it's missing.
 - [ ] Clicking the app does the following:
   - if nothing answers on port 3210, starts `npm start` there and waits up to about 10 seconds
   - opens the app in a Chrome `--app` window, with no address bar or tabs
