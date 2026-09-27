@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+/* The mockup's tokens (mockup/roster-editor.html), as Tailwind theme
+   variables: bg-surface, border-line, text-accent and so on. Dark mode
+   redefines the same variables below, so components never need `dark:`. */
+@theme {
+  --color-canvas: #f1f3f1;
+  --color-surface: #fff;
+  --color-surface-2: #e7eae7;
+  --color-surface-3: #f7f8f7;
+  --color-line: #d3d8d3;
+  --color-line-strong: #b9c0b9;
+  --color-ink: #1a201d;
+  --color-ink-2: #5b665f;
+  --color-ink-3: #8b958e;
+  --color-accent: #146356;
+  --color-accent-2: #1d8271;
+  --color-accent-ink: #fff;
+  --color-warn: #8a5300;
+  --color-warn-bg: #fcf1dd;
+  --color-warn-line: #e8cb96;
+  --color-crit: #9d2b21;
+  --color-crit-bg: #fbe8e5;
+  --color-crit-line: #eab3ac;
+  --color-off: #9aa39c;
+  --color-unavail: #e9ece9;
+
+  --font-sans: var(--font-archivo), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-chip: 5px;
+  --radius-control: 7px;
+  --radius-card: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #121614;
+    --color-surface: #1a1f1c;
+    --color-surface-2: #232925;
+    --color-surface-3: #1f2522;
+    --color-line: #333b36;
+    --color-line-strong: #47514a;
+    --color-ink: #e7ece9;
+    --color-ink-2: #9ba69f;
+    --color-ink-3: #6e7a73;
+    --color-accent: #4bbfa6;
+    --color-accent-2: #63d4bb;
+    --color-accent-ink: #0b1512;
+    --color-warn: #efb45f;
+    --color-warn-bg: #33270f;
+    --color-warn-line: #5c4720;
+    --color-crit: #f18d80;
+    --color-crit-bg: #361b17;
+    --color-crit-line: #5e2f28;
+    --color-off: #69736c;
+    --color-unavail: #1e2320;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* The roster grid: a name column, then seven day columns (ARCHITECTURE §7) */
+.roster-grid {
+  display: grid;
+  grid-template-columns: 168px repeat(7, minmax(112px, 1fr));
+  min-width: 960px;
+}
