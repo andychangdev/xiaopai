@@ -22,10 +22,12 @@ export function LeavePopover({
   onClose: (target: PopoverTarget) => void
 }) {
   const { person, date, anchor } = target
-  const manage = useRef<HTMLAnchorElement>(null)
+  const cancel = useRef<HTMLButtonElement>(null)
 
+  // On Cancel rather than Manage leave, so an Enter held or pressed twice to
+  // open this can't carry on and take you off the roster
   useEffect(() => {
-    manage.current?.focus({ preventScroll: true })
+    cancel.current?.focus({ preventScroll: true })
   }, [])
 
   return (
@@ -37,10 +39,11 @@ export function LeavePopover({
         Shifts can&apos;t go on a leave day. Leave is booked on the Staff page.
       </p>
       <div className="mt-[9px] flex gap-1.5 border-t border-line pt-[9px] [&>.btn]:flex-1 [&>.btn]:p-[5px] [&>.btn]:text-center [&>.btn]:text-[12px]">
-        <Link ref={manage} href="/staff#leave" className="btn">
+        <Link href="/staff#leave" className="btn">
           Manage leave
         </Link>
         <button
+          ref={cancel}
           className="btn"
           onClick={() => {
             onClose(target)
