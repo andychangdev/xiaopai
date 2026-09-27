@@ -8,11 +8,11 @@ import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
 import { closedDaysOf, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
-import { isUsuallyAvailable, withDayAvailable } from '@/lib/roster/availability'
+import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
-import { alreadyNaNote } from '@/lib/roster/notAvailable'
+import { markNaError } from '@/lib/roster/notAvailable'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
@@ -266,7 +266,8 @@ export async function setMarkedNa(input: {
   if (isClosed(closedDaysOf(week), date)) return { error: dayClosedError(date) }
   const row = gridRow(week, staffId)
   if ('error' in row) return row
-  if (!isUsuallyAvailable(row.available, date)) return { error: alreadyNaNote(row.name, date) }
+  const error = markNaError(row, date)
+  if (error) return { error }
   db.transaction((tx) => {
     tx.insert(rosters).values({ weekStart: week }).onConflictDoNothing().run()
     tx.insert(naNotes).values({ weekStart: week, staffId, date }).onConflictDoNothing().run()

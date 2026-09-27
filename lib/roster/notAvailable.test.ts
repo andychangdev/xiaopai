@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { alreadyNaNote, naNote, naReason } from './notAvailable'
+import { alreadyNaNote, markNaError, naNote, naReason } from './notAvailable'
 import { EVERY_DAY } from './staff'
 
 // 5 – 11 Oct 2026
@@ -45,6 +45,18 @@ describe('naNote', () => {
 describe('alreadyNaNote', () => {
   it('says why the day needs no note, and where to change it', () => {
     expect(alreadyNaNote('John Reyes', SUN)).toBe(
+      "Already N/A — John isn't usually available on Sun. Change that on the Staff page.",
+    )
+  })
+})
+
+describe('markNaError', () => {
+  it('takes a note on a day the person can usually work', () => {
+    expect(markNaError({ name: 'John Reyes', available: NOT_SUNDAY.available }, FRI)).toBeNull()
+  })
+
+  it("refuses one on a day their pattern already rules out, so it can't be stacked", () => {
+    expect(markNaError({ name: 'John Reyes', available: NOT_SUNDAY.available }, SUN)).toBe(
       "Already N/A — John isn't usually available on Sun. Change that on the Staff page.",
     )
   })

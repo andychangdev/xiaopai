@@ -34,3 +34,8 @@ export function naNote(reason: NaReason, name: string, date: IsoDate): string {
 export function alreadyNaNote(name: string, date: IsoDate): string {
   return `Already N/A — ${firstName(name)} isn't usually available on ${dayName(date)}. Change that on the Staff page.`
 }
+
+/** Why this day can't be marked, or null when it can. A note on top of the pattern would say nothing new. */
+export function markNaError(person: { name: string; available: boolean[] }, date: IsoDate): string | null {
+  return isUsuallyAvailable(person.available, date) ? null : alreadyNaNote(person.name, date)
+}
