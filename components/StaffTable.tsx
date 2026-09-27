@@ -1,11 +1,14 @@
 'use client'
 
 import { useOptimistic, useRef, useState, useTransition } from 'react'
-import { addStaff, moveStaff, removeStaff, updateStaff, type ActionResult } from '@/app/actions'
+import { addStaff, moveStaff, removeStaff, setAvailable, updateStaff, type ActionResult } from '@/app/actions'
 import type { StaffListRow } from '@/lib/db/queries'
+import { withDayAvailable } from '@/lib/roster/availability'
+import { DAY_NAMES } from '@/lib/roster/dates'
 import { whyNotRemovable } from '@/lib/roster/staff'
 import { td, th } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
+import { UNREACHABLE } from './ShiftPopover'
 import { useAsk, type AskOptions } from './useAsk'
 
 const hoursField = 'field w-[74px] font-mono tabular-nums'
@@ -26,11 +29,12 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse">
+        <table className="w-full min-w-[760px] border-collapse">
           <thead>
             <tr>
               <th className={th}>Name</th>
               <th className={th}>Expected hours</th>
+              <th className={th}>Available</th>
               <th className={th}>Notes</th>
               <th className={th}>Active</th>
               <th className={th}>
@@ -116,6 +120,9 @@ function StaffRow({
         />
       </td>
       <td className={td}>
+        <AvailableDays id={person.id} available={person.available} report={report} />
+      </td>
+      <td className={td}>
         <SaveOnBlur
           className="field"
           aria-label="Notes"
@@ -155,6 +162,40 @@ function StaffRow({
         </button>
       </td>
     </tr>
+  )
+}
+
+/** The weekdays someone can usually work, each a toggle that saves when pressed. */
+function AvailableDays({ id, available, report }: { id: number; available: boolean[]; report: Report }) {
+  // Lit the moment you press it, rather than when the server answers
+  const [days, setDay] = useOptimistic(available, (days, change: { weekday: number; on: boolean }) =>
+    withDayAvailable(days, change.weekday, change.on),
+  )
+  const [, startTransition] = useTransition()
+
+  return (
+    <span role="group" aria-label="Usually available" className="inline-flex gap-[3px]">
+      {DAY_NAMES.map((day, weekday) => {
+        const on = days[weekday]
+        return (
+          <button
+            key={day}
+            aria-label={day}
+            aria-pressed={on}
+            title={`${on ? 'Usually available' : 'Not usually available'} on ${day}`}
+            className={`size-[23px] rounded-chip border text-[11px] leading-none font-semibold ${on ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface-3 text-ink-3 hover:border-line-strong'}`}
+            onClick={() =>
+              startTransition(async () => {
+                setDay({ weekday, on: !on })
+                report(await setAvailable(id, weekday, !on).catch(() => ({ error: UNREACHABLE })))
+              })
+            }
+          >
+            {day[0]}
+          </button>
+        )
+      })}
+    </span>
   )
 }
 
@@ -236,6 +277,7 @@ function AddRow({
           placeholder="—"
         />
       </td>
+      <td className={`${td} text-[12px] text-ink-3`}>Every day</td>
       <td className={td}>
         <input form={form} name="notes" className="field" aria-label="Notes about them" placeholder="Optional" />
       </td>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addShift, clearWeek, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
+import { isUsuallyAvailable, notUsuallyAvailableNote } from '@/lib/roster/availability'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
@@ -157,6 +158,9 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours, close
                   if (closedDays[i]) return <ClosedCell key={date} />
                   const inCell = cells.get(cellKey(person.id, date)) ?? []
                   const copy = copying && copyShift(copying.shift, { staffId: person.id, date }, inCell)
+                  const na = isUsuallyAvailable(person.available, date)
+                    ? undefined
+                    : notUsuallyAvailableNote(person.name, date)
                   return (
                     <Cell
                       key={date}
@@ -164,6 +168,7 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours, close
                       date={date}
                       shifts={inCell}
                       overlapping={overlapping}
+                      na={na}
                       mode={!copying ? 'edit' : copy ? 'paste' : 'holds'}
                       copying={copying?.shift}
                       onClick={(e, shift) => {
@@ -293,12 +298,16 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  *
  * A chip that overlaps another is outlined, since the Warnings panel can't
  * say which two.
+ *
+ * A day the person isn't usually available is tinted, and says N/A until
+ * the pointer's over it. It's a note, so the cell works like any other.
  */
 function Cell({
   person,
   date,
   shifts,
   overlapping,
+  na,
   mode,
   copying,
   onClick,
@@ -308,6 +317,8 @@ function Cell({
   shifts: Shift[]
   /** The week's shifts that overlap another */
   overlapping: Set<number>
+  /** Why the person isn't expected this day, when they aren't */
+  na?: string
   mode: CellMode
   copying?: Shift
   onClick: (e: React.MouseEvent<HTMLElement>, shift?: Shift) => void
@@ -323,16 +334,19 @@ function Cell({
   const chipAction = { edit: 'Change or remove', paste: `Paste ${copyTimes} here`, holds: `Already has ${copyTimes}` }[
     mode
   ]
+  // Hovering an N/A cell keeps it near its tint, as the mockup does; the + is the sign it's live
+  const hover = na ? 'hover:bg-surface-2' : 'hover:bg-surface-3'
   const modeStyle = {
     edit: '',
-    paste: 'cursor-copy hover:bg-surface-3 [&_button]:cursor-copy',
+    paste: `cursor-copy ${hover} [&_button]:cursor-copy`,
     holds: '[&_button]:cursor-default',
   }[mode]
 
   return (
     <div
       data-cell
-      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-[5px]' : ''} ${modeStyle}`}
+      title={na}
+      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-[5px]' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle}`}
       // The padding and the gaps between chips paste too
       onClick={mode === 'paste' ? (e) => e.target === e.currentTarget && onClick(e) : undefined}
     >
@@ -355,11 +369,21 @@ function Cell({
       })}
       <button
         data-add
-        aria-label={add}
-        title={mode === 'edit' && filled ? 'Add another shift' : add}
-        className={`group grid flex-1 place-items-center ${mode === 'holds' ? '' : 'hover:bg-surface-3'} ${filled ? 'min-h-[18px] rounded-chip' : ''}`}
+        aria-label={na ? `${add}. ${na}` : add}
+        // While copying, what a click would paste matters more than why the day is N/A
+        title={mode !== 'edit' ? add : filled ? 'Add another shift' : (na ?? add)}
+        className={`group grid flex-1 place-items-center ${mode === 'holds' ? '' : hover} ${filled ? 'min-h-[18px] rounded-chip' : ''}`}
         onClick={(e) => onClick(e)}
       >
+        {/* A chip leaves no room for it, so a filled cell keeps just the tint */}
+        {na && !filled && (
+          <span
+            aria-hidden
+            className="col-start-1 row-start-1 font-mono text-[10.5px] font-medium tracking-[0.12em] text-ink-3 transition-opacity group-hover:opacity-0 group-focus-visible:opacity-0"
+          >
+            N/A
+          </span>
+        )}
         {mode !== 'holds' && <Plus small={filled} times={mode === 'paste' ? copyTimes : undefined} />}
       </button>
     </div>
@@ -376,7 +400,7 @@ function Plus({ small = false, times }: { small?: boolean; times?: string }) {
   return (
     <span
       aria-hidden
-      className={`leading-none text-ink-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 ${small ? 'text-[14px]' : 'text-[17px]'}`}
+      className={`col-start-1 row-start-1 leading-none text-ink-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 ${small ? 'text-[14px]' : 'text-[17px]'}`}
     >
       +{times && <span className="ml-1 font-mono text-[11px] tracking-[-0.02em] tabular-nums">{times}</span>}
     </span>

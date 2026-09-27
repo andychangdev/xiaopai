@@ -12,8 +12,9 @@ export default function StaffPage() {
     <div className="max-w-[840px]">
       <PageHead title="Staff">
         Rows appear on the roster in this order, so use ↑↓ to arrange them the way you think about your staff.
-        Everyone active appears on every week&apos;s roster. Unticking Active takes someone off new weeks, but
-        leaves them on any week where they already have shifts.
+        Everyone active appears on every week&apos;s roster. Available is the weekdays someone can normally
+        work: rostering them on another day raises a warning, but is never blocked. Unticking Active takes
+        someone off new weeks, but leaves them on any week where they already have shifts.
       </PageHead>
       <Card title="People">
         <StaffTable staff={staffList()} />

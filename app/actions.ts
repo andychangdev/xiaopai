@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
 import { closedDaysOf, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
@@ -103,6 +104,24 @@ export async function updateStaff(
     getDb().update(staff).set(set).where(eq(staff.id, id)).run()
     staffChanged()
   }
+  return {}
+}
+
+/** One weekday in or out of someone's usual pattern. Shifts already on the grid stay as they are. */
+export async function setAvailable(id: number, weekday: number, available: boolean): Promise<ActionResult> {
+  checkId(id)
+  checkWeekday(weekday)
+  if (typeof available !== 'boolean') throw new Error('Expected available to be true or false')
+
+  getDb().transaction((tx) => {
+    const person = tx.select({ available: staff.available }).from(staff).where(eq(staff.id, id)).get()
+    if (!person) return
+    tx.update(staff)
+      .set({ available: withDayAvailable(person.available, weekday, available) })
+      .where(eq(staff.id, id))
+      .run()
+  })
+  staffChanged()
   return {}
 }
 
