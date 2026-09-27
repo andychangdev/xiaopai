@@ -53,6 +53,8 @@ export function ShiftPopover({
   onCopy: (shift: Shift) => void
 }) {
   const { person, date, na, shift, anchor } = target
+  // Their pattern already says so, and a note on top would say nothing new
+  const alreadyNa = !shift && na === 'usual'
   const ref = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
@@ -185,7 +187,7 @@ export function ShiftPopover({
           ref={input}
           aria-label="Shift times"
           aria-invalid={!!error}
-          aria-describedby="shift-popover-note"
+          aria-describedby={alreadyNa ? 'shift-popover-note shift-popover-na' : 'shift-popover-note'}
           autoComplete="off"
           placeholder="10-18"
           defaultValue={shift ? formatRange(shift.start, shift.end) : ''}
@@ -203,9 +205,11 @@ export function ShiftPopover({
       >
         {error ?? '10-18 or 10-6 → 10:00–18:00'}
       </p>
-      {/* Their pattern already says so, and a note on top would say nothing new */}
-      {!shift && na === 'usual' && (
-        <p className="mt-[7px] border-t border-line pt-[7px] text-[11.5px] leading-[1.45] text-ink-3">
+      {alreadyNa && (
+        <p
+          id="shift-popover-na"
+          className="mt-[7px] border-t border-line pt-[7px] text-[11.5px] leading-[1.45] text-ink-3"
+        >
           {alreadyNaNote(person.name, date)}
         </p>
       )}
@@ -221,7 +225,7 @@ export function ShiftPopover({
             Remove
           </button>
         )}
-        {!shift && na !== 'usual' && (
+        {!shift && !alreadyNa && (
           <button
             className="btn"
             title={na === 'marked' ? "Take off this week's note" : "Note they can't work this day, this week only"}
