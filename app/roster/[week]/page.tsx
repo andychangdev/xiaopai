@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { PublishBadge } from '@/components/PublishBadge'
 import { PublishButton } from '@/components/PublishButton'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
@@ -8,7 +9,7 @@ import { hasStaff, openWeek, rosterWeek, shiftCount, templateList, tradingHoursW
 import { undoLabel } from '@/lib/db/undo'
 import { addDays, canonicalWeek, mondayOf, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
 import { weekTotal } from '@/lib/roster/hours'
-import { needsPublishing, publishBadge, weekSubtitle, type PublishState } from '@/lib/roster/publish'
+import { needsPublishing, weekSubtitle } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
 import { buildWarnings } from '@/lib/roster/warnings'
 
@@ -59,7 +60,7 @@ export default async function RosterPage({ params }: Props) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge state={state} />
+          <PublishBadge key={`badge-${week}`} week={week} state={state} />
           {/* With nothing to publish, sharing is the one thing left to do */}
           <Link href={`/share/${week}`} className={`btn ${needsPublishing(state) ? '' : 'btn-primary'}`}>
             Share roster
@@ -96,18 +97,6 @@ export default async function RosterPage({ params }: Props) {
         <NoRows everyoneInactive={hasStaff()} />
       )}
     </>
-  )
-}
-
-/** Draft and Unpublished changes in amber, since both still need publishing; Published in the accent. */
-function Badge({ state }: { state: PublishState }) {
-  const live = state.status === 'published' && !state.changed
-  return (
-    <span
-      className={`rounded-full border px-[9px] py-1 text-[11px] font-semibold tracking-[0.07em] uppercase ${live ? 'border-accent text-accent' : 'border-warn-line bg-warn-bg text-warn'}`}
-    >
-      {publishBadge(state)}
-    </span>
   )
 }
 

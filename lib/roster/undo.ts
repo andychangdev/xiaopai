@@ -78,6 +78,7 @@ export type GridAction =
   | { kind: 'copy'; from: IsoDate }
   | { kind: 'close' | 'reopen'; date: IsoDate }
   | { kind: 'markNa' | 'clearNa'; name: string; date: IsoDate }
+  | { kind: 'revert'; version: number }
 
 /** What the Undo button would take back, to follow 'Undo': 'adding 10:00–18:00 for John Reyes on Mon'. */
 export function describeAction(action: GridAction): string {
@@ -104,5 +105,7 @@ export function describeAction(action: GridAction): string {
       return `marking ${action.name} N/A on ${dayName(action.date)}`
     case 'clearNa':
       return `clearing ${action.name}'s N/A on ${dayName(action.date)}`
+    case 'revert':
+      return `reverting to v${action.version}`
   }
 }

@@ -136,4 +136,8 @@ describe('describeAction', () => {
   it('says clearing the week', () => {
     expect(describeAction({ kind: 'clear' })).toBe('clearing the week')
   })
+
+  it('names the version reverted to', () => {
+    expect(describeAction({ kind: 'revert', version: 2 })).toBe('reverting to v2')
+  })
 })

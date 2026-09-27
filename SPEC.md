@@ -113,6 +113,12 @@ into **Unpublished changes**, and publishing again bumps `version` and
 re-snapshots. From v2 the sheet reads `Updated 8 Oct` instead of `Published`,
 so staff can tell a fresh printout from the one already on the wall.
 
+The **Unpublished changes** badge holds an undo icon that reverts the week to
+the published version, after asking: its shifts and closed days go back to the
+snapshot's, and N/A notes stay. A published shift for someone now on leave
+that day, or no longer on the staff list, can't come back, so the week still
+reads Unpublished changes and the dialog says why. Undo takes a revert back.
+
 The three states, shown as a badge next to the button:
 
 | State | Badge | Button |

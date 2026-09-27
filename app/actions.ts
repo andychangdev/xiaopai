@@ -3,7 +3,7 @@
 // Every mutation. These are POST endpoints that anything reaching the app can
 // call, so each one checks its input with the same rules the UI uses.
 
-import { and, asc, count, eq, gte, lte, max } from 'drizzle-orm'
+import { and, asc, count, eq, gte, inArray, lte, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { today } from '@/lib/clock'
 import { getDb } from '@/lib/db/client'
@@ -25,6 +25,7 @@ import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { leaveOn, onLeaveError, overlapError, parseLeave } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
 import { NOTHING_TO_PUBLISH, nothingToPublish, snapshotOf } from '@/lib/roster/publish'
+import { nothingToRevert, planRevert, revertReport } from '@/lib/roster/revert'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
@@ -416,6 +417,31 @@ export async function publishWeek(week: string): Promise<ActionResult> {
     .run()
   gridChanged()
   return {}
+}
+
+/**
+ * Puts a published week that's been edited since back as it went out: its
+ * shifts and closed days, less any published shift it can no longer take
+ * (planRevert). N/A notes were never published, so they stay. It's a grid
+ * action, so Undo takes it back.
+ */
+export async function revertToPublished(week: string): Promise<ActionResult & { report?: string }> {
+  checkWeek(week)
+  const { shifts: now, closedDays, leave: away, roster, publish: state } = rosterWeek(week)
+  if (state.status !== 'published' || !state.changed || !roster?.snapshot) return {}
+
+  const db = getDb()
+  const staffIds = new Set(db.select({ id: staff.id }).from(staff).all().map((p) => p.id))
+  const plan = planRevert({ snapshot: roster.snapshot, shifts: now, closedDays, staffIds, leave: away })
+  if (!plan.changes) return { error: nothingToRevert(plan, state.version) }
+
+  undoable(week, describeAction({ kind: 'revert', version: state.version }), (tx) => {
+    tx.update(rosters).set({ closedDays: plan.closedDays }).where(eq(rosters.weekStart, week)).run()
+    if (plan.remove.length) tx.delete(shifts).where(inArray(shifts.id, plan.remove)).run()
+    if (plan.add.length) tx.insert(shifts).values(plan.add.map((s) => ({ weekStart: week, ...s }))).run()
+  })
+  gridChanged()
+  return { report: revertReport(plan, state.version) }
 }
 
 /**
