@@ -4,17 +4,22 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { addShift, removeShift, setMarkedNa, updateShift, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
+import type { Leave } from '@/lib/roster/leave'
 import { alreadyNaNote, type NaReason } from '@/lib/roster/notAvailable'
 import type { Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatRange, parseShorthand, type Minutes } from '@/lib/roster/time'
 import { Popover } from './Popover'
 
-/** The cell a popover is for, why it shows N/A if it does, and the shift in it when a chip opened it. */
+/**
+ * The cell a popover is for, why it shows N/A if it does, the leave the
+ * person's on if they are, and the shift in it when a chip opened it.
+ */
 export type PopoverTarget = {
   person: { id: number; name: string }
   date: IsoDate
   na: NaReason | null
+  leave?: Leave
   shift?: Shift
   anchor: HTMLElement
 }

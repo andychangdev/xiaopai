@@ -7,13 +7,14 @@ import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
-import type { Leave } from '@/lib/roster/leave'
+import { leaveOn, onLeaveNote, type Leave } from '@/lib/roster/leave'
 import { naNote, naReason, type NaNote } from '@/lib/roster/notAvailable'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
 import { buildWarnings, overlappingShifts } from '@/lib/roster/warnings'
 import { HoursThisWeek } from './HoursThisWeek'
+import { LeavePopover } from './LeavePopover'
 import { ShiftPopover, UNREACHABLE, actionError, type PopoverTarget } from './ShiftPopover'
 import { useAsk } from './useAsk'
 import { WarningsPanel } from './WarningsPanel'
@@ -29,8 +30,11 @@ type Copying = { shift: Shift; person: Person; chip: HTMLElement }
 /** A refused paste: which copy it was part of, and the cell it was for. */
 type PasteError = { copying: Copying; cell: string; message: string }
 
-/** What clicking a cell does: open the popover, paste the copied shift, or nothing, as the cell already holds it. */
-type CellMode = 'edit' | 'paste' | 'holds'
+/**
+ * What clicking a cell does: open the popover, paste the copied shift, or
+ * nothing, as the cell already holds it or the person's on leave.
+ */
+type CellMode = 'edit' | 'paste' | 'holds' | 'away'
 
 type Props = {
   week: IsoDate
@@ -162,8 +166,10 @@ export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tra
                 {days.map((date, i) => {
                   if (closedDays[i]) return <ClosedCell key={date} />
                   const inCell = cells.get(cellKey(person.id, date)) ?? []
-                  const copy = copying && copyShift(copying.shift, { staffId: person.id, date }, inCell)
-                  const na = naReason(person, date, naNotes)
+                  const away = leaveOn(leave, person.id, date)
+                  // Leave takes no shift, so there's nothing to paste into it, and no N/A to show
+                  const copy = copying && !away && copyShift(copying.shift, { staffId: person.id, date }, inCell)
+                  const na = away ? null : naReason(person, date, naNotes)
                   return (
                     <Cell
                       key={date}
@@ -172,10 +178,11 @@ export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tra
                       shifts={inCell}
                       overlapping={overlapping}
                       na={na ? naNote(na, person.name, date) : undefined}
-                      mode={!copying ? 'edit' : copy ? 'paste' : 'holds'}
+                      leave={away && onLeaveNote(person.name, away)}
+                      mode={!copying ? 'edit' : copy ? 'paste' : away ? 'away' : 'holds'}
                       copying={copying?.shift}
                       onClick={(e, shift) => {
-                        if (!copying) setOpen({ person, date, shift, na, anchor: e.currentTarget })
+                        if (!copying) setOpen({ person, date, shift, na, leave: away, anchor: e.currentTarget })
                         // A double click is one paste, not two
                         else if (copy && e.detail < 2) paste(copy, person, copying)
                       }}
@@ -209,16 +216,20 @@ export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tra
         <WarningsPanel warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week })} />
         <HoursThisWeek staff={staff} shifts={shifts} />
       </div>
-      {open && (
-        <ShiftPopover
-          key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')}
-          week={week}
-          target={open}
-          templates={templates}
-          onClose={close}
-          onCopy={(shift) => setCopying({ shift, person: open.person, chip: open.anchor })}
-        />
-      )}
+      {open &&
+        // A leave day's own popover, unless a shift kept on it was clicked
+        (open.leave && !open.shift ? (
+          <LeavePopover key={cellKey(open.person.id, open.date)} target={open} leave={open.leave} onClose={close} />
+        ) : (
+          <ShiftPopover
+            key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')}
+            week={week}
+            target={open}
+            templates={templates}
+            onClose={close}
+            onCopy={(shift) => setCopying({ shift, person: open.person, chip: open.anchor })}
+          />
+        ))}
       {copying && (
         <>
           {/* Room to scroll the footer out from under the bar */}
@@ -305,6 +316,10 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  * A day the person isn't usually available, or is marked not available this
  * week, is tinted, and says N/A until the pointer's over it. It's a note, so
  * the cell works like any other.
+ *
+ * A day they're on leave says LEAVE instead, and takes nothing new: clicking
+ * it shows the booking. Shifts kept on it when the leave was booked still
+ * show, and still open.
  */
 function Cell({
   person,
@@ -312,6 +327,7 @@ function Cell({
   shifts,
   overlapping,
   na,
+  leave,
   mode,
   copying,
   onClick,
@@ -323,6 +339,8 @@ function Cell({
   overlapping: Set<number>
   /** Why the person isn't expected this day, when they aren't */
   na?: string
+  /** Who's away and when, when the person's on leave this day */
+  leave?: string
   mode: CellMode
   copying?: Shift
   onClick: (e: React.MouseEvent<HTMLElement>, shift?: Shift) => void
@@ -331,25 +349,31 @@ function Cell({
   const where = `${person.name} on ${dayLabel(date)}`
   const copyTimes = copying && formatRange(copying.start, copying.end)
   const add = {
-    edit: `Add ${filled ? 'another' : 'a'} shift for ${where}`,
+    edit: leave ? `${leave}. Show the booking` : `Add ${filled ? 'another' : 'a'} shift for ${where}`,
     paste: `Paste ${copyTimes} for ${where}`,
     holds: `${where} already has ${copyTimes}`,
+    away: `${where} is on leave, so nothing pastes here`,
   }[mode]
-  const chipAction = { edit: 'Change or remove', paste: `Paste ${copyTimes} here`, holds: `Already has ${copyTimes}` }[
-    mode
-  ]
+  const chipAction = {
+    edit: 'Change or remove',
+    paste: `Paste ${copyTimes} here`,
+    holds: `Already has ${copyTimes}`,
+    away: 'On leave, so nothing pastes here',
+  }[mode]
+  const inert = mode === 'holds' || mode === 'away'
   // Hovering an N/A cell keeps it near its tint, as the mockup does; the + is the sign it's live
   const hover = na ? 'hover:bg-surface-2' : 'hover:bg-surface-3'
   const modeStyle = {
     edit: '',
     paste: `cursor-copy ${hover} [&_button]:cursor-copy`,
     holds: '[&_button]:cursor-default',
+    away: '[&_button]:cursor-default',
   }[mode]
 
   return (
     <div
       data-cell
-      title={na}
+      title={leave ?? na}
       className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-[5px]' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle}`}
       // The padding and the gaps between chips paste too
       onClick={mode === 'paste' ? (e) => e.target === e.currentTarget && onClick(e) : undefined}
@@ -375,8 +399,8 @@ function Cell({
         data-add
         aria-label={na ? `${add}. ${na}` : add}
         // While copying, what a click would paste matters more than why the day is N/A
-        title={mode !== 'edit' ? add : filled ? 'Add another shift' : (na ?? add)}
-        className={`group grid flex-1 place-items-center ${mode === 'holds' ? '' : hover} ${filled ? 'min-h-[18px] rounded-chip' : ''}`}
+        title={mode !== 'edit' ? add : (leave ?? (filled ? 'Add another shift' : (na ?? add)))}
+        className={`group grid flex-1 place-items-center ${inert ? '' : hover} ${filled ? 'min-h-[18px] rounded-chip' : ''}`}
         onClick={(e) => onClick(e)}
       >
         {/* A chip leaves no room for it, so a filled cell keeps just the tint */}
@@ -388,7 +412,16 @@ function Cell({
             N/A
           </span>
         )}
-        {mode !== 'holds' && <Plus small={filled} times={mode === 'paste' ? copyTimes : undefined} />}
+        {leave ? (
+          <span
+            aria-hidden
+            className="col-start-1 row-start-1 font-mono text-[11px] font-medium tracking-[0.14em] text-off"
+          >
+            LEAVE
+          </span>
+        ) : (
+          !inert && <Plus small={filled} times={mode === 'paste' ? copyTimes : undefined} />
+        )}
       </button>
     </div>
   )
