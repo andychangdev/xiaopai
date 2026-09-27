@@ -3,8 +3,10 @@ import { and, asc, count, eq, gte, lte } from 'drizzle-orm'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
+import { historyRows } from '@/lib/roster/history'
 import { landingWeek, needsPublishing, publishState } from '@/lib/roster/publish'
 import { rosterDays } from '@/lib/roster/rosterText'
+import type { Shift } from '@/lib/roster/shifts'
 import { DEFAULT_BUSINESS_NAME, tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
@@ -19,6 +21,24 @@ export function openWeek(): IsoDate {
   return landingWeek(mondayOf(today()), (week) => needsPublishing(rosterWeek(week).publish))
 }
 
+// What the grid and History read of shifts, staff and rosters
+const shiftColumns = { id: shifts.id, staffId: shifts.staffId, date: shifts.date, start: shifts.start, end: shifts.end }
+const staffColumns = {
+  id: staff.id,
+  name: staff.name,
+  active: staff.active,
+  sortOrder: staff.sortOrder,
+  expectedHours: staff.expectedHours,
+  available: staff.available,
+}
+const rosterColumns = {
+  closedDays: rosters.closedDays,
+  status: rosters.status,
+  version: rosters.version,
+  publishedAt: rosters.publishedAt,
+  snapshot: rosters.snapshot,
+}
+
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
  * inactive staff with shifts that week) with their expected hours and
@@ -28,56 +48,56 @@ export function openWeek(): IsoDate {
  */
 export function rosterWeek(week: IsoDate) {
   const db = getDb()
-  const weekShifts = db
-    .select({ id: shifts.id, staffId: shifts.staffId, date: shifts.date, start: shifts.start, end: shifts.end })
-    .from(shifts)
-    .where(eq(shifts.weekStart, week))
-    .all()
-  const people = db
-    .select({
-      id: staff.id,
-      name: staff.name,
-      active: staff.active,
-      sortOrder: staff.sortOrder,
-      expectedHours: staff.expectedHours,
-      available: staff.available,
-    })
-    .from(staff)
-    .all()
+  const weekShifts = db.select(shiftColumns).from(shifts).where(eq(shifts.weekStart, week)).all()
   const notes = db
     .select({ staffId: naNotes.staffId, date: naNotes.date })
     .from(naNotes)
     .where(eq(naNotes.weekStart, week))
     .all()
-  const roster = rosterOf(week)
-  const rows = rosterRows(people, weekShifts)
-  const closedDays = roster?.closedDays ?? [...ALL_OPEN]
-  const days = rosterDays({ weekStart: week, staff: rows, shifts: weekShifts, closedDays })
+  const roster = db.select(rosterColumns).from(rosters).where(eq(rosters.weekStart, week)).get()
   return {
-    staff: rows,
+    ...weekOf(week, weekShifts, db.select(staffColumns).from(staff).all(), roster),
     shifts: weekShifts,
     naNotes: notes,
     leave: leaveDuring(week),
-    closedDays,
     roster,
-    days,
-    publish: publishState(roster, days),
   }
 }
 
-/** The week's own row: its closed days and what's been published of it. A week never saved has none. */
-function rosterOf(week: IsoDate) {
-  return getDb()
-    .select({
-      closedDays: rosters.closedDays,
-      status: rosters.status,
-      version: rosters.version,
-      publishedAt: rosters.publishedAt,
-      snapshot: rosters.snapshot,
-    })
+/**
+ * A week's rows, closed days and days as the roster text reads them, and so
+ * where it stands on publishing. The grid and History both come here, so
+ * History's state can't disagree with the badge on the grid.
+ */
+function weekOf<P extends Parameters<typeof rosterRows>[0][number] & { name: string }>(
+  week: IsoDate,
+  weekShifts: Shift[],
+  people: P[],
+  roster: (NonNullable<Parameters<typeof publishState>[0]> & { closedDays: boolean[] }) | undefined,
+) {
+  const rows = rosterRows(people, weekShifts)
+  const closedDays = roster?.closedDays ?? [...ALL_OPEN]
+  const days = rosterDays({ weekStart: week, staff: rows, shifts: weekShifts, closedDays })
+  return { staff: rows, closedDays, days, publish: publishState(roster, days) }
+}
+
+/** The History list, around the week you have open. Every week with shifts has a roster, so the rosters are every week. */
+export function history(open: IsoDate) {
+  const db = getDb()
+  const people = db.select(staffColumns).from(staff).all()
+  const byWeek = new Map<IsoDate, Shift[]>()
+  for (const { weekStart, ...s } of db.select({ weekStart: shifts.weekStart, ...shiftColumns }).from(shifts).all()) {
+    byWeek.set(weekStart, [...(byWeek.get(weekStart) ?? []), s])
+  }
+  const weeks = db
+    .select({ weekStart: rosters.weekStart, ...rosterColumns })
     .from(rosters)
-    .where(eq(rosters.weekStart, week))
-    .get()
+    .all()
+    .map(({ weekStart, ...roster }) => {
+      const weekShifts = byWeek.get(weekStart) ?? []
+      return { weekStart, shifts: weekShifts, state: weekOf(weekStart, weekShifts, people, roster).publish }
+    })
+  return historyRows({ open, weeks })
 }
 
 /** Every booking with at least one day in the week, whoever it's for. */
