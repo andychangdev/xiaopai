@@ -4,8 +4,8 @@
 
 **Blocked by:** 06 Copy a shift, 08 Closed days, 12 Mark N/A
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Undo reverses the last grid action. That covers adding, editing, removing or copying a shift; Clear week; Copy previous week (and History's Copy into open week); closing or reopening a day; and Mark or Clear N/A.
-- [ ] After Undo, the week is exactly as it was before that action. Undoing the only edit to a published week puts it back to Published.
-- [ ] Undo is disabled when there's nothing to undo.
+- [x] Undo reverses the last grid action. That covers adding, editing, removing or copying a shift; Clear week; Copy previous week (and History's Copy into open week); closing or reopening a day; and Mark or Clear N/A.
+- [x] After Undo, the week is exactly as it was before that action. Undoing the only edit to a published week puts it back to Published.
+- [x] Undo is disabled when there's nothing to undo.

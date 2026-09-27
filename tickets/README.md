@@ -20,7 +20,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 14 | [Roster text](completed/14-roster-text.md) | 08 |
 | 15 | [Publish and snapshot](completed/15-publish-and-snapshot.md) | 10, 14 |
 | 16 | [History](completed/16-history.md) | 15 |
-| 17 | [Undo](to-do/17-undo.md) | 06, 08, 12 |
+| 17 | [Undo](completed/17-undo.md) | 06, 08, 12 |
 | 18 | [JSON export](completed/18-json-export.md) | 05 |
 | 19 | [Dock launcher](completed/19-dock-launcher.md) | 01 |
 | 20 | [Roster toolbar tidy and This week](completed/20-roster-toolbar-tidy.md) | 07, 15 |
@@ -40,6 +40,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
   - The server check fetches `/icon.png`, which never touches the database.
   - If the server doesn't start, an alert names the log, so the icon never seems to do nothing.
 - **Undo and JSON export** (17, 18): SPEC includes them, and ARCHITECTURE §9 says "later". Both are kept, at the end.
+- **Undo** (17): goes back one action at a time, up to 50 per week, rather than only the last. ⌘Z does the same unless you're typing. Each week's history lives in the server's memory, not the database, so it's gone once the server stops. Undo is only offered while the week is as its last action left it: anything that changes the week from outside the grid turns it off for that week, such as leave booked or cancelled during it, or shifts removed by a booking. Deactivating someone or changing their availability doesn't, and Undo can bring back a shift or N/A note the grid would now refuse, just as the week had it.
 - **JSON export** (18): the file comes from a route, `/settings/backup`, because a Server Action can't hand the browser a download. It's the one route that isn't a page; ARCHITECTURE §1 has none. The route reads the schema to find every table, so a table added later is exported too. Lists of plain values, like the seven weekday flags, stay on one line so the file is easier to read.
 
 ## Not ticketed
