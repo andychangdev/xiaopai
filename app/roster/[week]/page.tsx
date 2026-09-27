@@ -5,7 +5,7 @@ import { PublishButton } from '@/components/PublishButton'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
 import { hasStaff, openWeek, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
-import { addDays, canonicalWeek, weekTitle } from '@/lib/roster/dates'
+import { addDays, canonicalWeek, mondayOf, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
 import { weekTotal } from '@/lib/roster/hours'
 import { publishBadge, weekSubtitle, type PublishState } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
@@ -27,11 +27,16 @@ export default async function RosterPage({ params }: Props) {
   if (week !== param) redirect(`/roster/${week}`)
 
   const { staff, shifts, naNotes, leave, closedDays, publish: state } = rosterWeek(week)
+  // Read once, so the header and the grid agree on what day it is
+  const now = today()
+  const thisWeek = mondayOf(now)
+  const onThisWeek = week === thisWeek
 
   return (
     <>
       <div className="mb-3.5 flex flex-wrap items-end justify-between gap-3.5">
         <div className="flex items-center gap-2.5">
+          <Today week={thisWeek} here={onThisWeek} />
           <WeekArrow href={`/roster/${addDays(week, -7)}`} label="Previous week">
             ‹
           </WeekArrow>
@@ -39,7 +44,14 @@ export default async function RosterPage({ params }: Props) {
             ›
           </WeekArrow>
           <div>
-            <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{weekTitle(week)}</h1>
+            <div className="flex flex-wrap items-baseline gap-x-2">
+              <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{weekTitle(week)}</h1>
+              {onThisWeek && (
+                <span className="text-[11px] font-semibold tracking-[0.09em] whitespace-nowrap text-accent uppercase">
+                  This week
+                </span>
+              )}
+            </div>
             <div className="text-[11.5px] font-medium tracking-[0.09em] text-ink-3 uppercase">
               {weekSubtitle(week, state)}
             </div>
@@ -54,7 +66,7 @@ export default async function RosterPage({ params }: Props) {
             shifts={shifts.length}
             minutes={weekTotal(shifts)}
             warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week }).length}
-            today={today()}
+            today={now}
           />
         </div>
       </div>
@@ -72,6 +84,7 @@ export default async function RosterPage({ params }: Props) {
           tradingHours={tradingSummary(tradingHoursWeek())}
           closedDays={closedDays}
           previousShifts={shiftCount(addDays(week, -7))}
+          today={now}
         />
       ) : (
         <NoRows everyoneInactive={hasStaff()} />
@@ -119,15 +132,31 @@ function NoRows({ everyoneInactive }: { everyoneInactive: boolean }) {
   )
 }
 
+// The week buttons, as tall as each other
+const weekButton = 'grid h-[30px] place-items-center rounded-control border border-line bg-surface text-ink-2'
+const weekLink = `${weekButton} hover:border-line-strong hover:text-ink`
+
 function WeekArrow({ href, label, children }: { href: string; label: string; children: string }) {
   return (
-    <Link
-      href={href}
-      title={label}
-      aria-label={label}
-      className="grid size-[30px] place-items-center rounded-control border border-line bg-surface text-[15px] text-ink-2 hover:border-line-strong hover:text-ink"
-    >
+    <Link href={href} title={label} aria-label={label} className={`${weekLink} w-[30px] text-[15px]`}>
       {children}
+    </Link>
+  )
+}
+
+/** Back to the week with today in it, from wherever you are. Greyed out once you're there. */
+function Today({ week, here }: { week: IsoDate; here: boolean }) {
+  const size = 'px-2.5 text-[12.5px] font-medium whitespace-nowrap'
+  if (here) {
+    return (
+      <button disabled className={`${weekButton} ${size} opacity-50`}>
+        Today
+      </button>
+    )
+  }
+  return (
+    <Link href={`/roster/${week}`} title={`Go to this week, ${weekRange(week)}`} className={`${weekLink} ${size}`}>
+      Today
     </Link>
   )
 }

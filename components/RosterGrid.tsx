@@ -52,6 +52,8 @@ type Props = {
   closedDays: boolean[]
   /** How many shifts the week before has, for Copy previous week */
   previousShifts: number
+  /** From the clock, so today's column can be marked */
+  today: IsoDate
 }
 
 const headCell =
@@ -67,6 +69,7 @@ export function RosterGrid({
   tradingHours,
   closedDays,
   previousShifts,
+  today,
 }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
@@ -170,6 +173,7 @@ export function RosterGrid({
                 key={date}
                 date={date}
                 closed={closedDays[i]}
+                today={date === today}
                 onClick={() => setClosed(date, !closedDays[i])}
               />
             ))}
@@ -254,18 +258,31 @@ export function RosterGrid({
   )
 }
 
-/** Closes the day for this week, or reopens it. */
-function DayHeading({ date, closed, onClick }: { date: IsoDate; closed: boolean; onClick: () => void }) {
+/** Closes the day for this week, or reopens it. Today's is underlined in the accent, closed or not. */
+function DayHeading({
+  date,
+  closed,
+  today,
+  onClick,
+}: {
+  date: IsoDate
+  closed: boolean
+  today: boolean
+  onClick: () => void
+}) {
   const action = `${closed ? 'Reopen' : 'Close'} ${dayName(date)}`
+  const colour = closed ? 'text-ink-3' : today ? 'text-accent' : 'text-ink-2 hover:text-ink'
   return (
     <button
-      aria-label={`${dayLabel(date)}${closed ? ', closed' : ''}. ${action}`}
-      title={action}
-      className={`${headCell} group relative text-center ${closed ? 'text-ink-3' : 'text-ink-2 hover:text-ink'} hover:bg-surface-2`}
+      aria-label={`${dayLabel(date)}${today ? ', today' : ''}${closed ? ', closed' : ''}. ${action}`}
+      title={today ? `Today. ${action}` : action}
+      className={`${headCell} group relative text-center ${colour} ${today ? 'shadow-[inset_0_-2px_0_var(--color-accent)]' : ''} hover:bg-surface-2`}
       onClick={onClick}
     >
       {dayName(date)}
-      <span className="block font-mono text-[11px] font-normal tracking-normal text-ink-3 normal-case">
+      <span
+        className={`block font-mono text-[11px] font-normal tracking-normal normal-case ${today && !closed ? '' : 'text-ink-3'}`}
+      >
         {closed ? 'closed' : shortDate(date)}
       </span>
       <span
