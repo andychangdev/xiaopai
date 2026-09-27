@@ -3,8 +3,10 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import * as schema from './schema'
 
 // Relative to the working directory, which is the project folder for every
-// npm script and for the Dock launcher
-export const DB_FILE = 'xiaopai.db'
+// npm script and for the Dock launcher. XIAOPAI_DB, exported in the shell,
+// points the app, drizzle-kit and the seed at another file, such as a scratch
+// copy. Only the shell reaches all three: .env files don't.
+export const DB_FILE = process.env.XIAOPAI_DB || 'xiaopai.db'
 
 export function openDb(file = DB_FILE) {
   const sqlite = new Database(file)
