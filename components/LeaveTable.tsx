@@ -118,7 +118,7 @@ function LeaveRow({ leave: l, past, onCancel }: { leave: LeaveListRow; past: boo
       <td className={`${td} font-mono text-[12.5px] tabular-nums`}>{leaveDays(l)}</td>
       <td className={td}>{l.note ?? none}</td>
       <td className={`${td} text-right`}>
-        <button className="text-link text-crit" onClick={onCancel}>
+        <button className="text-link text-crit" aria-label={`Cancel ${l.name}'s leave, ${leaveSpan(l)}`} onClick={onCancel}>
           Cancel
         </button>
       </td>
