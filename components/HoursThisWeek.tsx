@@ -2,6 +2,7 @@ import { AGAINST_EXPECTED, againstExpected, hoursAgainstShort, hoursFor, weekTot
 import type { Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours } from '@/lib/roster/time'
+import { Panel } from './Panel'
 
 type Person = { id: number; name: string; expectedHours: number | null }
 
@@ -13,10 +14,7 @@ const barColour = { over: 'bg-crit', under: 'bg-warn' }
 /** Each person's hours against what they usually work, in row order, then the week's total. */
 export function HoursThisWeek({ staff, shifts }: { staff: Person[]; shifts: Shift[] }) {
   return (
-    <section className="overflow-hidden rounded-card border border-line bg-surface">
-      <h2 className="border-b border-line bg-surface-3 px-3 py-2.5 text-[11px] font-semibold tracking-[0.1em] text-ink-2 uppercase">
-        Hours this week
-      </h2>
+    <Panel title="Hours this week">
       <ul className="py-1 text-[12.5px]">
         {staff.map((person) => {
           const hours = hoursFor(person.id, shifts)
@@ -48,6 +46,6 @@ export function HoursThisWeek({ staff, shifts }: { staff: Person[]; shifts: Shif
           <span className="font-mono text-[12px] tabular-nums">{formatHours(weekTotal(shifts))}</span>
         </li>
       </ul>
-    </section>
+    </Panel>
   )
 }
