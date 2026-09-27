@@ -3,15 +3,18 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-// `/` redirects to the right week, so the Roster tab points there
+// On a week's grid or its text, the Roster and Roster text tabs keep to that
+// week. Anywhere else, `/` and `/share` pick the week themselves.
 const TABS = [
-  { label: 'Roster', href: '/', section: '/roster' },
-  { label: 'Staff', href: '/staff', section: '/staff' },
-  { label: 'Settings', href: '/settings', section: '/settings' },
+  { label: 'Roster', section: '/roster', href: (week?: string) => (week ? `/roster/${week}` : '/') },
+  { label: 'Staff', section: '/staff', href: () => '/staff' },
+  { label: 'Settings', section: '/settings', href: () => '/settings' },
+  { label: 'Roster text', section: '/share', href: (week?: string) => (week ? `/share/${week}` : '/share') },
 ]
 
 export function TabBar() {
   const pathname = usePathname()
+  const week = pathname.match(/^\/(?:roster|share)\/([^/]+)/)?.[1]
   return (
     <nav className="flex gap-0.5 rounded-control border border-line bg-surface p-0.5">
       {TABS.map((tab) => {
@@ -19,7 +22,7 @@ export function TabBar() {
         return (
           <Link
             key={tab.label}
-            href={tab.href}
+            href={tab.href(week)}
             aria-current={current ? 'page' : undefined}
             className={
               current
