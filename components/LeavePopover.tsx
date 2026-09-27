@@ -1,12 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { dayLabel } from '@/lib/roster/dates'
 import { onLeaveSummary, type Leave } from '@/lib/roster/leave'
-import { firstName } from '@/lib/roster/staff'
-import { Popover } from './Popover'
-import type { PopoverTarget } from './ShiftPopover'
+import { Popover, type PopoverTarget } from './Popover'
 
 /**
  * What opens on a leave day: who's away and until when. Leave is the one
@@ -25,19 +23,13 @@ export function LeavePopover({
 }) {
   const { person, date, anchor } = target
   const manage = useRef<HTMLAnchorElement>(null)
-  const close = useCallback(() => onClose(target), [onClose, target])
 
   useEffect(() => {
     manage.current?.focus({ preventScroll: true })
   }, [])
 
   return (
-    <Popover
-      anchor={anchor}
-      label={`${person.name} on leave, ${dayLabel(date)}`}
-      heading={`${firstName(person.name)} · ${dayLabel(date)}`}
-      onClose={close}
-    >
+    <Popover target={target} label={`${person.name} on leave, ${dayLabel(date)}`} onClose={onClose}>
       <p className="rounded-chip border border-line bg-surface-3 px-2.5 py-2 text-[12.5px] leading-[1.45] text-ink-2">
         {onLeaveSummary(leave)}
       </p>
@@ -51,7 +43,7 @@ export function LeavePopover({
         <button
           className="btn"
           onClick={() => {
-            close()
+            onClose(target)
             if (anchor.isConnected) anchor.focus()
           }}
         >

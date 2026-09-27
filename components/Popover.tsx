@@ -1,6 +1,24 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
+import { dayLabel, type IsoDate } from '@/lib/roster/dates'
+import type { Leave } from '@/lib/roster/leave'
+import type { NaReason } from '@/lib/roster/notAvailable'
+import type { Shift } from '@/lib/roster/shifts'
+import { firstName } from '@/lib/roster/staff'
+
+/**
+ * The cell a popover is for, why it shows N/A if it does, the leave the
+ * person's on if they are, and the shift in it when a chip opened it.
+ */
+export type PopoverTarget = {
+  person: { id: number; name: string }
+  date: IsoDate
+  na: NaReason | null
+  leave?: Leave
+  shift?: Shift
+  anchor: HTMLElement
+}
 
 const GAP = 6
 const MARGIN = 8
@@ -11,21 +29,20 @@ const MARGIN = 8
  * the cell like a dialog would.
  */
 export function Popover({
-  anchor,
+  target,
   label,
-  heading,
   onClose,
   children,
 }: {
-  /** The cell or chip it opened from */
-  anchor: HTMLElement
+  target: PopoverTarget
   /** What it's for, for a screen reader */
   label: string
-  heading: string
-  onClose: () => void
+  onClose: (target: PopoverTarget) => void
   children: ReactNode
 }) {
+  const { person, date, anchor } = target
   const ref = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => onClose(target), [onClose, target])
 
   // Below the cell, or above it if there's no room, kept inside the window.
   // It's fixed, so it's placed again whenever the cell moves (the grid
@@ -53,11 +70,11 @@ export function Popover({
 
   useEffect(() => {
     const away = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) onClose()
+      if (!ref.current?.contains(e.target as Node)) close()
     }
     document.addEventListener('pointerdown', away)
     return () => document.removeEventListener('pointerdown', away)
-  }, [onClose])
+  }, [close])
 
   return (
     <div
@@ -67,15 +84,17 @@ export function Popover({
       className="fixed z-50 max-h-[calc(100vh-16px)] w-[250px] overflow-y-auto rounded-card border border-line-strong bg-surface p-[11px] shadow-popover"
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
-        onClose()
+        close()
         if (anchor.isConnected) anchor.focus()
       }}
       onBlur={(e) => {
         // Tabbing out closes it. Clicks elsewhere are the pointerdown's job.
-        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) onClose()
+        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) close()
       }}
     >
-      <h3 className="mb-[7px] text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">{heading}</h3>
+      <h3 className="mb-[7px] text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
+        {firstName(person.name)} · {dayLabel(date)}
+      </h3>
       {children}
     </div>
   )

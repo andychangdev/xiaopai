@@ -1,28 +1,13 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { addShift, removeShift, setMarkedNa, updateShift, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
-import type { Leave } from '@/lib/roster/leave'
-import { alreadyNaNote, type NaReason } from '@/lib/roster/notAvailable'
+import { alreadyNaNote } from '@/lib/roster/notAvailable'
 import type { Shift } from '@/lib/roster/shifts'
-import { firstName } from '@/lib/roster/staff'
 import { formatRange, parseShorthand, type Minutes } from '@/lib/roster/time'
-import { Popover } from './Popover'
-
-/**
- * The cell a popover is for, why it shows N/A if it does, the leave the
- * person's on if they are, and the shift in it when a chip opened it.
- */
-export type PopoverTarget = {
-  person: { id: number; name: string }
-  date: IsoDate
-  na: NaReason | null
-  leave?: Leave
-  shift?: Shift
-  anchor: HTMLElement
-}
+import { Popover, type PopoverTarget } from './Popover'
 
 /** When a save never reached the server, or it failed there. */
 export const UNREACHABLE = "Couldn't save. Check the app is still running, then try again."
@@ -74,11 +59,9 @@ export function ShiftPopover({
     }
   }, [])
 
-  const close = useCallback(() => onClose(target), [onClose, target])
-
   /** Closes, handing focus back to the cell like a dialog would. */
   function done(focus: HTMLElement | null | undefined = anchor) {
-    close()
+    onClose(target)
     if (focus?.isConnected) focus.focus()
   }
 
@@ -124,10 +107,9 @@ export function ShiftPopover({
 
   return (
     <Popover
-      anchor={anchor}
+      target={target}
       label={`${shift ? 'Change shift' : 'Add a shift'} for ${person.name} on ${dayLabel(date)}`}
-      heading={`${firstName(person.name)} · ${dayLabel(date)}`}
-      onClose={close}
+      onClose={onClose}
     >
       {templates.length > 0 && (
         <div className="mb-2.5 grid grid-cols-2 gap-[5px]">
