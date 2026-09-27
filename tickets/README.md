@@ -34,7 +34,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 - **Roster buttons** (20): drops Manage staff and Trading hours, since the tabs already cover them, and puts Copy previous week in the grid footer. Roster text leaves the tab bar, is renamed Share roster, and sits next to Publish roster, taking the place of SPEC §2's View sheet. The mockup and ARCHITECTURE §4 have the old layout.
 - **History's list** (16): a published week stays listed after it's been emptied, since staff still hold what went out. SPEC lists only weeks with shifts on them. The open week travels in the URL (`/history?week=`), so History only knows it when you come from that week's grid or Share roster; from Staff or Settings it's the week the Roster tab would open.
 - **Dock launcher** (19): differs from ARCHITECTURE §8b's script and build steps in several ways:
-  - The bundle's executable is a stub that runs `scripts/launcher/run` from the project, instead of a copy with the path hard-coded. Launcher changes need no rebuild.
+  - The bundle is an AppleScript applet (`osacompile`) that runs `scripts/launcher/run` from the project, instead of a bundle whose executable is the script. macOS 26 treats a script bundle as `/bin/bash`, and refuses it the Documents folder without asking. The applet is asked about once. Launcher changes need no rebuild.
   - The server listens on 127.0.0.1 only, and always uses the project's own `xiaopai.db`.
   - Chrome opens with `open -n`, because without it the `--app` flag is dropped when Chrome is already open.
   - The server check fetches `/icon.png`, which never touches the database.

@@ -43,10 +43,12 @@ npm run build                    # the icon serves the last build
 scripts/launcher/make-app.sh     # builds ~/Applications/Roster.app
 ```
 
-Drag `Roster.app` from `~/Applications` to the Dock. The first click may ask
-whether Roster can use the folder the project is in; allow it, as that's
-where the server runs. The app runs `scripts/launcher/run` from the project,
-so run `make-app.sh` again only if the project folder moves.
+Drag `Roster.app` from `~/Applications` to the Dock. The first click asks
+to let Roster access the folder the project is in, such as Documents. Allow
+it, as that's where the server runs; if it's ever refused, turn Roster on
+under System Settings → Privacy & Security → Files & Folders. The app runs
+`scripts/launcher/run` from the project, so run `make-app.sh` again only if
+the project folder moves, which may ask again.
 
 **After changing code**, run `npm run db:migrate` if there's a new migration,
 then `npm run build`. The icon never builds, as that would put a 30-second

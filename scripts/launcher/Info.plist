@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- What make-app.sh adds to the Info.plist osacompile writes for the applet -->
 <plist version="1.0"><dict>
-  <key>CFBundleName</key><string>Roster</string>
   <key>CFBundleIdentifier</key><string>com.xiaopai.roster</string>
-  <key>CFBundleExecutable</key><string>run</string>
-  <key>CFBundleIconFile</key><string>icon</string>
-  <key>CFBundlePackageType</key><string>APPL</string>
-  <!-- The script opens Chrome and quits, so it gets no Dock icon of its own -->
+  <!-- The applet opens Chrome and quits, so it gets no Dock icon of its own -->
   <key>LSUIElement</key><true/>
+  <!-- Shown when macOS asks, the first time, to let Roster into Documents -->
+  <key>NSDocumentsFolderUsageDescription</key><string>Roster starts its server from the project folder.</string>
 </dict></plist>
