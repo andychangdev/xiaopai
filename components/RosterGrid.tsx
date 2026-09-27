@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { addShift, clearWeek, setDayClosed } from '@/app/actions'
+import { addShift, clearWeek, removeShift, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
@@ -126,6 +126,19 @@ export function RosterGrid({
     )
   }
 
+  async function remove(shift: Shift, button: HTMLElement) {
+    // The × goes with the chip, so focus moves to the cell's add button, as after the popover's Remove
+    const addButton = button.closest('[data-cell]')?.querySelector<HTMLElement>('[data-add]')
+    const error = await actionError(() => removeShift(shift.id))
+    if (error) {
+      await ask({ title: "Couldn't remove the shift", body: error, ok: 'OK', cancel: null })
+      return
+    }
+    // Unless it's gone somewhere else meanwhile
+    const focused = document.activeElement
+    if (focused === button || focused === document.body) addButton?.focus()
+  }
+
   async function setClosed(date: IsoDate, closed: boolean) {
     const day = dayName(date)
     const n = closed ? shifts.filter((s) => s.date === date).length : 0
@@ -212,6 +225,7 @@ export function RosterGrid({
                         const anchor = e.currentTarget
                         setOpen((o) => (o?.anchor === anchor ? null : { person, date, shift, na, leave: away, anchor }))
                       }}
+                      onRemove={remove}
                     />
                   )
                 })}
@@ -342,6 +356,9 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  * when it isn't. It stays the same element either way, so focus is still on it
  * after a save.
  *
+ * A chip's ×, there on hover, removes its shift without the popover. Undo
+ * takes it back, so it doesn't ask first.
+ *
  * While a shift is being copied, a click anywhere in the cell pastes it
  * alongside what's there, unless the cell already holds those times.
  *
@@ -366,6 +383,7 @@ function Cell({
   mode,
   copying,
   onClick,
+  onRemove,
 }: {
   person: Person
   date: IsoDate
@@ -379,6 +397,8 @@ function Cell({
   mode: CellMode
   copying?: Shift
   onClick: (e: React.MouseEvent<HTMLElement>, shift?: Shift) => void
+  /** From a chip's ×, the button itself so focus has somewhere to go after */
+  onRemove: (shift: Shift, button: HTMLElement) => void
 }) {
   const filled = shifts.length > 0
   const where = `${person.name} on ${dayLabel(date)}`
@@ -414,15 +434,30 @@ function Cell({
         const overlaps = overlapping.has(s.id)
         const action = picked ? 'Being copied' : chipAction
         return (
-          <button
-            key={s.id}
-            aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}. ${action}`}
-            title={overlaps ? `Overlaps another shift. ${action}` : action}
-            className={`flex w-full items-center rounded-chip border border-l-[3px] px-1.5 py-1 text-left ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
-            onClick={(e) => onClick(e, s)}
-          >
-            <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] tabular-nums">{times}</span>
-          </button>
+          // The × sits over the chip rather than in it, as a button can't hold another
+          <div key={s.id} className="group/chip relative">
+            <button
+              aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}. ${action}`}
+              title={overlaps ? `Overlaps another shift. ${action}` : action}
+              className={`flex w-full items-center rounded-chip border border-l-[3px] py-1 pl-1.5 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
+              onClick={(e) => onClick(e, s)}
+            >
+              <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] whitespace-nowrap tabular-nums">
+                {times}
+              </span>
+            </button>
+            {/* While copying, a click on the chip pastes, so there's nothing to remove */}
+            {mode === 'edit' && (
+              <button
+                aria-label={`Remove ${person.name}'s ${times} on ${dayLabel(date)}`}
+                title="Remove"
+                className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit focus-visible:opacity-100"
+                onClick={(e) => onRemove(s, e.currentTarget)}
+              >
+                ×
+              </button>
+            )}
+          </div>
         )
       })}
       <button
@@ -457,9 +492,11 @@ function Cell({
   )
 }
 
+// On the wrapper's hover, so the chip stays lit with the pointer on its ×
 const chipColours = {
-  usual: 'border-line border-l-accent bg-surface-3 hover:border-line-strong hover:border-l-accent hover:bg-surface-2',
-  overlaps: 'border-crit-line bg-crit-bg hover:border-crit',
+  usual:
+    'border-line border-l-accent bg-surface-3 group-hover/chip:border-line-strong group-hover/chip:border-l-accent group-hover/chip:bg-surface-2',
+  overlaps: 'border-crit-line bg-crit-bg group-hover/chip:border-crit',
 }
 
 /** The + on hover, and while pasting the times that would go in. */
