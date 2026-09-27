@@ -308,7 +308,7 @@ type Snapshot = {
   days: {
     date: string
     closed: boolean
-    on: { name: string; times: string[] }[]   // only people actually working
+    on: { staffId: number; name: string; times: string[] }[]   // only people actually working
   }[]
 }
 ```
@@ -317,6 +317,12 @@ Shaped for the output it feeds: a day, and who's on it. The share route renders
 the snapshot to text and nothing else. A published roster is then
 physically incapable of changing when someone is renamed or deactivated six
 months later.
+
+Each entry keeps the person's id beside their name as it was. Whether a
+published week has been edited since is never stored: it's the live week
+checked against the snapshot by id and times, so a rename or a new row order
+never makes an old week look changed, and undoing the only edit puts it back
+to Published.
 
 The alternative — reconstructing history from live tables plus soft deletes —
 is much harder and goes subtly wrong the first time a name changes. A blob is
