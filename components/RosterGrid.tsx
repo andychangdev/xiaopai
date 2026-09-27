@@ -10,9 +10,11 @@ import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } 
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
+import { buildWarnings, overlappingShifts } from '@/lib/roster/warnings'
 import { HoursThisWeek } from './HoursThisWeek'
 import { ShiftPopover, UNREACHABLE, actionError, type PopoverTarget } from './ShiftPopover'
 import { useAsk } from './useAsk'
+import { WarningsPanel } from './WarningsPanel'
 
 type Person = { id: number; name: string }
 
@@ -45,6 +47,7 @@ const headCell =
 export function RosterGrid({ week, staff, shifts, templates, tradingHours, closedDays }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
+  const overlapping = overlappingShifts(shifts)
   const [dialog, ask] = useAsk()
   const [open, setOpen] = useState<PopoverTarget | null>(null)
 
@@ -160,6 +163,7 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours, close
                       person={person}
                       date={date}
                       shifts={inCell}
+                      overlapping={overlapping}
                       mode={!copying ? 'edit' : copy ? 'paste' : 'holds'}
                       copying={copying?.shift}
                       onClick={(e, shift) => {
@@ -193,7 +197,8 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours, close
         </div>
       </div>
       {/* Below the grid rather than beside it, so the roster keeps the full width */}
-      <div className="mt-4 min-[820px]:ml-auto min-[820px]:w-[330px]">
+      <div className="mt-4 grid items-start gap-4 min-[820px]:grid-cols-[minmax(0,1fr)_330px]">
+        <WarningsPanel warnings={buildWarnings({ staff, shifts, weekStart: week })} />
         <HoursThisWeek staff={staff} shifts={shifts} />
       </div>
       {open && (
@@ -285,11 +290,15 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  *
  * While a shift is being copied, a click anywhere in the cell pastes it
  * alongside what's there, unless the cell already holds those times.
+ *
+ * A chip that overlaps another is outlined, since the Warnings panel can't
+ * say which two.
  */
 function Cell({
   person,
   date,
   shifts,
+  overlapping,
   mode,
   copying,
   onClick,
@@ -297,6 +306,8 @@ function Cell({
   person: Person
   date: IsoDate
   shifts: Shift[]
+  /** The week's shifts that overlap another */
+  overlapping: Set<number>
   mode: CellMode
   copying?: Shift
   onClick: (e: React.MouseEvent<HTMLElement>, shift?: Shift) => void
@@ -328,13 +339,14 @@ function Cell({
       {shifts.map((s) => {
         const times = formatRange(s.start, s.end)
         const picked = s.id === copying?.id
+        const overlaps = overlapping.has(s.id)
         const action = picked ? 'Being copied' : chipAction
         return (
           <button
             key={s.id}
-            aria-label={`${person.name}, ${dayLabel(date)}, ${times}. ${action}`}
-            title={action}
-            className={`flex w-full items-center rounded-chip border border-l-[3px] border-line border-l-accent bg-surface-3 px-1.5 py-1 text-left hover:border-line-strong hover:border-l-accent hover:bg-surface-2 ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
+            aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}. ${action}`}
+            title={overlaps ? `Overlaps another shift. ${action}` : action}
+            className={`flex w-full items-center rounded-chip border border-l-[3px] px-1.5 py-1 text-left ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
             onClick={(e) => onClick(e, s)}
           >
             <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] tabular-nums">{times}</span>
@@ -352,6 +364,11 @@ function Cell({
       </button>
     </div>
   )
+}
+
+const chipColours = {
+  usual: 'border-line border-l-accent bg-surface-3 hover:border-line-strong hover:border-l-accent hover:bg-surface-2',
+  overlaps: 'border-crit-line bg-crit-bg hover:border-crit',
 }
 
 /** The + on hover, and while pasting the times that would go in. */
