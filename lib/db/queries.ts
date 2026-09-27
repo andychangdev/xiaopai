@@ -5,19 +5,22 @@ import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
 import { leave, naNotes, shifts, staff } from './schema'
 
-/** A week's grid rows: everyone active, plus inactive staff with shifts that week. */
-export function rosterRowsFor(week: IsoDate) {
+/**
+ * Everything the grid shows for a week: its rows (everyone active, plus
+ * inactive staff with shifts that week) and its shifts.
+ */
+export function rosterWeek(week: IsoDate) {
   const db = getDb()
+  const weekShifts = db
+    .select({ id: shifts.id, staffId: shifts.staffId, date: shifts.date, start: shifts.start, end: shifts.end })
+    .from(shifts)
+    .where(eq(shifts.weekStart, week))
+    .all()
   const people = db
     .select({ id: staff.id, name: staff.name, active: staff.active, sortOrder: staff.sortOrder })
     .from(staff)
     .all()
-  const rostered = db
-    .selectDistinct({ staffId: shifts.staffId })
-    .from(shifts)
-    .where(eq(shifts.weekStart, week))
-    .all()
-  return rosterRows(people, rostered)
+  return { staff: rosterRows(people, weekShifts), shifts: weekShifts }
 }
 
 /** Everyone, active or not, in the set order, with what they have on record. */
