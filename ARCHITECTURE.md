@@ -1,7 +1,7 @@
 # xiaopai — Architecture
 
-How the app in [SPEC.md](SPEC.md) gets built. One manager, one restaurant
-(**Ah Ma**), running on a laptop.
+How the app in [SPEC.md](SPEC.md) gets built. One manager, one restaurant,
+running on a laptop.
 
 ---
 
@@ -161,6 +161,11 @@ shiftTemplates = sqliteTable('shift_templates', {
   sortOrder: integer().notNull(),
 })
 
+settings = sqliteTable('settings', {       // one row, id 1
+  id:           integer().primaryKey(),
+  businessName: text().notNull(),
+})
+
 tradingHours = sqliteTable('trading_hours', {
   weekday: integer().primaryKey(),   // 0 = Mon
   open:    integer().notNull(),
@@ -217,7 +222,7 @@ exactly seven booleans, always read together, and never queried across weeks.
 app/
   roster/[week]/page.tsx     the grid — the whole app, really
   staff/page.tsx             people, availability, booked leave
-  settings/page.tsx          trading hours, shift templates
+  settings/page.tsx          business name, trading hours, shift templates
   history/page.tsx           every week, newest first
   share/[week]/page.tsx      the plain-text roster + Copy button, reads the snapshot
   actions.ts                 every mutation

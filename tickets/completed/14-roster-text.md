@@ -6,7 +6,7 @@
 
 **Status:** done
 
-- [x] A Roster text tab shows the open week's text. It matches the SPEC example exactly: the `AH MA — STAFF ROSTER` header, the date range, then each day.
+- [x] A Roster text tab shows the open week's text. It matches the SPEC example exactly: the `— STAFF ROSTER` header after the business name, the date range, then each day.
 - [x] Each day lists the people on shift by first name, in roster row order, with 24-hour times and plain hyphens (`John 10:00-18:00`). A split shift folds onto one line (`John 10:00-14:00, 17:00-21:00`).
 - [x] A closed day is a single line (`Tue 6 Oct - CLOSED`), and an open day with nobody on it says `(no one rostered)`. Nobody appears for being off, N/A or on leave.
 - [x] Until the week is published, the text ends `DRAFT - not published yet`.

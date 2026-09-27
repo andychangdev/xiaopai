@@ -5,10 +5,10 @@ import { ALL_OPEN } from '@/lib/roster/closed'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
 import { landingWeek, needsPublishing, publishState } from '@/lib/roster/publish'
 import { rosterDays } from '@/lib/roster/rosterText'
-import { tradingWeek } from '@/lib/roster/settings'
+import { DEFAULT_BUSINESS_NAME, tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
-import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from './schema'
+import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
 /**
  * The week the Roster tab and Share roster open when none is named: the
@@ -150,6 +150,11 @@ export function leaveList() {
     .innerJoin(staff, eq(staff.id, leave.staffId))
     .orderBy(asc(leave.fromDate), asc(leave.toDate), asc(leave.id))
     .all()
+}
+
+/** What the business is called, or the placeholder until Settings names it. */
+export function businessName(): string {
+  return getDb().select({ name: settings.businessName }).from(settings).get()?.name ?? DEFAULT_BUSINESS_NAME
 }
 
 /** Opening and closing for each weekday, Monday first. */

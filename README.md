@@ -1,6 +1,6 @@
 # xiaopai
 
-The weekly staff roster for Ah Ma. One manager, running on a laptop. See
+The weekly staff roster for one restaurant. One manager, running on a laptop. See
 [SPEC.md](SPEC.md) for what it does, [ARCHITECTURE.md](ARCHITECTURE.md) for
 how it's built, and [tickets/](tickets/README.md) for the build, one ticket at a
 time.
@@ -15,6 +15,7 @@ npm run dev          # http://localhost:3000
 ```
 
 The seed only runs on an empty database, so it can't overwrite real data.
+Name the business on the Settings page; until then it's *Your restaurant*.
 
 ## Scripts
 

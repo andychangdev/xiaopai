@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { today } from '@/lib/clock'
 import { getDb } from '@/lib/db/client'
 import { closedDaysOf, leaveDuring, rosterWeek, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
-import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
@@ -41,8 +41,8 @@ const gridChanged = () => {
   revalidatePath('/share/[week]', 'page')
 }
 
-// Settings reach every grid (the footer, the popover's templates) as well as
-// the Settings page itself
+// Settings reach every page (the header's name, the grid's footer, the
+// popover's templates) as well as the Settings page itself
 const settingsChanged = () => revalidatePath('/', 'layout')
 
 function checkId(id: unknown): asserts id is number {
@@ -433,6 +433,19 @@ export async function copyWeek(input: { from: string; to: string }): Promise<Act
   })
   gridChanged()
   return { report: copyReport(plan, from, closedBefore) }
+}
+
+/** What the header, the tab title and the roster text call the business. */
+export async function setBusinessName(name: string): Promise<ActionResult> {
+  const businessName = parseName(text(name))
+  if (!businessName) return { error: NAME_REQUIRED }
+  getDb()
+    .insert(settings)
+    .values({ id: 1, businessName })
+    .onConflictDoUpdate({ target: settings.id, set: { businessName } })
+    .run()
+  settingsChanged()
+  return {}
 }
 
 /** One weekday's opening or closing time, or both. A day with nothing stored starts from its default. */

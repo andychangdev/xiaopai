@@ -674,7 +674,7 @@ function render(){
 function rosterText(){
   const y=curWeek.slice(0,4);
   const d0=new Date(curWeek+'T00:00:00'), d6=new Date(addD(curWeek,6)+'T00:00:00');
-  const L=['AH MA — STAFF ROSTER',
+  const L=['YOUR RESTAURANT — STAFF ROSTER',
     `${d0.getDate()} ${MON[d0.getMonth()]} - ${d6.getDate()} ${MON[d6.getMonth()]} ${y}`,''];
   for(let d=0;d<7;d++){
     const t=new Date(dateOf(d)+'T00:00:00');

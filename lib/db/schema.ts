@@ -24,6 +24,12 @@ export const shiftTemplates = sqliteTable('shift_templates', {
   sortOrder: integer().notNull(),
 })
 
+// The business itself: one row, id 1
+export const settings = sqliteTable('settings', {
+  id: integer().primaryKey(),
+  businessName: text().notNull(),
+})
+
 export const tradingHours = sqliteTable('trading_hours', {
   weekday: integer().primaryKey(), // 0 = Mon
   open: integer().notNull(),

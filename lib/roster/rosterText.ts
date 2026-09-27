@@ -10,9 +10,6 @@ import { firstName } from './staff'
 import { formatTime } from './time'
 import type { Snapshot } from './types'
 
-// One restaurant, no second site, ever (SPEC §1)
-const BUSINESS = 'Ah Ma'
-
 /**
  * Each day of the week, Monday first: whether it's closed, and who's on, in
  * roster row order, with their times as they'll read in the chat.
@@ -62,19 +59,21 @@ function publishedLine(publishedAt: IsoDate, version: number): string {
 }
 
 /**
- * The text to paste: a heading, then each day, first names only, a split
+ * The text to paste: a heading with the business's name, then each day, first names only, a split
  * shift on one line. A closed day says so, and an open one with nobody on it
  * says that, so it can't be taken for a line missed out. It ends by saying
  * when it was published, or that it's a draft, so a half-built week can't be
  * pasted by accident.
  */
 export function rosterText({
+  businessName,
   weekStart,
   days,
   publishedAt,
   version,
-}: Pick<Snapshot, 'weekStart' | 'days'> & Partial<Pick<Snapshot, 'publishedAt' | 'version'>>): string {
-  const lines = [`${BUSINESS.toUpperCase()} — STAFF ROSTER`, rangeLine(weekStart), '']
+}: { businessName: string } & Pick<Snapshot, 'weekStart' | 'days'> &
+  Partial<Pick<Snapshot, 'publishedAt' | 'version'>>): string {
+  const lines = [`${businessName.toUpperCase()} — STAFF ROSTER`, rangeLine(weekStart), '']
   for (const day of days) {
     if (day.closed) {
       lines.push(`${dayLabel(day.date)} - CLOSED`, '')

@@ -1,7 +1,7 @@
 # xiaopai — Weekly Roster App
 
 A manager-only web app for building and publishing the weekly staff roster
-for **Ah Ma**, a single restaurant. Runs locally. Employees never log in.
+for a single restaurant. Runs locally. Employees never log in.
 
 ---
 
@@ -9,7 +9,7 @@ for **Ah Ma**, a single restaurant. Runs locally. Employees never log in.
 
 | Topic | Decision |
 |---|---|
-| Business | Ah Ma — one restaurant, no second site, ever |
+| Business | One restaurant, no second site, ever. Its name is a setting |
 | Users | One manager, localhost, no login |
 | Week | Monday–Sunday, identified by the Monday's date (`2026-10-05`) |
 | Dates | Plain local date/time strings. No timezone maths, no UTC |
@@ -52,8 +52,9 @@ Used to prefill a shift. Times stay editable afterwards. The three real ones:
 | Full day | 10:00–18:00 | 8 |
 | Shopping night | 10:00–21:00 | 11 |
 
-**Settings** — `business_name` (*Ah Ma*), plus `open` and `close` per weekday
-Currently 10:00–18:00, Thursday to 21:00. Trading hours print on the sheet and
+**Settings** — `business_name`, plus `open` and `close` per weekday
+The name heads every page and the roster text. Trading hours are currently
+10:00–18:00, Thursday to 21:00. Trading hours print on the sheet and
 nothing else. **Settings holds no closed days** — see below.
 
 **Leave** — `id`, `employee_id`, `from_date`, `to_date`, `note?`
@@ -200,8 +201,8 @@ screen.
 Plain list-and-form admin screens. Nothing clever. The staff screen carries name,
 availability, expected hours, notes and the active flag, and below it a
 **Booked leave** table: who, from, to, days, note. Multi-day periods are
-booked there; the roster's own cell action is just the one-day shortcut. Settings holds trading hours
-per weekday — opens, closes — and the shift templates. Nothing week-specific.
+booked there; the roster's own cell action is just the one-day shortcut. Settings holds the business
+name, trading hours per weekday — opens, closes — and the shift templates. Nothing week-specific.
 
 ### History
 
@@ -221,10 +222,11 @@ reaches people.
 Each day lists only the people **on shift**. Nobody appears because they're
 off, N/A or on leave; a roster of absences is noise in a chat window. A closed
 day says so on one line. An open day with nobody on it says `(no one rostered)`,
-so it can't be mistaken for an omission.
+so it can't be mistaken for an omission. The heading is the business name
+from Settings, in capitals.
 
 ```
-AH MA — STAFF ROSTER
+YOUR RESTAURANT — STAFF ROSTER
 5 Oct - 11 Oct 2026
 
 Mon 5 Oct

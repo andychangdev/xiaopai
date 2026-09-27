@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CopyText } from '@/components/CopyText'
 import { Card, PageHead } from '@/components/Page'
-import { openWeek, rosterWeek } from '@/lib/db/queries'
+import { businessName, openWeek, rosterWeek } from '@/lib/db/queries'
 import { canonicalWeek, weekTitle } from '@/lib/roster/dates'
 import { rosterText } from '@/lib/roster/rosterText'
 
@@ -23,11 +23,12 @@ export default async function ShareRosterPage({ params }: Props) {
   if (week !== param) redirect(`/share/${week}`)
 
   const { days, roster, publish: state } = rosterWeek(week)
+  const name = businessName()
   // Once published, the text is the snapshot's, so edits since stay out of it until they're published too
   const text =
     state.status === 'published' && roster?.snapshot
-      ? rosterText(roster.snapshot)
-      : rosterText({ weekStart: week, days })
+      ? rosterText({ businessName: name, ...roster.snapshot })
+      : rosterText({ businessName: name, weekStart: week, days })
 
   return (
     <div className="max-w-[840px]">

@@ -1,9 +1,13 @@
-// Rules for the Settings page: the trading hours for each weekday, the line
-// under the grid that sums them up, and where a new shift template starts.
-// Trading hours only ever show; nothing else depends on them.
+// Rules for the Settings page: the business's name, the trading hours for
+// each weekday, the line under the grid that sums them up, and where a new
+// shift template starts. Trading hours only ever show; nothing else depends on
+// them.
 
 import { DAY_NAMES } from './dates'
 import { formatRange, formatTime, timesError, type Minutes } from './time'
+
+/** What the app calls the business until Settings names it. */
+export const DEFAULT_BUSINESS_NAME = 'Your restaurant'
 
 export type TradingDay = { open: Minutes; close: Minutes }
 

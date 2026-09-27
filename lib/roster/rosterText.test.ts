@@ -5,6 +5,7 @@ import { rosterDays, rosterText } from './rosterText'
 const WEEK = '2026-10-05'
 const [MON, TUE, WED, THU, FRI, SAT, SUN] = ['05', '06', '07', '08', '09', '10', '11'].map((d) => `2026-10-${d}`)
 const TUE_CLOSED = [false, true, false, false, false, false, false]
+const NAME = 'Your restaurant'
 
 // In roster row order, which isn't alphabetical
 const JOHN = { id: 1, name: 'John Reyes' }
@@ -88,12 +89,12 @@ describe('rosterDays', () => {
 
 describe('rosterText', () => {
   const text = (shifts = SPEC_WEEK, weekStart = WEEK, closedDays = TUE_CLOSED) =>
-    rosterText({ weekStart, days: rosterDays({ weekStart, staff: STAFF, shifts, closedDays }) })
+    rosterText({ businessName: NAME, weekStart, days: rosterDays({ weekStart, staff: STAFF, shifts, closedDays }) })
 
   it("matches SPEC §3's example, and ends as a draft", () => {
     expect(text()).toBe(
       [
-        'AH MA — STAFF ROSTER',
+        'YOUR RESTAURANT — STAFF ROSTER',
         '5 Oct - 11 Oct 2026',
         '',
         'Mon 5 Oct',
@@ -128,13 +129,13 @@ describe('rosterText', () => {
   it('ends with the day it was published, once it has been', () => {
     const days = rosterDays({ weekStart: WEEK, staff: STAFF, shifts: SPEC_WEEK, closedDays: TUE_CLOSED })
     const last = (version: number) =>
-      rosterText({ weekStart: WEEK, days, publishedAt: '2026-09-27', version }).split('\n').at(-1)
+      rosterText({ businessName: NAME, weekStart: WEEK, days, publishedAt: '2026-09-27', version }).split('\n').at(-1)
     expect(last(1)).toBe('Published 27 Sep 2026')
   })
 
   it('says Updated from the second version on, with the version', () => {
     const days = rosterDays({ weekStart: WEEK, staff: STAFF, shifts: SPEC_WEEK, closedDays: TUE_CLOSED })
-    const text = rosterText({ weekStart: WEEK, days, publishedAt: '2026-10-08', version: 2 })
+    const text = rosterText({ businessName: NAME, weekStart: WEEK, days, publishedAt: '2026-10-08', version: 2 })
     expect(text.split('\n').at(-1)).toBe('Updated 8 Oct 2026 (v2)')
     expect(text).not.toContain('DRAFT')
   })
