@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { CopyPreviousWeek } from '@/components/CopyPreviousWeek'
 import { PublishButton } from '@/components/PublishButton'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
@@ -48,12 +47,6 @@ export default async function RosterPage({ params }: Props) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge state={state} />
-          <CopyPreviousWeek
-            key={week}
-            week={week}
-            shifts={shifts.length}
-            previousShifts={shiftCount(addDays(week, -7))}
-          />
           <PublishButton
             key={`publish-${week}`}
             week={week}
@@ -78,6 +71,7 @@ export default async function RosterPage({ params }: Props) {
           templates={templateList()}
           tradingHours={tradingSummary(tradingHoursWeek())}
           closedDays={closedDays}
+          previousShifts={shiftCount(addDays(week, -7))}
         />
       ) : (
         <NoRows everyoneInactive={hasStaff()} />

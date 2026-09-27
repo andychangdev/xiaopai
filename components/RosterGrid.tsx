@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addShift, clearWeek, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
@@ -13,6 +12,7 @@ import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shif
 import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
 import { buildWarnings, overlappingShifts } from '@/lib/roster/warnings'
+import { CopyPreviousWeek } from './CopyPreviousWeek'
 import { HoursThisWeek } from './HoursThisWeek'
 import { LeavePopover } from './LeavePopover'
 import type { PopoverTarget } from './Popover'
@@ -50,12 +50,24 @@ type Props = {
   tradingHours: string
   /** Monday first */
   closedDays: boolean[]
+  /** How many shifts the week before has, for Copy previous week */
+  previousShifts: number
 }
 
 const headCell =
   'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] uppercase'
 
-export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tradingHours, closedDays }: Props) {
+export function RosterGrid({
+  week,
+  staff,
+  shifts,
+  naNotes,
+  leave,
+  templates,
+  tradingHours,
+  closedDays,
+  previousShifts,
+}: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const overlapping = overlappingShifts(shifts)
@@ -76,7 +88,7 @@ export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tra
   useEffect(() => {
     if (!isCopying) return
     const esc = (e: KeyboardEvent) => {
-      // Esc in the Clear week dialog is that dialog's
+      // Esc in a dialog, like Clear week's, is that dialog's
       if (e.key === 'Escape' && !(e.target as Element).closest('dialog')) setCopying(null)
     }
     document.addEventListener('keydown', esc)
@@ -195,12 +207,7 @@ export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tra
           </div>
         </div>
         <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
-          <Link href="/staff" className="btn">
-            Manage staff
-          </Link>
-          <Link href="/settings" className="btn">
-            Trading hours
-          </Link>
+          <CopyPreviousWeek week={week} shifts={shifts.length} previousShifts={previousShifts} />
           <button className="btn btn-danger" onClick={clear}>
             Clear week
           </button>
