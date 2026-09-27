@@ -4,11 +4,10 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addShift, clearWeek, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
-import { isUsuallyAvailable, notUsuallyAvailableNote } from '@/lib/roster/availability'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
-import type { NaNote } from '@/lib/roster/notAvailable'
+import { naNote, naReason, type NaNote } from '@/lib/roster/notAvailable'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
@@ -161,9 +160,7 @@ export function RosterGrid({ week, staff, shifts, naNotes, templates, tradingHou
                   if (closedDays[i]) return <ClosedCell key={date} />
                   const inCell = cells.get(cellKey(person.id, date)) ?? []
                   const copy = copying && copyShift(copying.shift, { staffId: person.id, date }, inCell)
-                  const na = isUsuallyAvailable(person.available, date)
-                    ? undefined
-                    : notUsuallyAvailableNote(person.name, date)
+                  const na = naReason(person, date, naNotes)
                   return (
                     <Cell
                       key={date}
@@ -171,11 +168,11 @@ export function RosterGrid({ week, staff, shifts, naNotes, templates, tradingHou
                       date={date}
                       shifts={inCell}
                       overlapping={overlapping}
-                      na={na}
+                      na={na ? naNote(na, person.name, date) : undefined}
                       mode={!copying ? 'edit' : copy ? 'paste' : 'holds'}
                       copying={copying?.shift}
                       onClick={(e, shift) => {
-                        if (!copying) setOpen({ person, date, shift, anchor: e.currentTarget })
+                        if (!copying) setOpen({ person, date, shift, na, anchor: e.currentTarget })
                         // A double click is one paste, not two
                         else if (copy && e.detail < 2) paste(copy, person, copying)
                       }}
@@ -302,8 +299,9 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  * A chip that overlaps another is outlined, since the Warnings panel can't
  * say which two.
  *
- * A day the person isn't usually available is tinted, and says N/A until
- * the pointer's over it. It's a note, so the cell works like any other.
+ * A day the person isn't usually available, or is marked not available this
+ * week, is tinted, and says N/A until the pointer's over it. It's a note, so
+ * the cell works like any other.
  */
 function Cell({
   person,

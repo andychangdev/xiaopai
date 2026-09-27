@@ -1,17 +1,19 @@
 'use client'
 
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
-import { addShift, removeShift, updateShift, type ActionResult } from '@/app/actions'
+import { addShift, removeShift, setMarkedNa, updateShift, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
+import { alreadyNaNote, type NaReason } from '@/lib/roster/notAvailable'
 import type { Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatRange, parseShorthand, type Minutes } from '@/lib/roster/time'
 
-/** The cell a popover is for, and the shift in it when a chip opened it. */
+/** The cell a popover is for, why it shows N/A if it does, and the shift in it when a chip opened it. */
 export type PopoverTarget = {
   person: { id: number; name: string }
   date: IsoDate
+  na: NaReason | null
   shift?: Shift
   anchor: HTMLElement
 }
@@ -32,9 +34,10 @@ export function actionError(run: () => Promise<ActionResult>): Promise<string | 
 
 /**
  * The small box that opens on a cell: type a range and press Enter, or click
- * a template, to add a shift. Opened from a chip, the same change its times,
- * Remove takes it off, and Copy hands it to the grid to paste into other
- * cells. Esc, Cancel or a click anywhere else closes it without saving.
+ * a template, to add a shift, or Mark N/A for this week (Clear N/A takes it
+ * off). Opened from a chip, the same change its times, Remove takes it off,
+ * and Copy hands it to the grid to paste into other cells. Esc, Cancel or a
+ * click anywhere else closes it without saving.
  */
 export function ShiftPopover({
   week,
@@ -49,7 +52,7 @@ export function ShiftPopover({
   onClose: (target: PopoverTarget) => void
   onCopy: (shift: Shift) => void
 }) {
-  const { person, date, shift, anchor } = target
+  const { person, date, na, shift, anchor } = target
   const ref = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
@@ -200,6 +203,12 @@ export function ShiftPopover({
       >
         {error ?? '10-18 or 10-6 → 10:00–18:00'}
       </p>
+      {/* Their pattern already says so, and a note on top would say nothing new */}
+      {!shift && na === 'usual' && (
+        <p className="mt-[7px] border-t border-line pt-[7px] text-[11.5px] leading-[1.45] text-ink-3">
+          {alreadyNaNote(person.name, date)}
+        </p>
+      )}
       <div className="mt-[9px] flex gap-1.5 border-t border-line pt-[9px] [&>.btn]:flex-1 [&>.btn]:p-[5px] [&>.btn]:text-center [&>.btn]:text-[12px]">
         {shift && (
           <button
@@ -210,6 +219,15 @@ export function ShiftPopover({
             }}
           >
             Remove
+          </button>
+        )}
+        {!shift && na !== 'usual' && (
+          <button
+            className="btn"
+            title={na === 'marked' ? "Take off this week's note" : "Note they can't work this day, this week only"}
+            onClick={() => save(() => setMarkedNa({ week, staffId: person.id, date, marked: na !== 'marked' }))}
+          >
+            {na === 'marked' ? 'Clear N/A' : 'Mark N/A'}
           </button>
         )}
         {shift && (

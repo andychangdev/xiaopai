@@ -8,10 +8,11 @@ import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
 import { closedDaysOf, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
-import { withDayAvailable } from '@/lib/roster/availability'
+import { isUsuallyAvailable, withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
+import { alreadyNaNote } from '@/lib/roster/notAvailable'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
@@ -63,10 +64,10 @@ const text = (v: unknown) => (typeof v === 'string' ? v : '')
  * Someone with a row on the week's grid, or why they have none. Inactive
  * staff keep one only on weeks where they already have shifts.
  */
-function gridRow(week: IsoDate, staffId: number): { error: string } | { name: string } {
+function gridRow(week: IsoDate, staffId: number): { error: string } | { name: string; available: boolean[] } {
   const db = getDb()
   const person = db
-    .select({ name: staff.name, active: staff.active })
+    .select({ name: staff.name, active: staff.active, available: staff.available })
     .from(staff)
     .where(eq(staff.id, staffId))
     .get()
@@ -233,6 +234,43 @@ export async function removeShift(id: number): Promise<ActionResult> {
 export async function clearWeek(week: string): Promise<ActionResult> {
   checkWeek(week)
   getDb().delete(shifts).where(eq(shifts.weekStart, week)).run()
+  gridChanged()
+  return {}
+}
+
+/**
+ * Marks someone not available on one day of one week, or clears it. It's a
+ * note: shifts already there stay, and nothing outside this week changes. A
+ * day their availability rules out is N/A already, so takes no note.
+ */
+export async function setMarkedNa(input: {
+  week: string
+  staffId: number
+  date: string
+  marked: boolean
+}): Promise<ActionResult> {
+  const { week, staffId, date, marked } = input ?? {}
+  checkWeek(week)
+  checkId(staffId)
+  checkDate(week, date)
+  if (typeof marked !== 'boolean') throw new Error('Expected marked to be true or false')
+
+  const db = getDb()
+  if (!marked) {
+    db.delete(naNotes)
+      .where(and(eq(naNotes.weekStart, week), eq(naNotes.staffId, staffId), eq(naNotes.date, date)))
+      .run()
+    gridChanged()
+    return {}
+  }
+  if (isClosed(closedDaysOf(week), date)) return { error: dayClosedError(date) }
+  const row = gridRow(week, staffId)
+  if ('error' in row) return row
+  if (!isUsuallyAvailable(row.available, date)) return { error: alreadyNaNote(row.name, date) }
+  db.transaction((tx) => {
+    tx.insert(rosters).values({ weekStart: week }).onConflictDoNothing().run()
+    tx.insert(naNotes).values({ weekStart: week, staffId, date }).onConflictDoNothing().run()
+  })
   gridChanged()
   return {}
 }
