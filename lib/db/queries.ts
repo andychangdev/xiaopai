@@ -1,16 +1,29 @@
 import 'server-only'
-import { and, asc, count, eq, gte, lte } from 'drizzle-orm'
+import { and, asc, count, eq, gte, inArray, lte } from 'drizzle-orm'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
+import { landingWeek } from '@/lib/roster/publish'
 import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
 import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
-/** The week the Roster and Roster text tabs open when none is named: this one. */
+/**
+ * The week the Roster and Roster text tabs open when none is named: the
+ * earliest that still needs work, this week or next.
+ */
 export function openWeek(): IsoDate {
-  return mondayOf(today())
+  const thisWeek = mondayOf(today())
+  const published = new Set(
+    getDb()
+      .select({ weekStart: rosters.weekStart })
+      .from(rosters)
+      .where(and(eq(rosters.status, 'published'), inArray(rosters.weekStart, [thisWeek, addDays(thisWeek, 7)])))
+      .all()
+      .map((r) => r.weekStart),
+  )
+  return landingWeek(thisWeek, (week) => published.has(week))
 }
 
 /**
