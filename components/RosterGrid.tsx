@@ -364,12 +364,7 @@ function Cell({
   const inert = mode === 'holds' || mode === 'away'
   // Hovering an N/A cell keeps it near its tint, as the mockup does; the + is the sign it's live
   const hover = na ? 'hover:bg-surface-2' : 'hover:bg-surface-3'
-  const modeStyle = {
-    edit: '',
-    paste: `cursor-copy ${hover} [&_button]:cursor-copy`,
-    holds: '[&_button]:cursor-default',
-    away: '[&_button]:cursor-default',
-  }[mode]
+  const modeStyle = inert ? '[&_button]:cursor-default' : mode === 'paste' ? `cursor-copy ${hover} [&_button]:cursor-copy` : ''
 
   return (
     <div
