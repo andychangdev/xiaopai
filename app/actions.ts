@@ -381,11 +381,12 @@ export async function publishWeek(week: string): Promise<ActionResult> {
 
   const previous = state.status === 'published' ? state : null
   const snapshot = snapshotOf({ weekStart: week, days, today: today(), previous })
-  // A week with shifts always has its roster: the first shift made it
+  const { version, publishedAt } = snapshot
+  const published = { status: 'published' as const, version, publishedAt, snapshot }
   getDb()
-    .update(rosters)
-    .set({ status: 'published', version: snapshot.version, publishedAt: snapshot.publishedAt, snapshot })
-    .where(eq(rosters.weekStart, week))
+    .insert(rosters)
+    .values({ weekStart: week, ...published })
+    .onConflictDoUpdate({ target: rosters.weekStart, set: published })
     .run()
   gridChanged()
   return {}
