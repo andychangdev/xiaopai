@@ -19,7 +19,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 13 | [Booked leave](completed/13-booked-leave.md) | 06, 07, 12 |
 | 14 | [Roster text](completed/14-roster-text.md) | 08 |
 | 15 | [Publish and snapshot](completed/15-publish-and-snapshot.md) | 10, 14 |
-| 16 | [History](to-do/16-history.md) | 15 |
+| 16 | [History](completed/16-history.md) | 15 |
 | 17 | [Undo](to-do/17-undo.md) | 06, 08, 12 |
 | 18 | [JSON export](to-do/18-json-export.md) | 05 |
 | 19 | [Dock launcher](to-do/19-dock-launcher.md) | 01 |
@@ -32,6 +32,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 - **Copy previous week with every shift skipped** (07): changes nothing and says why, rather than emptying this week for nothing. The mockup replaces the week anyway.
 - **The schema** (01): lands whole in ticket 01, so parallel tickets don't collide on migration files. This is the one piece that isn't a vertical slice.
 - **Roster buttons** (20): drops Manage staff and Trading hours, since the tabs already cover them, and puts Copy previous week in the grid footer. Roster text leaves the tab bar, is renamed Share roster, and sits next to Publish roster, taking the place of SPEC §2's View sheet. The mockup and ARCHITECTURE §4 have the old layout.
+- **History's list** (16): a published week stays listed after it's been emptied, since staff still hold what went out. SPEC lists only weeks with shifts on them. The open week travels in the URL (`/history?week=`), so History only knows it when you come from that week's grid or Share roster; from Staff or Settings it's the week the Roster tab would open.
 - **Undo and JSON export** (17, 18): SPEC includes them, and ARCHITECTURE §9 says "later". Both are kept, at the end.
 
 ## Not ticketed
