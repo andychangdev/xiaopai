@@ -1,0 +1,6 @@
+.scratch/
+node_modules/
+.next/
+
+# The database holds real staff names, and the repo is public
+xiaopai.db*
