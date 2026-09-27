@@ -29,7 +29,9 @@ Name the business on the Settings page; until then it's *Your restaurant*.
 | `npm run db:migrate` | Apply migrations to `xiaopai.db` |
 
 `xiaopai.db` holds real staff names and is never committed. Back it up by
-copying the file somewhere outside the project folder.
+copying the file somewhere outside the project folder. Export backup on the
+Settings page also downloads everything as JSON, to read and keep, but
+it can't be imported.
 
 ## The Dock icon
 

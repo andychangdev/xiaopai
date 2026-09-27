@@ -35,6 +35,18 @@ export default function SettingsPage() {
         </p>
         <TemplatesTable templates={templateList()} />
       </Card>
+      <Card title="Backup">
+        <p className="px-3.5 pt-3.5 text-[12.5px] text-ink-2">
+          Everything in the app as one JSON file, named with today&apos;s date, to read and keep. It can&apos;t be
+          loaded back in: the real backup is a copy of <code className="font-mono">xiaopai.db</code>.
+        </p>
+        <div className="p-3.5">
+          {/* A plain link, not next/link: the file downloads rather than opening as a page */}
+          <a href="/settings/backup" download className="btn">
+            Export backup
+          </a>
+        </div>
+      </Card>
     </div>
   )
 }

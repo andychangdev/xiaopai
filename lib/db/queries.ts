@@ -1,5 +1,6 @@
 import 'server-only'
-import { and, asc, count, eq, gte, lte } from 'drizzle-orm'
+import { and, asc, count, eq, gte, is, lte } from 'drizzle-orm'
+import { SQLiteTable, getTableConfig } from 'drizzle-orm/sqlite-core'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
@@ -10,6 +11,7 @@ import type { Shift } from '@/lib/roster/shifts'
 import { DEFAULT_BUSINESS_NAME, tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
+import * as schema from './schema'
 import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
 /**
@@ -189,6 +191,22 @@ export function templateList() {
     .from(shiftTemplates)
     .orderBy(asc(shiftTemplates.sortOrder), asc(shiftTemplates.id))
     .all()
+}
+
+/**
+ * Every row of every table, for the JSON export, each table in the order of
+ * its key. It walks the schema, so a table added later comes along too.
+ */
+export function everyTable(): Record<string, unknown[]> {
+  const db = getDb()
+  return Object.fromEntries(
+    Object.entries<unknown>(schema)
+      .filter((entry): entry is [string, SQLiteTable] => is(entry[1], SQLiteTable))
+      .map(([name, table]) => {
+        const key = getTableConfig(table).columns.filter((c) => c.primary)
+        return [name, db.select().from(table).orderBy(...key.map((c) => asc(c))).all()]
+      }),
+  )
 }
 
 export function hasStaff() {
