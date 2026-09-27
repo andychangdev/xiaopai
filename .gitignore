@@ -1,6 +1,8 @@
 .scratch/
 node_modules/
 .next/
+next-env.d.ts
+*.tsbuildinfo
 
 # The database holds real staff names, and the repo is public
-xiaopai.db*
+*.db*
