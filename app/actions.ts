@@ -241,7 +241,9 @@ export async function clearWeek(week: string): Promise<ActionResult> {
 /**
  * Marks someone not available on one day of one week, or clears it. It's a
  * note: shifts already there stay, and nothing outside this week changes. A
- * day their availability rules out is N/A already, so takes no note.
+ * day their availability rules out is N/A already, so takes no note. The
+ * note is about the person rather than the day, so whether the shop is open
+ * doesn't come into it.
  */
 export async function setMarkedNa(input: {
   week: string
@@ -263,7 +265,6 @@ export async function setMarkedNa(input: {
     gridChanged()
     return {}
   }
-  if (isClosed(closedDaysOf(week), date)) return { error: dayClosedError(date) }
   const row = gridRow(week, staffId)
   if ('error' in row) return row
   const error = markNaError(row, date)
@@ -278,7 +279,9 @@ export async function setMarkedNa(input: {
 
 /**
  * Closes one day of one week, or reopens it. A closed day holds no shifts, so
- * closing it removes the ones on it. Other weeks never change.
+ * closing it removes the ones on it. N/A notes stay, out of sight: they're
+ * about the person, so they still hold if the day reopens. Other weeks never
+ * change.
  */
 export async function setDayClosed(input: { week: string; date: string; closed: boolean }): Promise<ActionResult> {
   const { week, date, closed } = input ?? {}
