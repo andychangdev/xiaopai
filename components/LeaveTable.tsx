@@ -187,8 +187,9 @@ function BookRow({
           onChange={(e) => {
             const day = e.target.value
             setFrom(day)
-            // The last day starts as the first, and never falls behind it
-            if (!to || to < day) setTo(day)
+            // The last day starts as the first and follows it while they match,
+            // so moving a one-day booking keeps it one day. It never falls behind.
+            if (!to || to === from || to < day) setTo(day)
           }}
         />
       </td>
