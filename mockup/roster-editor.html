@@ -1,0 +1,942 @@
+<meta charset="utf-8">
+<title>xiaopai Roster Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f1f3f1; --surface:#fff; --surface-2:#e7eae7; --surface-3:#f7f8f7;
+  --line:#d3d8d3; --line-strong:#b9c0b9;
+  --ink:#1a201d; --ink-2:#5b665f; --ink-3:#8b958e;
+  --accent:#146356; --accent-2:#1d8271; --accent-ink:#fff;
+  --warn:#8a5300; --warn-bg:#fcf1dd; --warn-line:#e8cb96;
+  --crit:#9d2b21; --crit-bg:#fbe8e5; --crit-line:#eab3ac;
+  --off:#9aa39c; --unavail:#e9ece9;
+  --sans:'Archivo',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --radius:7px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121614; --surface:#1a1f1c; --surface-2:#232925; --surface-3:#1f2522;
+    --line:#333b36; --line-strong:#47514a;
+    --ink:#e7ece9; --ink-2:#9ba69f; --ink-3:#6e7a73;
+    --accent:#4bbfa6; --accent-2:#63d4bb; --accent-ink:#0b1512;
+    --warn:#efb45f; --warn-bg:#33270f; --warn-line:#5c4720;
+    --crit:#f18d80; --crit-bg:#361b17; --crit-line:#5e2f28;
+    --off:#69736c; --unavail:#1e2320;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121614; --surface:#1a1f1c; --surface-2:#232925; --surface-3:#1f2522;
+  --line:#333b36; --line-strong:#47514a;
+  --ink:#e7ece9; --ink-2:#9ba69f; --ink-3:#6e7a73;
+  --accent:#4bbfa6; --accent-2:#63d4bb; --accent-ink:#0b1512;
+  --warn:#efb45f; --warn-bg:#33270f; --warn-line:#5c4720;
+  --crit:#f18d80; --crit-bg:#361b17; --crit-line:#5e2f28;
+  --off:#69736c; --unavail:#1e2320;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+h1,h2,h3{margin:0;text-wrap:balance}
+
+/* ---------- chrome ---------- */
+.mockbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);font-size:12px;color:var(--ink-2)}
+.mockbar strong{color:var(--ink);font-weight:600}
+.tabs{display:flex;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:2px}
+.tabs button{border:0;background:transparent;padding:5px 12px;border-radius:5px;font-size:12px;font-weight:500;color:var(--ink-2)}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+
+.wrap{padding:16px;padding-block:18px 40px;max-width:1240px;margin:0 auto}
+
+/* ---------- app header ---------- */
+.apphead{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.weeknav{display:flex;align-items:center;gap:10px}
+.weeknav .arrow{width:30px;height:30px;display:grid;place-items:center;border:1px solid var(--line);
+  background:var(--surface);border-radius:var(--radius);color:var(--ink-2);font-size:15px}
+.weeknav .arrow:hover{border-color:var(--line-strong);color:var(--ink)}
+.weeklabel h1{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.weeklabel .sub{font-size:11.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.09em;font-weight:500}
+.headactions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge.ok{border-color:var(--accent);background:transparent;color:var(--accent)}
+.badge{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;
+  padding:4px 9px;border-radius:99px;border:1px solid var(--warn-line);background:var(--warn-bg);color:var(--warn)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:7px 13px;border-radius:var(--radius);font-size:13px;font-weight:500}
+.btn:hover{border-color:var(--line-strong)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn-primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.btn-danger{color:var(--crit)}
+.btn-danger:hover{border-color:var(--crit-line);background:var(--crit-bg)}
+
+/* ---------- layout ---------- */
+.below{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start;margin-top:16px}
+@media (max-width:820px){.below{grid-template-columns:1fr}}
+
+/* ---------- grid ---------- */
+.gridcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.gridscroll{overflow-x:auto}
+.grid{min-width:960px;display:grid;grid-template-columns:168px repeat(7,minmax(112px,1fr))}
+.gh{position:sticky;top:0;background:var(--surface-3);border-bottom:1px solid var(--line-strong);
+  padding:9px 8px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.gh.day{text-align:center}
+button.gh.day{border:0;border-bottom:1px solid var(--line-strong);width:100%;font-family:inherit;text-align:center;position:relative}
+button.gh.day:hover{background:var(--surface-2);color:var(--ink)}
+button.gh.day .tog{position:absolute;right:5px;top:6px;font-size:10px;opacity:0;letter-spacing:0;text-transform:none;font-weight:400}
+button.gh.day:hover .tog{opacity:.75}
+button.gh.day.isclosed{color:var(--ink-3)}
+.gh.day .dnum{display:block;font-family:var(--mono);font-size:11px;letter-spacing:0;color:var(--ink-3);font-weight:400}
+.gh.name{border-right:1px solid var(--line)}
+
+.emp{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:9px 10px;background:var(--surface-3)}
+.emp .n{font-weight:600;font-size:13.5px;letter-spacing:-.005em}
+.emp .hrs{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-top:4px;font-variant-numeric:tabular-nums}
+.emp .hrs.over{color:var(--crit);font-weight:600}
+.emp .hrs.under{color:var(--warn);font-weight:600}
+
+.cell{position:relative;border-bottom:1px solid var(--line);border-right:1px solid var(--line);min-height:56px;
+  padding:5px;display:flex;flex-direction:column;gap:4px;background:transparent}
+.cell:nth-child(8n+1){border-right:1px solid var(--line)}
+.cell.add{cursor:pointer}
+.cell.add:hover{background:var(--surface-3)}
+.cell .plus{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-3);
+  font-size:17px;opacity:0;transition:opacity .12s}
+.na{margin:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;font-weight:500;
+  color:var(--ink-3);transition:opacity .12s}
+.cell.add:hover .na{opacity:0}
+.cell.add:hover .plus{opacity:1}
+.cell.unavail{background:var(--unavail)}
+.cell.unavail.add:hover{background:var(--surface-2)}
+.cell.closed{background:repeating-linear-gradient(135deg,transparent,transparent 5px,var(--surface-2) 5px,var(--surface-2) 10px)}
+
+.chip{display:flex;align-items:center;gap:6px;background:var(--surface-3);border:1px solid var(--line);
+  border-left:3px solid var(--accent);border-radius:5px;padding:4px 6px;text-align:left;width:100%}
+.chip:hover{border-color:var(--line-strong);background:var(--surface-2)}
+.chip .t{font-family:var(--mono);font-size:11.5px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.chip .x{margin-left:auto;color:var(--ink-3);font-size:13px;line-height:1;opacity:0}
+.chip:hover .x{opacity:1}
+.chip.flag{border-color:var(--crit-line);background:var(--crit-bg)}
+.awaychip{margin:auto;font-family:var(--mono);font-size:11px;letter-spacing:.14em;font-weight:500;color:var(--off)}
+.closedchip{margin:auto;font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--ink-3)}
+
+.gridfoot{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;background:var(--surface-3);border-top:1px solid var(--line)}
+.gridfoot .cfg{font-size:11.5px;color:var(--ink-3);align-self:center;flex-basis:100%;order:9}
+.gridfoot .spacer{margin-left:auto;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);align-self:center;font-variant-numeric:tabular-nums}
+.gridfoot .spacer b{color:var(--ink);font-weight:600}
+
+/* ---------- side panels ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel h2{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);
+  padding:10px 12px;border-bottom:1px solid var(--line);background:var(--surface-3);display:flex;gap:7px;align-items:center}
+.panel h2 .count{font-family:var(--mono);font-size:10.5px;background:var(--crit-bg);color:var(--crit);
+  border:1px solid var(--crit-line);border-radius:99px;padding:0 6px;letter-spacing:0}
+.panel .body{padding:4px 0}
+.warn{display:flex;gap:9px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.4}
+.warn:last-child{border-bottom:0}
+.warn .bar{width:3px;border-radius:2px;flex:none;background:var(--warn)}
+.warn.crit .bar{background:var(--crit)}
+.warn .who{font-weight:600;display:block}
+.warn .txt{color:var(--ink-2)}
+.empty{padding:14px 12px;font-size:12.5px;color:var(--ink-3)}
+
+.hrow{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:12.5px}
+.hrow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hrow .bar2{width:62px;height:5px;border-radius:99px;background:var(--surface-2);overflow:hidden;flex:none}
+.hrow .bar2 i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.hrow.over .bar2 i{background:var(--crit)}
+.hrow.under .bar2 i{background:var(--warn)}
+.hrow .v{font-family:var(--mono);font-size:12px;width:52px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.hrow.over .v,.hrow.under .v{color:var(--ink);font-weight:600}
+
+/* ---------- dialog ---------- */
+.modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;
+  background:rgba(12,18,15,.42);animation:fade .12s ease-out}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modalbox{background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;
+  width:100%;max-width:390px;padding:18px;box-shadow:0 18px 48px rgba(0,0,0,.28)}
+.modalbox h3{font-size:15px;font-weight:600;margin-bottom:6px;letter-spacing:-.01em}
+.modalbox p{margin:0 0 15px;font-size:13px;line-height:1.55;color:var(--ink-2)}
+.modalfoot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.modal{animation:none}}
+
+/* ---------- popover ---------- */
+.pop{position:fixed;z-index:50;width:250px;background:var(--surface);border:1px solid var(--line-strong);
+  border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:11px}
+.pop h3{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px;font-weight:600}
+.tmpls{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px}
+.tmpl{border:1px solid var(--line);background:var(--surface-3);border-radius:5px;padding:6px 7px;text-align:left;font-size:12px}
+.tmpl:hover{border-color:var(--accent);background:var(--surface-2)}
+.tmpl b{display:block;font-weight:600;font-size:12px}
+.tmpl span{font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.quick{display:flex;gap:5px}
+.quick input{flex:1;min-width:0;font-family:var(--mono);font-size:13px;padding:6px 8px;border:1px solid var(--line-strong);
+  border-radius:5px;background:var(--surface-3);color:var(--ink)}
+.quick input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.hint{font-size:11px;color:var(--ink-3);margin-top:7px;font-family:var(--mono)}
+.pop .na-src{margin:7px 0 0;padding-top:7px;border-top:1px solid var(--line);
+  font-family:var(--sans);font-size:11.5px;line-height:1.45;color:var(--ink-3)}
+.pop .blocked{margin:0 0 8px;font-size:12.5px;line-height:1.45;color:var(--ink-2);
+  background:var(--surface-3);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.pop .blocked b{color:var(--ink)}
+.popfoot{display:flex;gap:6px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.popfoot .btn{flex:1;padding:5px;font-size:12px;text-align:center}
+
+/* ---------- roster text ---------- */
+.rostertext{margin:0;padding:16px 18px;font-family:var(--mono);font-size:13px;line-height:1.7;
+  white-space:pre-wrap;word-break:break-word;color:var(--ink);background:var(--surface);
+  max-height:62vh;overflow:auto;-webkit-user-select:text;user-select:text}
+.rostertext::selection,.rostertext *::selection{background:var(--accent);color:var(--accent-ink)}
+.textbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 14px;
+  border-top:1px solid var(--line);background:var(--surface-3)}
+.textbar .msg{font-size:12.5px;color:var(--accent);font-weight:500}
+/* ---------- admin pages ---------- */
+.page{max-width:840px}
+.pagehead{margin-bottom:16px}
+.pagehead h1{font-size:19px;font-weight:600;letter-spacing:-.01em}
+.pagehead p{margin:5px 0 0;font-size:13px;color:var(--ink-2);max-width:64ch;line-height:1.5}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.card > h2{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);
+  padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface-3)}
+.card .cbody{padding:14px}
+.card .cbody p{margin:0 0 10px;font-size:12.5px;color:var(--ink-2)}
+.tblwrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;min-width:640px}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 12px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl td.r,.tbl th.r{text-align:right}
+.pill{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;
+  padding:2px 8px;border-radius:99px;border:1px solid var(--warn-line);background:var(--warn-bg);color:var(--warn)}
+.pill.ok{border-color:var(--accent);background:transparent;color:var(--accent)}
+.tbl tr.here td{background:var(--surface-3)}
+.tbl tr.inactive td{color:var(--ink-3)}
+.tbl tr.isclosed td{color:var(--ink-3)}
+.f{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:5px;
+  background:var(--surface-3);color:var(--ink);width:100%;max-width:100%}
+.f:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+select.f{width:auto;min-width:92px;font-family:var(--mono);font-size:12.5px}
+input.num{width:74px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-3)}
+.link{background:none;border:0;padding:0;color:var(--accent);font-size:12.5px;
+  text-decoration:underline;text-underline-offset:2px}
+.link.danger{color:var(--crit)}
+.ord{display:inline-flex;gap:5px;margin-right:10px}
+.ord .link{color:var(--ink-3);text-decoration:none;font-size:14px;line-height:1}
+.ord .link:hover{color:var(--ink)}
+.days{display:inline-flex;gap:3px}
+.dtog{width:23px;height:23px;border:1px solid var(--line);background:var(--surface-3);color:var(--ink-3);
+  border-radius:5px;font-size:11px;font-weight:600;line-height:1;padding:0}
+.dtog[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.dtog:hover{border-color:var(--line-strong)}
+.sw{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2)}
+.addrow td{background:var(--surface-3)}
+.kv{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.kv .f{width:auto}
+.note{font-size:12px;color:var(--ink-3);margin-top:16px;line-height:1.55;max-width:66ch}
+.note code{font-family:var(--mono);font-size:11.5px;background:var(--surface-2);padding:1px 4px;border-radius:3px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="mockbar">
+  <div><strong>xiaopai</strong> — interactive mockup. Click a cell to add a shift or mark N/A. Click a shift to remove it. Empty means off.</div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" id="tab-edit">Roster</button>
+    <button role="tab" aria-selected="false" id="tab-staff">Staff</button>
+    <button role="tab" aria-selected="false" id="tab-settings">Settings</button>
+    <button role="tab" aria-selected="false" id="tab-history">History</button>
+    <button role="tab" aria-selected="false" id="tab-print">Roster text</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- ============ EDITOR ============ -->
+  <section id="view-edit">
+    <div class="apphead">
+      <div class="weeknav">
+        <button class="arrow" id="prevwk" title="Previous week">‹</button>
+        <button class="arrow" id="nextwk" title="Next week">›</button>
+        <div class="weeklabel">
+          <h1 id="weektitle">5 – 11 October 2026</h1>
+          <div class="sub" id="weeksub">Week of Mon 5 Oct · Draft</div>
+        </div>
+      </div>
+      <div class="headactions">
+        <span class="badge" id="pubbadge">Draft</span>
+        <button class="btn" id="copyprev">Copy previous week</button>
+        <button class="btn btn-primary" id="publish">Publish roster</button>
+      </div>
+    </div>
+
+    <div class="gridcard">
+      <div class="gridscroll"><div class="grid" id="grid"></div></div>
+      <div class="gridfoot">
+        <button class="btn" id="btn-staff">Manage staff</button>
+        <button class="btn" id="btn-settings">Trading hours</button>
+        <button class="btn btn-danger" id="clearweek">Clear week</button>
+        <span class="cfg" id="cfgline"></span>
+        <div class="spacer">Total rostered <b id="total">—</b></div>
+      </div>
+    </div>
+
+    <div class="below">
+      <div class="panel">
+        <h2>Warnings <span class="count" id="wcount">0</span></h2>
+        <div class="body" id="warnings"></div>
+      </div>
+      <div class="panel">
+        <h2>Hours this week</h2>
+        <div class="body" id="hours"></div>
+      </div>
+    </div>
+
+    <p class="note">All active staff appear automatically — there is no per-week roll. Click a <b>day heading</b> to close that day, for this week only. <b>N/A</b> means not available — either their usual pattern, or a note you added for this week from the cell itself. Either way you can still roster them, and a warning appears below. <b>Leave</b> is booked on the Staff page and blocks the day. Shorthand entry accepts <code>10-18</code>, <code>10-16</code>, <code>10-21</code>; bare numbers resolve to trading hours.</p>
+  </section>
+
+  <!-- ============ STAFF ============ -->
+  <section id="view-staff" class="page" hidden>
+    <div class="pagehead">
+      <h1>Staff</h1>
+      <p>Rows appear on the roster in this order — use ↑↓ to arrange them the way you think
+      about your staff. Everyone active appears on every week's roster. <b>Available</b> is the weekdays a
+      person can normally work — rostering them outside it raises a warning but is never
+      blocked. Deactivating someone takes them off new weeks but leaves them on rosters
+      you've already published.</p>
+    </div>
+    <div class="card">
+      <h2>People</h2>
+      <div class="tblwrap"><table class="tbl" id="stafftbl"></table></div>
+    </div>
+    <div class="card">
+      <h2>Booked leave</h2>
+      <div class="cbody" style="padding-bottom:0"><p>A leave period blocks those days on the
+      roster — shifts can't be added while someone is away. It spans as many weeks as you
+      need and is never touched by Clear week.</p></div>
+      <div class="tblwrap"><table class="tbl" id="leavetbl"></table></div>
+    </div>
+    <p class="note">Expected weekly hours is optional — when set, the roster highlights anyone
+    more than 20% above or below it. Availability is the recurring pattern; one-off leave is
+    an <b>Away</b> marker on the roster itself.</p>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="view-settings" class="page" hidden>
+    <div class="pagehead">
+      <h1>Settings</h1>
+      <p>Trading hours and shift templates — the things that hold from week to week.
+      Closing a day is done on the roster itself, one week at a time, so a public holiday
+      never leaks into another week.</p>
+    </div>
+    <div class="card">
+      <h2>The week</h2>
+      <div class="tblwrap"><table class="tbl" id="daystbl"></table></div>
+    </div>
+    <div class="card">
+      <h2>Shift templates</h2>
+      <div class="cbody" style="padding-bottom:0"><p>One click each in the roster.
+      Times stay editable after you place one.</p></div>
+      <div class="tblwrap"><table class="tbl" id="tmpltbl"></table></div>
+    </div>
+    <p class="note">Staffing-level warnings are deliberately left out for now — the roster
+    warns about hours and clashes only.</p>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section id="view-history" class="page" hidden>
+    <div class="pagehead">
+      <h1>Roster history</h1>
+      <p>Every week you've touched, newest first. Open one to look at it, or copy it over
+      the week you're currently editing.</p>
+    </div>
+    <div class="card">
+      <h2>Weeks</h2>
+      <div class="tblwrap"><table class="tbl" id="histtbl"></table></div>
+    </div>
+    <p class="note">Published weeks keep the names and times they had when you published
+    them, so editing your staff list never rewrites a roster people already worked.</p>
+  </section>
+
+  <!-- ============ PRINT SHEET ============ -->
+  <section id="view-print" class="page" hidden>
+    <div class="pagehead">
+      <h1>Roster text</h1>
+      <p>Plain text, sized for a group chat. Only people actually on shift appear —
+      no N/A, no leave, no one sitting the week out.</p>
+    </div>
+    <div class="card">
+      <h2 id="txthead">This week</h2>
+      <pre class="rostertext" id="rostertext"></pre>
+      <div class="textbar">
+        <button class="btn btn-primary" id="copytext">Copy to clipboard</button>
+        <button class="btn" id="backedit">Back to roster</button>
+        <span class="msg" id="copymsg"></span>
+      </div>
+    </div>
+    <p class="note">Publishing is what makes this the real thing — until then it says
+    DRAFT at the bottom, so a half-built week can't be mistaken for the roster.</p>
+  </section>
+</div>
+
+<script>
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAYCFG=[
+ {open:10,close:18},{open:10,close:18},{open:10,close:18},{open:10,close:21},
+ {open:10,close:18},{open:10,close:18},{open:10,close:18},
+];
+const NO_DAYS_CLOSED=()=>[false,false,false,false,false,false,false];
+const closeOf=d=>DAYCFG[d].close;
+let EMP=[
+ {id:'john',name:'John Reyes',exp:24,active:true,avail:[1,1,1,1,1,1,0]},
+ {id:'priya',name:'Priya Naidu',exp:null,active:true,avail:[1,1,1,1,1,1,1]},
+ {id:'sarah',name:'Sarah Dunn',exp:24,active:true,avail:[1,1,1,1,1,1,1]},
+ {id:'lisa',name:'Lisa Chen',exp:20,active:true,avail:[1,1,1,1,1,1,0]},
+ {id:'mike',name:'Mike Tulloch',exp:18,active:true,avail:[0,0,1,1,1,1,1]},
+ {id:'dana',name:'Dana Okafor',exp:null,active:false,avail:[1,1,1,1,1,1,1]},
+];
+let TMPL=[{n:'Short day',s:10,e:16},{n:'Full day',s:10,e:18},{n:'Shopping night',s:10,e:21}];
+let uid=0;
+const mk=(emp,days,s,e)=>days.map(d=>({emp,day:d,s,e}));
+let shifts=[
+ ...mk('john',[0,4,6],10,18),
+ ...mk('priya',[6],10,18), {emp:'priya',day:3,s:10,e:21},
+ ...mk('sarah',[2],10,18), ...mk('sarah',[3,5],10,16),
+ ...mk('lisa',[0,5],10,18), ...mk('lisa',[2],10,16),
+ ...mk('mike',[3,4,5],10,18),
+].map(x=>({...x,id:++uid}));
+// Leave belongs to the person and to real dates, not to this week's draft,
+// so Clear week can't touch it and it spans as many weeks as you like.
+const dateOf=d=>addD(curWeek,d);
+let LEAVE=[
+ {id:++uid,emp:'john',from:'2026-10-07',to:'2026-10-07',note:'Medical'},
+ {id:++uid,emp:'lisa',from:'2026-10-08',to:'2026-10-09',note:'Family'},
+ {id:++uid,emp:'sarah',from:'2026-10-20',to:'2026-10-27',note:'Annual leave'},
+];
+// A note on this week's roster only. Not availability, not leave.
+let notAvail=[{emp:'priya',day:0},{emp:'sarah',day:4}];
+const notedNA=(e,d)=>notAvail.some(n=>n.emp===e&&n.day===d);
+const leaveOn=(e,d)=>LEAVE.find(l=>l.emp===e&&l.from<=dateOf(d)&&dateOf(d)<=l.to)||null;
+const todayStr=()=>`${TODAY.getDate()} ${MON[TODAY.getMonth()]} ${TODAY.getFullYear()}`;
+const addD=(iso,n)=>{const t=new Date(iso+'T00:00:00');t.setDate(t.getDate()+n);
+  return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`};
+const dnum=d=>new Date(dateOf(d)+'T00:00:00').getDate();
+const MFULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const weekLabel=k=>{const a=new Date(k+'T00:00:00'),b=new Date(addD(k,6)+'T00:00:00');
+  return a.getMonth()===b.getMonth()
+    ? `${a.getDate()} – ${b.getDate()} ${MFULL[a.getMonth()]} ${a.getFullYear()}`
+    : `${a.getDate()} ${MON[a.getMonth()]} – ${b.getDate()} ${MON[b.getMonth()]} ${b.getFullYear()}`};
+const weekShort=k=>{const a=new Date(k+'T00:00:00'),b=new Date(addD(k,6)+'T00:00:00');
+  return `${a.getDate()} ${MON[a.getMonth()]} – ${b.getDate()} ${MON[b.getMonth()]}`};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const fmtDate=iso=>{const t=new Date(iso+'T00:00:00');
+  return `${WD[t.getDay()]} ${t.getDate()} ${MON[t.getMonth()]}`};
+const TODAY=new Date();
+let pubStatus='draft', pubVersion=0, pubAt=null, pubSnap='';
+let curWeek='2026-10-05';
+let wkClosed=[false,true,false,false,false,false,false];   // Tue shut this week
+const WEEKS={};
+function W(k){
+  if(!WEEKS[k])WEEKS[k]={shifts:[],na:[],closed:NO_DAYS_CLOSED(),
+    status:'draft',version:0,at:null,snap:''};
+  return WEEKS[k];
+}
+function saveWeek(){const w=W(curWeek);
+  w.shifts=shifts;w.na=notAvail;w.closed=wkClosed;
+  w.status=pubStatus;w.version=pubVersion;w.at=pubAt;w.snap=pubSnap}
+function loadWeek(k){const w=W(k);curWeek=k;
+  shifts=w.shifts;notAvail=w.na;wkClosed=w.closed;
+  pubStatus=w.status;pubVersion=w.version;pubAt=w.at;pubSnap=w.snap}
+function goWeek(k){saveWeek();loadWeek(k);closePop();render()}
+const snapNow=()=>JSON.stringify({shifts,notAvail,closed:wkClosed});
+const isDirty=()=>pubStatus==='published'&&snapNow()!==pubSnap;
+const spanDays=l=>Math.round((new Date(l.to)-new Date(l.from))/864e5)+1;
+
+const isClosed=d=>wkClosed[d];
+const active=()=>EMP.filter(e=>e.active);
+const fmt=h=>{const H=Math.floor(h)%24,m=Math.round((h-Math.floor(h))*60);
+  return `${String(H).padStart(2,'0')}:${String(m).padStart(2,'0')}`};
+const range=s=>`${fmt(s.s)}–${fmt(s.e)}`;
+const hrs=id=>shifts.filter(s=>s.emp===id).reduce((t,s)=>t+(s.e-s.s),0);
+function parseShort(v){
+  const m=v.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*[-–to]+\s*(\d{1,2})(?::(\d{2}))?$/i);
+  if(!m)return null;
+  let s=+m[1]+(m[2]?+m[2]/60:0), e=+m[3]+(m[4]?+m[4]/60:0);
+  if(s<7)s+=12; while(e<=s)e+=12;
+  if(e>24)return null; return {s,e};
+}
+function overlaps(id){
+  const bad=new Set();
+  for(const d of [0,1,2,3,4,5,6]){
+    const day=shifts.filter(s=>s.emp===id&&s.day===d);
+    for(let i=0;i<day.length;i++)for(let j=i+1;j<day.length;j++)
+      if(day[i].s<day[j].e&&day[j].s<day[i].e){bad.add(day[i].id);bad.add(day[j].id)}
+  }
+  return bad;
+}
+function buildWarnings(){
+  const out=[];
+  for(const e of active()){
+    const o=overlaps(e.id);
+    if(o.size)out.push({crit:1,who:e.name,txt:'Two shifts overlap on the same day.'});
+    const h=hrs(e.id);
+    if(h>38)out.push({crit:1,who:e.name,txt:`${h}h rostered — over the 38h week.`});
+    for(let d=0;d<6;d++){
+      const a=shifts.filter(s=>s.emp===e.id&&s.day===d), b=shifts.filter(s=>s.emp===e.id&&s.day===d+1);
+      if(!a.length||!b.length)continue;
+      const gap=(24-Math.max(...a.map(s=>s.e)))+Math.min(...b.map(s=>s.s));
+      if(gap<10)out.push({crit:0,who:e.name,txt:`Only ${gap}h between ${DAYS[d]} close and ${DAYS[d+1]} start.`});
+    }
+    for(let d=0;d<7;d++){
+      const on=shifts.some(s=>s.emp===e.id&&s.day===d);
+      if(!on)continue;
+      if(leaveOn(e.id,d))out.push({crit:1,who:e.name,txt:`Rostered on ${DAYS[d]}, which is booked as leave.`});
+      if(notedNA(e.id,d))out.push({crit:1,who:e.name,txt:`Rostered on ${DAYS[d]}, marked not available this week.`});
+      else if(!e.avail[d])out.push({crit:1,who:e.name,txt:`Rostered on ${DAYS[d]} — not usually available.`});
+    }
+    if(e.exp&&h>0){const dv=(h-e.exp)/e.exp;
+      if(dv>0.2)out.push({crit:0,who:e.name,txt:`${h}h vs ${e.exp}h expected — ${Math.round(dv*100)}% over.`});
+      else if(dv<-0.2)out.push({crit:0,who:e.name,txt:`${h}h vs ${e.exp}h expected — ${Math.round(-dv*100)}% under.`});}
+  }
+  return out.sort((a,b)=>b.crit-a.crit);
+}
+function ask({title,body,ok='Confirm',cancel='Cancel',danger=false}){
+  return new Promise(res=>{
+    const w=document.createElement('div');w.className='modal';
+    w.innerHTML=`<div class="modalbox" role="dialog" aria-modal="true"><h3>${title}</h3><p>${body}</p>
+      <div class="modalfoot">${cancel?`<button class="btn" data-no>${cancel}</button>`:''}
+      <button class="btn ${danger?'btn-danger':'btn-primary'}" data-yes>${ok}</button></div></div>`;
+    document.body.appendChild(w);
+    const key=e=>{if(e.key==='Escape')done(false)};
+    const done=v=>{w.remove();document.removeEventListener('keydown',key);res(v)};
+    document.addEventListener('keydown',key);
+    w.addEventListener('click',e=>{
+      if(e.target===w||e.target.closest('[data-no]'))return done(false);
+      if(e.target.closest('[data-yes]'))return done(true);
+    });
+    w.querySelector('[data-yes]').focus();
+  });
+}
+const notify=(title,body)=>ask({title,body,ok:'OK',cancel:null});
+const clock=h=>h==null?'—':fmt(h);
+const TIMES=(()=>{const a=[];for(let q=7*4;q<=23*4;q+=2)a.push(q/4);return a})();
+const timeSel=(val,attrs,allowNone)=>`<select class="f" ${attrs}>`+
+  (allowNone?`<option value=""${val==null?' selected':''}>—</option>`:'')+
+  TIMES.map(t=>`<option value="${t}"${t===val?' selected':''}>${clock(t)}</option>`).join('')+`</select>`;
+
+function renderStaff(){
+  const a=document.activeElement;
+  if(a&&a.dataset&&a.dataset.sf)return;
+  const rows=EMP;
+  document.getElementById('stafftbl').innerHTML=
+  `<thead><tr><th>Name</th><th>Expected hours</th><th>Available</th><th>Notes</th><th>Active</th><th class="r"></th></tr></thead><tbody>`+
+  rows.map(e=>`<tr class="${e.active?'':'inactive'}">
+    <td><input class="f" data-sf="name" data-id="${e.id}" value="${e.name.replace(/"/g,'&quot;')}"></td>
+    <td><input class="f num" data-sf="exp" data-id="${e.id}" type="number" min="0" max="80" placeholder="—" value="${e.exp??''}"></td>
+    <td><span class="days">${DAYS.map((n,i)=>`<button class="dtog" data-av="${e.id}" data-d="${i}"
+      aria-pressed="${!!e.avail[i]}" title="${n}">${n[0]}</button>`).join('')}</span></td>
+    <td><input class="f" data-sf="notes" data-id="${e.id}" placeholder="Optional" value="${(e.notes||'').replace(/"/g,'&quot;')}"></td>
+    <td><label class="sw"><input type="checkbox" data-sf="active" data-id="${e.id}"${e.active?' checked':''}>
+        ${e.active?'Active':'Inactive'}</label></td>
+    <td class="r"><span class="ord"><button class="link" data-mv="${e.id}" data-dir="-1" title="Move up">↑</button><button class="link" data-mv="${e.id}" data-dir="1" title="Move down">↓</button></span>
+      <button class="link danger" data-rm="${e.id}">Remove</button></td></tr>`).join('')+
+  `<tr class="addrow"><td><input class="f" id="newname" placeholder="New staff member"></td>
+    <td><input class="f num" id="newexp" type="number" min="0" max="80" placeholder="—"></td>
+    <td class="muted" style="font-size:12px">all days</td>
+    <td><input class="f" id="newnotes" placeholder="Optional"></td>
+    <td colspan="2" class="r"><button class="btn" id="addstaff">Add</button></td></tr></tbody>`;
+}
+
+function renderLeave(){
+  const a=document.activeElement;
+  if(a&&(a.id||'').startsWith('nl'))return;
+  const today='2026-10-05';
+  const rows=[...LEAVE].sort((x,y)=>x.from<y.from?-1:1);
+  document.getElementById('leavetbl').innerHTML=
+  `<thead><tr><th>Who</th><th>From</th><th>To</th><th>Days</th><th>Note</th><th class="r"></th></tr></thead><tbody>`+
+  (rows.length?rows.map(l=>{
+    const e=EMP.find(x=>x.id===l.emp)||{name:'—'};
+    return `<tr class="${l.to<today?'inactive':''}">
+      <td><b>${e.name}</b></td>
+      <td class="mono">${fmtDate(l.from)}</td>
+      <td class="mono">${l.to===l.from?'<span class="muted">—</span>':fmtDate(l.to)}</td>
+      <td class="mono">${spanDays(l)}</td>
+      <td>${l.note||'<span class="muted">—</span>'}</td>
+      <td class="r"><button class="link danger" data-lrm="${l.id}">Cancel</button></td></tr>`}).join('')
+   :`<tr><td colspan="6" class="muted">No leave booked.</td></tr>`)+
+  `<tr class="addrow">
+     <td><select class="f" id="nlwho">${active().map(e=>`<option value="${e.id}">${e.name}</option>`).join('')}</select></td>
+     <td><input class="f" id="nlfrom" type="date" value="2026-10-05"></td>
+     <td><input class="f" id="nlto" type="date" value="2026-10-05"></td>
+     <td class="muted">—</td>
+     <td><input class="f" id="nlnote" placeholder="Reason (optional)"></td>
+     <td class="r"><button class="btn" id="addleave">Book</button></td></tr></tbody>`;
+}
+function renderHistory(){
+  const keys=Object.keys(WEEKS).filter(k=>WEEKS[k].shifts.length||k===curWeek).sort().reverse();
+  document.getElementById('histtbl').innerHTML=
+  `<thead><tr><th>Week</th><th>State</th><th>Shifts</th><th>Hours</th><th>Published</th><th class="r"></th></tr></thead><tbody>`+
+  keys.map(k=>{const w=WEEKS[k], hh=w.shifts.reduce((t,s)=>t+(s.e-s.s),0), here=k===curWeek;
+    const state=w.status==='published'
+      ? `<span class="pill ok">Published · v${w.version}</span>`
+      : `<span class="pill">Draft</span>`;
+    return `<tr${here?' class="here"':''}>
+      <td><b>${weekShort(k)}</b> ${k.slice(0,4)}${here?' <span class="muted">· open</span>':''}</td>
+      <td>${state}</td>
+      <td class="mono">${w.shifts.length}</td>
+      <td class="mono">${hh}h</td>
+      <td class="mono">${w.at||'<span class="muted">—</span>'}</td>
+      <td class="r">${here?'':`<button class="link" data-open="${k}">Open</button>
+        <button class="link" data-copy="${k}">Copy into open week</button>`}</td></tr>`}).join('')+
+  `</tbody>`;
+}
+function renderSettings(){
+  const a=document.activeElement;
+  if(a&&a.dataset&&a.dataset.tf)return;
+  document.getElementById('daystbl').innerHTML=
+  `<thead><tr><th>Day</th><th>Opens</th><th>Closes</th><th>Hours</th></tr></thead><tbody>`+
+  DAYS.map((n,i)=>{const c=DAYCFG[i];return `<tr>
+    <td><b>${n}</b></td>
+    <td>${timeSel(c.open,`data-df="open" data-d="${i}"`,false)}</td>
+    <td>${timeSel(c.close,`data-df="close" data-d="${i}"`,false)}</td>
+    <td class="mono">${c.close-c.open}h</td>
+  </tr>`}).join('')+`</tbody>`;
+
+  document.getElementById('tmpltbl').innerHTML=
+  `<thead><tr><th>Name</th><th>Starts</th><th>Ends</th><th>Hours</th><th class="r"></th></tr></thead><tbody>`+
+  TMPL.map((t,i)=>`<tr>
+    <td><input class="f" data-tf="n" data-i="${i}" value="${t.n.replace(/"/g,'&quot;')}"></td>
+    <td>${timeSel(t.s,`data-tf="s" data-i="${i}"`,false)}</td>
+    <td>${timeSel(t.e,`data-tf="e" data-i="${i}"`,false)}</td>
+    <td class="mono">${t.e-t.s}h</td>
+    <td class="r"><button class="link danger" data-trm="${i}">Remove</button></td></tr>`).join('')+
+  `<tr class="addrow"><td colspan="5"><button class="btn" id="addtmpl">+ Add template</button></td></tr></tbody>`;
+}
+
+function render(){
+  saveWeek();
+  const g=document.getElementById('grid');
+  let h='<div class="gh name">Staff</div>';
+  DAYS.forEach((d,i)=>h+=`<button class="gh day${isClosed(i)?' isclosed':''}" data-toggle="${i}" title="${isClosed(i)?'Reopen':'Close'} ${d}">${d}<span class="dnum">${isClosed(i)?'closed':dnum(i)+' '+MON[new Date(dateOf(i)+'T00:00:00').getMonth()]}</span><span class="tog">${isClosed(i)?'↺':'✕'}</span></button>`);
+  for(const e of active()){
+    const H=hrs(e.id), cls=e.exp?(H>e.exp*1.2?'over':H<e.exp*0.8&&H>0?'under':''):'';
+    const bad=overlaps(e.id);
+    h+=`<div class="emp"><div class="n">${e.name}</div>
+        <div class="hrs ${cls}">${H}h${e.exp?` of ${e.exp}h`:''}</div></div>`;
+    for(let d=0;d<7;d++){
+      if(isClosed(d)){h+=`<div class="cell closed"><span class="closedchip">CLOSED</span></div>`;continue}
+      const list=shifts.filter(s=>s.emp===e.id&&s.day===d);
+      const lv=leaveOn(e.id,d);
+      const note=notedNA(e.id,d), pat=!e.avail[d];
+      const un=(note||pat)?' unavail':'';
+      const tip=un?` title="${e.name.split(' ')[0]} — ${note?'marked not available this '+DAYS[d]:"isn't usually available on "+DAYS[d]}"`:'';
+      if(list.length){
+        h+=`<div class="cell${un}"${tip}>`+list.map(s=>`<button class="chip${bad.has(s.id)?' flag':''}" data-del="${s.id}" title="Click to remove"><span class="t">${range(s)}</span><span class="x">×</span></button>`).join('')+`</div>`;
+      } else if(lv){
+        h+=`<div class="cell add${un}" data-emp="${e.id}" data-day="${d}"${tip}><span class="awaychip">LEAVE</span></div>`;
+      } else {
+        h+=`<div class="cell add${un}" data-emp="${e.id}" data-day="${d}"${tip}>${un?'<span class="na">N/A</span>':''}<span class="plus">+</span></div>`;
+      }
+    }
+  }
+  g.innerHTML=h;
+  document.getElementById('total').textContent=shifts.reduce((t,s)=>t+(s.e-s.s),0)+'h';
+  const shut=DAYS.filter((n,i)=>wkClosed[i]);
+  document.getElementById('cfgline').textContent=
+    `Open ${clock(DAYCFG[0].open)}–${clock(DAYCFG[0].close)} · ${clock(DAYCFG[3].close)} Thu`+
+    (shut.length?` · ${shut.join(', ')} closed this week`:'');
+
+  const WARN=buildWarnings(), wc=document.getElementById('wcount');
+  wc.textContent=WARN.length; wc.hidden=!WARN.length;
+  document.getElementById('warnings').innerHTML = WARN.length
+    ? WARN.map(w=>`<div class="warn ${w.crit?'crit':''}"><span class="bar"></span><span><span class="who">${w.who}</span><span class="txt">${w.txt}</span></span></div>`).join('')
+    : '<p class="empty">Nothing to flag on this week.</p>';
+
+  document.getElementById('hours').innerHTML = active().map(e=>{
+    const H=hrs(e.id), cls=e.exp?(H>e.exp*1.2?'over':H<e.exp*0.8&&H>0?'under':''):'';
+    return `<div class="hrow ${cls}"><span class="nm">${e.name.split(' ')[0]}</span>
+      <span class="bar2"><i style="width:${Math.min(100,H/30*100)}%"></i></span>
+      <span class="v">${H}h${e.exp?`/${e.exp}`:''}</span></div>`;
+  }).join('')+`<div class="hrow" style="border-top:1px solid var(--line);margin-top:4px;padding-top:9px">
+      <span class="nm" style="font-weight:600">Total</span><span class="v" style="color:var(--ink);font-weight:600">${shifts.reduce((t,s)=>t+(s.e-s.s),0)}h</span></div>`;
+  const dirty=isDirty();
+  const badge=document.getElementById('pubbadge'), pb=document.getElementById('publish');
+  if(pubStatus==='draft'){badge.textContent='Draft';badge.className='badge';pb.textContent='Publish roster'}
+  else if(dirty){badge.textContent='Unpublished changes';badge.className='badge';pb.textContent='Publish update'}
+  else{badge.textContent=`Published · v${pubVersion}`;badge.className='badge ok';pb.textContent='View sheet'}
+  document.getElementById('weektitle').textContent=weekLabel(curWeek);
+  document.getElementById('weeksub').textContent = pubStatus==='draft'
+    ? `Week of ${fmtDate(curWeek)} · Draft`
+    : `Week of ${fmtDate(curWeek)} · Published ${pubAt}${pubVersion>1?` · v${pubVersion}`:''}${dirty?' · edited since':''}`;
+  renderSheet();renderStaff();renderLeave();renderSettings();renderHistory();
+}
+function rosterText(){
+  const y=curWeek.slice(0,4);
+  const d0=new Date(curWeek+'T00:00:00'), d6=new Date(addD(curWeek,6)+'T00:00:00');
+  const L=['AH MA — STAFF ROSTER',
+    `${d0.getDate()} ${MON[d0.getMonth()]} - ${d6.getDate()} ${MON[d6.getMonth()]} ${y}`,''];
+  for(let d=0;d<7;d++){
+    const t=new Date(dateOf(d)+'T00:00:00');
+    const head=`${DAYS[d]} ${t.getDate()} ${MON[t.getMonth()]}`;
+    if(wkClosed[d]){L.push(head+' - CLOSED','');continue}
+    const rows=[];
+    for(const e of active()){
+      const list=shifts.filter(s=>s.emp===e.id&&s.day===d).sort((x,z)=>x.s-z.s);
+      if(!list.length)continue;
+      rows.push(`${e.name.split(' ')[0]} ${list.map(s=>`${fmt(s.s)}-${fmt(s.e)}`).join(', ')}`);
+    }
+    L.push(head, ...(rows.length?rows:['(no one rostered)']), '');
+  }
+  L.push(pubStatus==='draft' ? 'DRAFT - not published yet'
+    : `${pubVersion>1?'Updated':'Published'} ${pubAt}${pubVersion>1?` (v${pubVersion})`:''}`);
+  return L.join('\n');
+}
+function renderSheet(){
+  document.getElementById('rostertext').textContent=rosterText();
+  document.getElementById('txthead').textContent=weekShort(curWeek)+' '+curWeek.slice(0,4);
+}
+/* ---- interactions ---- */
+let pop=null;
+const closePop=()=>{pop?.remove();pop=null};
+document.addEventListener('click',async ev=>{
+  const del=ev.target.closest('[data-del]');
+  if(del){shifts=shifts.filter(s=>s.id!=del.dataset.del);closePop();render();return}
+  const tog=ev.target.closest('[data-toggle]');
+  if(tog){
+    const d=+tog.dataset.toggle;
+    if(wkClosed[d]){wkClosed[d]=false}
+    else{
+      const n=shifts.filter(s=>s.day===d).length;
+      if(n&&!await ask({title:`Close ${DAYS[d]}?`,danger:true,ok:'Close the day',
+        body:`${DAYS[d]} has ${n} shift${n>1?'s':''} on it. Closing the day removes ${n>1?'them':'it'}.`}))return;
+      shifts=shifts.filter(s=>s.day!==d);wkClosed[d]=true;
+    }
+    closePop();render();return;
+  }
+  const cell=ev.target.closest('.cell.add');
+  if(cell){openPop(cell);return}
+  if(pop&&!ev.target.closest('.pop'))closePop();
+});
+function placePop(r){
+  const w=pop.offsetWidth,hgt=pop.offsetHeight;
+  pop.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left))+'px';
+  pop.style.top=(r.bottom+hgt+8>innerHeight?Math.max(8,r.top-hgt-6):r.bottom+6)+'px';
+}
+function openPop(cell){
+  closePop();
+  const emp=cell.dataset.emp, day=+cell.dataset.day, e=EMP.find(x=>x.id===emp);
+  const r=cell.getBoundingClientRect();
+  pop=document.createElement('div');pop.className='pop';
+  const lv=leaveOn(emp,day);
+  if(lv){
+    pop.innerHTML=`<h3>${e.name.split(' ')[0]} · ${fmtDate(dateOf(day))}</h3>
+      <p class="blocked"><b>On leave</b><br>${fmtDate(lv.from)}${lv.to!==lv.from?' – '+fmtDate(lv.to):''}
+      ${lv.note?' · '+lv.note:''}</p>
+      <p class="hint">Shifts can't be added during leave. Leave is booked on the Staff page.</p>
+      <div class="popfoot"><button class="btn" id="goleave">Manage leave</button><button class="btn" id="cancel">Cancel</button></div>`;
+    document.body.appendChild(pop);placePop(r);
+    pop.querySelector('#goleave').onclick=()=>{closePop();show('staff')};
+    pop.querySelector('#cancel').onclick=closePop;
+    return;
+  }
+  const noted=notedNA(emp,day), pat=!e.avail[day];
+  pop.innerHTML=`<h3>${e.name.split(' ')[0]} · ${fmtDate(dateOf(day))}</h3>
+    <div class="tmpls">${TMPL.map(t=>`<button class="tmpl" data-s="${t.s}" data-e="${t.e}"><b>${t.n}</b><span>${fmt(t.s)}–${fmt(t.e)}</span></button>`).join('')}</div>
+    <div class="quick"><input id="qin" placeholder="10-18" autocomplete="off" aria-label="Shift time"><button class="btn" id="qgo">Add</button></div>
+    <div class="hint">10-18 or 10-6 → 10:00–18:00</div>
+    ${pat&&!noted?`<p class="hint na-src">Already N/A — ${e.name.split(' ')[0]} isn't usually available on ${DAYS[day]}. Change that on the Staff page.</p>`:''}
+    <div class="popfoot">${pat&&!noted?'':`<button class="btn" id="marknote">${noted?'Clear N/A':'Mark N/A'}</button>`}<button class="btn" id="cancel">Cancel</button></div>`;
+  document.body.appendChild(pop);placePop(r);
+  const add=(s,e2)=>{shifts.push({id:++uid,emp,day,s,e:e2});closePop();render()};
+  pop.querySelectorAll('.tmpl').forEach(b=>b.onclick=()=>add(+b.dataset.s,+b.dataset.e));
+  const go=()=>{const p=parseShort(pop.querySelector('#qin').value);if(p)add(p.s,p.e);else pop.querySelector('#qin').select()};
+  pop.querySelector('#qgo').onclick=go;
+  pop.querySelector('#qin').onkeydown=k=>{if(k.key==='Enter')go();if(k.key==='Escape')closePop()};
+  const mn=pop.querySelector('#marknote');
+  if(mn)mn.onclick=()=>{
+    if(noted)notAvail=notAvail.filter(n=>!(n.emp===emp&&n.day===day));
+    else notAvail.push({emp,day});
+    closePop();render();
+  };
+  pop.querySelector('#cancel').onclick=closePop;
+  pop.querySelector('#qin').focus();
+}
+document.addEventListener('input',ev=>{
+  const t=ev.target;
+  if(t.dataset.sf){
+    const e=EMP.find(x=>x.id===t.dataset.id);
+    if(t.dataset.sf==='name')e.name=t.value;
+    if(t.dataset.sf==='exp')e.exp=t.value===''?null:+t.value;
+    if(t.dataset.sf==='notes')e.notes=t.value;
+    renderGridOnly();
+  }
+  if(t.dataset.tf){const tm=TMPL[+t.dataset.i]; if(t.dataset.tf==='n')tm.n=t.value}
+});
+document.addEventListener('change',async ev=>{
+  const t=ev.target;
+  if(t.dataset.sf==='active'){
+    const e=EMP.find(x=>x.id===t.dataset.id);
+    e.active=t.checked;
+    if(!e.active)shifts=shifts.filter(s=>s.emp!==e.id);
+    render();
+  }
+  if(t.dataset.df){
+    DAYCFG[+t.dataset.d][t.dataset.df]=+t.value;
+    render();
+  }
+  if(t.dataset.tf&&t.dataset.tf!=='n'){TMPL[+t.dataset.i][t.dataset.tf]=+t.value;renderSettings()}
+});
+document.addEventListener('click',async ev=>{
+  const rm=ev.target.closest('[data-rm]');
+  if(rm){
+    const e=EMP.find(x=>x.id===rm.dataset.rm), n=shifts.filter(s=>s.emp===e.id).length;
+    if(n){notify('Can\'t remove someone with shifts',
+      `${e.name} has ${n} shift${n>1?'s':''} this week. Untick Active instead — removing the record would leave holes in rosters you've already published.`);return}
+    EMP=EMP.filter(x=>x.id!==e.id);render();return;
+  }
+  const av=ev.target.closest('[data-av]');
+  if(av){
+    const e=EMP.find(x=>x.id===av.dataset.av), d=+av.dataset.d;
+    e.avail[d]=e.avail[d]?0:1;render();return;
+  }
+  const op=ev.target.closest('[data-open]');
+  if(op){goWeek(op.dataset.open);show('edit');return}
+  const cp=ev.target.closest('[data-copy]');
+  if(cp){await copyFrom(cp.dataset.copy);show('edit');return}
+  const mv=ev.target.closest('[data-mv]');
+  if(mv){
+    const i=EMP.findIndex(x=>x.id===mv.dataset.mv), j=i+(+mv.dataset.dir);
+    if(j>=0&&j<EMP.length){const t=EMP[i];EMP[i]=EMP[j];EMP[j]=t;render()}
+    return;
+  }
+  const lrm=ev.target.closest('[data-lrm]');
+  if(lrm){LEAVE=LEAVE.filter(l=>l.id!=lrm.dataset.lrm);render();return}
+  if(ev.target.id==='addleave'){
+    const emp=document.getElementById('nlwho').value;
+    let from=document.getElementById('nlfrom').value, to=document.getElementById('nlto').value;
+    if(!from)return document.getElementById('nlfrom').focus();
+    if(!to||to<from)to=from;
+    const e=EMP.find(x=>x.id===emp);
+    const clash=shifts.filter(s=>s.emp===emp&&dateOf(s.day)>=from&&dateOf(s.day)<=to);
+    if(clash.length&&!await ask({title:'Book leave?',danger:true,ok:'Book leave',
+      body:`${e.name} has ${clash.length} shift${clash.length>1?'s':''} inside that period. Booking leave removes ${clash.length>1?'them':'it'}.`}))return;
+    shifts=shifts.filter(s=>!(s.emp===emp&&dateOf(s.day)>=from&&dateOf(s.day)<=to));
+    LEAVE.push({id:++uid,emp,from,to,note:document.getElementById('nlnote').value.trim()});
+    document.getElementById('nlnote').value='';
+    render();return;
+  }
+  const trm=ev.target.closest('[data-trm]');
+  if(trm){TMPL.splice(+trm.dataset.trm,1);renderSettings();return}
+  if(ev.target.id==='addstaff'){
+    const nm=document.getElementById('newname').value.trim();
+    if(!nm)return document.getElementById('newname').focus();
+    const ex=document.getElementById('newexp').value, nt=document.getElementById('newnotes').value.trim();
+    EMP.push({id:'e'+(++uid),name:nm,exp:ex===''?null:+ex,notes:nt,active:true,avail:[1,1,1,1,1,1,1]});
+    render();document.getElementById('newname').focus();return;
+  }
+  if(ev.target.id==='addtmpl'){TMPL.push({n:'New shift',s:10,e:16});renderSettings();return}
+});
+const renderGridOnly=()=>render();
+async function copyFrom(src){
+  const w=WEEKS[src];
+  if(!w||!w.shifts.length)return notify('Nothing to copy',`${weekShort(src)} has no shifts on it.`);
+  if(shifts.length&&!await ask({title:'Replace this week?',danger:true,ok:'Replace',
+    body:`${weekShort(curWeek)} already has ${shifts.length} shift${shifts.length>1?'s':''} on it. Copying ${weekShort(src)} over the top replaces ${shifts.length>1?'them':'it'}, and brings that week's closed days with it.`}))return;
+  wkClosed.splice(0,7,...w.closed);
+  let copied=0,inactive=0,onLeave=0,shut=0;
+  const out=[];
+  for(const sh of w.shifts){
+    const e=EMP.find(x=>x.id===sh.emp);
+    if(!e||!e.active){inactive++;continue}
+    if(wkClosed[sh.day]){shut++;continue}
+    if(leaveOn(sh.emp,sh.day)){onLeave++;continue}
+    out.push({emp:sh.emp,day:sh.day,s:sh.s,e:sh.e,id:++uid});copied++;
+  }
+  shifts.length=0;out.forEach(x=>shifts.push(x));
+  render();
+  const skips=[];
+  if(inactive)skips.push(`${inactive} for staff no longer active`);
+  if(onLeave)skips.push(`${onLeave} landing on booked leave`);
+  if(shut)skips.push(`${shut} on a day this week is closed`);
+  notify('Copied',`${copied} shift${copied===1?'':'s'} copied from ${weekShort(src)}.`+
+    (skips.length?` Skipped ${skips.join(', ')}.`:''));
+}
+document.getElementById('copyprev').onclick=()=>copyFrom(addD(curWeek,-7));
+document.getElementById('prevwk').onclick=()=>goWeek(addD(curWeek,-7));
+document.getElementById('nextwk').onclick=()=>goWeek(addD(curWeek,7));
+document.getElementById('publish').onclick=async()=>{
+  if(pubStatus==='published'&&!isDirty())return show('print');
+  const n=shifts.length, hh=shifts.reduce((t,s)=>t+(s.e-s.s),0), w=buildWarnings().length;
+  if(!n)return notify('Nothing to publish','This week has no shifts on it yet.');
+  const first=pubStatus!=='published';
+  const warnLine=w?` ${w} warning${w>1?'s':''} ${w>1?'are':'is'} outstanding — publishing goes ahead anyway.`:'';
+  const okd=await ask({
+    title:first?'Publish this week?':'Publish an update?',
+    ok:first?'Publish':`Publish v${pubVersion+1}`,
+    body:first
+      ? `${n} shifts, ${hh} hours across ${weekShort(curWeek)}. The sheet becomes the version staff work from.${warnLine}`
+      : `This becomes version ${pubVersion+1}, and the sheet will read “Updated ${todayStr()}” so nobody works off the copy already on the wall.${warnLine}`
+  });
+  if(!okd)return;
+  pubStatus='published';pubVersion++;pubAt=todayStr();pubSnap=snapNow();
+  render();show('print');
+};
+document.getElementById('clearweek').onclick=async()=>{
+  const n=shifts.length;
+  if(!n)return notify('Nothing to clear','This week has no shifts on it yet.');
+  if(await ask({title:'Clear this week?',danger:true,ok:`Clear ${n} shift${n>1?'s':''}`,
+    body:`Removes every shift from ${weekShort(curWeek)}. Booked leave, N/A notes and closed days stay as they are.`})){
+    shifts=[];closePop();render();
+  }
+};
+// ---- seed: two published weeks behind the one being edited ----
+function seed(key,rows,version,at){
+  const w=W(key);
+  w.shifts=rows.map(x=>({...x,id:++uid}));
+  w.closed=[false,true,false,false,false,false,false];
+  w.status='published';w.version=version;w.at=at;
+  w.snap=JSON.stringify({shifts:w.shifts,notAvail:w.na,closed:w.closed});
+}
+seed('2026-09-28',[
+ ...mk('john',[0,4,6],10,18),
+ ...mk('priya',[6],10,18), {emp:'priya',day:3,s:10,e:21},
+ ...mk('sarah',[2],10,18), ...mk('sarah',[3,5],10,16),
+ ...mk('lisa',[0,5],10,18), ...mk('lisa',[2],10,16),
+ ...mk('mike',[3,4,5],10,18),
+],2,'26 Sep 2026');
+seed('2026-09-21',[
+ ...mk('john',[0,2,4],10,18),
+ {emp:'priya',day:3,s:10,e:21}, ...mk('priya',[5,6],10,18),
+ ...mk('sarah',[0,3],10,16), ...mk('sarah',[5],10,18),
+ ...mk('lisa',[2,4,6],10,18),
+ ...mk('mike',[3,4,5],10,16),
+],1,'17 Sep 2026');
+Object.assign(W('2026-10-05'),{shifts,na:notAvail,closed:wkClosed});
+
+const VIEWS=['edit','staff','settings','history','print'];
+function show(v){
+  for(const k of VIEWS){
+    document.getElementById('tab-'+k).setAttribute('aria-selected',String(k===v));
+    document.getElementById('view-'+k).hidden=(k!==v);
+  }
+  closePop();scrollTo({top:0});
+}
+VIEWS.forEach(k=>document.getElementById('tab-'+k).onclick=()=>show(k));
+document.getElementById('backedit').onclick=()=>show('edit');
+document.getElementById('copytext').onclick=async()=>{
+  const pre=document.getElementById('rostertext'), msg=document.getElementById('copymsg');
+  let ok=false;
+  try{await navigator.clipboard.writeText(rosterText());ok=true}catch(_){}
+  if(!ok){
+    const r=document.createRange();r.selectNodeContents(pre);
+    const sel=getSelection();sel.removeAllRanges();sel.addRange(r);
+    try{ok=document.execCommand('copy')}catch(__){}
+    msg.textContent=ok?'Copied.':'Selected — press ⌘C to copy.';
+  } else msg.textContent='Copied. Paste it straight into the chat.';
+  setTimeout(()=>{msg.textContent=''},5000);
+};
+document.getElementById('btn-staff').onclick=()=>show('staff');
+document.getElementById('btn-settings').onclick=()=>show('settings');
+render();
+</script>
