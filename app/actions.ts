@@ -12,6 +12,7 @@ import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
+import { leaveOn, onLeaveError } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
@@ -183,8 +184,9 @@ export async function removeStaff(id: number): Promise<ActionResult> {
 }
 
 /**
- * A shift in one cell, on a day that's open. The first shift saved to a week
- * creates the week's roster, as a draft with every day open.
+ * A shift in one cell, on a day that's open and that the person isn't on
+ * leave. The first shift saved to a week creates the week's roster, as a
+ * draft with every day open.
  */
 export async function addShift(input: {
   week: string
@@ -204,6 +206,8 @@ export async function addShift(input: {
 
   const row = gridRow(week, staffId)
   if ('error' in row) return row
+  const away = leaveOn(leaveDuring(week), staffId, date)
+  if (away) return { error: onLeaveError(row.name, away) }
   getDb().transaction((tx) => {
     tx.insert(rosters).values({ weekStart: week }).onConflictDoNothing().run()
     tx.insert(shifts).values({ weekStart: week, staffId, date, start, end }).run()
@@ -241,9 +245,10 @@ export async function clearWeek(week: string): Promise<ActionResult> {
 /**
  * Marks someone not available on one day of one week, or clears it. It's a
  * note: shifts already there stay, and nothing outside this week changes. A
- * day their availability rules out is N/A already, so takes no note. The
- * note is about the person rather than the day, so whether the shop is open
- * doesn't come into it.
+ * day their availability rules out is N/A already, and a day they're on
+ * leave says more than a note could, so neither takes one. The note is about
+ * the person rather than the day, so whether the shop is open doesn't come
+ * into it.
  */
 export async function setMarkedNa(input: {
   week: string
@@ -267,6 +272,8 @@ export async function setMarkedNa(input: {
   }
   const row = gridRow(week, staffId)
   if ('error' in row) return row
+  const away = leaveOn(leaveDuring(week), staffId, date)
+  if (away) return { error: onLeaveError(row.name, away) }
   const error = markNaError(row, date)
   if (error) return { error }
   db.transaction((tx) => {
