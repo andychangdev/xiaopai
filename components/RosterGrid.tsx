@@ -17,6 +17,7 @@ import { HoursThisWeek } from './HoursThisWeek'
 import { LeavePopover } from './LeavePopover'
 import type { PopoverTarget } from './Popover'
 import { ShiftPopover, UNREACHABLE, actionError } from './ShiftPopover'
+import { UndoButton } from './UndoButton'
 import { useAsk } from './useAsk'
 import { WarningsPanel } from './WarningsPanel'
 
@@ -52,6 +53,8 @@ type Props = {
   closedDays: boolean[]
   /** How many shifts the week before has, for Copy previous week */
   previousShifts: number
+  /** What Undo would take back, or null when there's nothing to */
+  lastAction: string | null
   /** From the clock, so today's column can be marked */
   today: IsoDate
 }
@@ -69,6 +72,7 @@ export function RosterGrid({
   tradingHours,
   closedDays,
   previousShifts,
+  lastAction,
   today,
 }: Props) {
   const days = weekDates(week)
@@ -211,6 +215,7 @@ export function RosterGrid({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
+          <UndoButton week={week} last={lastAction} />
           <CopyPreviousWeek week={week} previousShifts={previousShifts} />
           <button className="btn btn-danger" onClick={clear}>
             Clear week

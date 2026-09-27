@@ -7,8 +7,17 @@ import { and, asc, count, eq, gte, lte, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { today } from '@/lib/clock'
 import { getDb } from '@/lib/db/client'
-import { closedDaysOf, leaveDuring, rosterWeek, shiftCount, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
+import {
+  closedDaysOf,
+  leaveDuring,
+  rosterWeek,
+  shiftById,
+  shiftCount,
+  staffHistory,
+  tradingHoursWeek,
+} from '@/lib/db/queries'
 import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import { undoLast, undoable } from '@/lib/db/undo'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
@@ -28,6 +37,7 @@ import {
   whyNotRemovable,
 } from '@/lib/roster/staff'
 import { timesError } from '@/lib/roster/time'
+import { describeAction } from '@/lib/roster/undo'
 
 export type ActionResult = { error?: string }
 
@@ -267,7 +277,7 @@ export async function addShift(input: {
   if ('error' in row) return row
   const away = leaveOn(leaveDuring(week), staffId, date)
   if (away) return { error: onLeaveError(row.name, away) }
-  getDb().transaction((tx) => {
+  undoable(week, describeAction({ kind: 'add', name: row.name, shift: { date, start, end } }), (tx) => {
     tx.insert(rosters).values({ weekStart: week }).onConflictDoNothing().run()
     tx.insert(shifts).values({ weekStart: week, staffId, date, start, end }).run()
   })
@@ -281,14 +291,24 @@ export async function updateShift(id: number, times: { start: number; end: numbe
   const error = timesError(start, end)
   if (error) return { error }
 
-  const { changes } = getDb().update(shifts).set({ start, end }).where(eq(shifts.id, id)).run()
+  const shift = shiftById(id)
+  if (shift) {
+    undoable(shift.week, describeAction({ kind: 'change', name: shift.name, shift, to: { start, end } }), (tx) =>
+      tx.update(shifts).set({ start, end }).where(eq(shifts.id, id)).run(),
+    )
+  }
   gridChanged()
-  return changes ? {} : { error: 'That shift has already been removed.' }
+  return shift ? {} : { error: 'That shift has already been removed.' }
 }
 
 export async function removeShift(id: number): Promise<ActionResult> {
   checkId(id)
-  getDb().delete(shifts).where(eq(shifts.id, id)).run()
+  const shift = shiftById(id)
+  if (shift) {
+    undoable(shift.week, describeAction({ kind: 'remove', name: shift.name, shift }), (tx) =>
+      tx.delete(shifts).where(eq(shifts.id, id)).run(),
+    )
+  }
   gridChanged()
   return {}
 }
@@ -296,7 +316,7 @@ export async function removeShift(id: number): Promise<ActionResult> {
 /** Every shift in the week. Leave, N/A notes and closed days aren't shifts, so they stay. */
 export async function clearWeek(week: string): Promise<ActionResult> {
   checkWeek(week)
-  getDb().delete(shifts).where(eq(shifts.weekStart, week)).run()
+  undoable(week, describeAction({ kind: 'clear' }), (tx) => tx.delete(shifts).where(eq(shifts.weekStart, week)).run())
   gridChanged()
   return {}
 }
@@ -321,11 +341,17 @@ export async function setMarkedNa(input: {
   checkDate(week, date)
   if (typeof marked !== 'boolean') throw new Error('Expected marked to be true or false')
 
-  const db = getDb()
   if (!marked) {
-    db.delete(naNotes)
-      .where(and(eq(naNotes.weekStart, week), eq(naNotes.staffId, staffId), eq(naNotes.date, date)))
-      .run()
+    // Their notes go with them, so someone no longer on the list has none to clear
+    const person = getDb().select({ name: staff.name }).from(staff).where(eq(staff.id, staffId)).get()
+    if (person) {
+      undoable(week, describeAction({ kind: 'clearNa', name: person.name, date }), (tx) =>
+        tx
+          .delete(naNotes)
+          .where(and(eq(naNotes.weekStart, week), eq(naNotes.staffId, staffId), eq(naNotes.date, date)))
+          .run(),
+      )
+    }
     gridChanged()
     return {}
   }
@@ -335,7 +361,7 @@ export async function setMarkedNa(input: {
   if (away) return { error: onLeaveError(row.name, away) }
   const error = markNaError(row, date)
   if (error) return { error }
-  db.transaction((tx) => {
+  undoable(week, describeAction({ kind: 'markNa', name: row.name, date }), (tx) => {
     tx.insert(rosters).values({ weekStart: week }).onConflictDoNothing().run()
     tx.insert(naNotes).values({ weekStart: week, staffId, date }).onConflictDoNothing().run()
   })
@@ -355,8 +381,7 @@ export async function setDayClosed(input: { week: string; date: string; closed: 
   checkDate(week, date)
   if (typeof closed !== 'boolean') throw new Error('Expected closed to be true or false')
 
-  const db = getDb()
-  db.transaction((tx) => {
+  undoable(week, describeAction({ kind: closed ? 'close' : 'reopen', date }), (tx) => {
     const closedDays = withDayClosed(closedDaysOf(week), date, closed)
     tx.insert(rosters)
       .values({ weekStart: week, closedDays })
@@ -434,7 +459,7 @@ export async function copyWeek(input: {
 
   const closedBefore = closedDaysOf(to)
   const { closedDays } = plan
-  db.transaction((tx) => {
+  undoable(to, describeAction({ kind: 'copy', from }), (tx) => {
     tx.insert(rosters)
       .values({ weekStart: to, closedDays })
       .onConflictDoUpdate({ target: rosters.weekStart, set: { closedDays } })
@@ -444,6 +469,18 @@ export async function copyWeek(input: {
   })
   gridChanged()
   return { report: copyReport(plan, from, closedBefore) }
+}
+
+/**
+ * Takes back the week's last grid action, putting the week exactly as it was
+ * before it. Shifts, N/A notes and closed days come back; leave and
+ * publishing were never the grid's to change.
+ */
+export async function undo(week: string): Promise<ActionResult> {
+  checkWeek(week)
+  const result = undoLast(week)
+  gridChanged()
+  return result
 }
 
 /** What the header, the tab title and the roster text call the business. */

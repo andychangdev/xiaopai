@@ -121,6 +121,16 @@ export function closedDaysOf(week: IsoDate): boolean[] {
   return roster?.closedDays ?? [...ALL_OPEN]
 }
 
+/** A shift, the week it's filed under and whose it is, while it's still there. */
+export function shiftById(id: number) {
+  return getDb()
+    .select({ week: shifts.weekStart, date: shifts.date, start: shifts.start, end: shifts.end, name: staff.name })
+    .from(shifts)
+    .innerJoin(staff, eq(staff.id, shifts.staffId))
+    .where(eq(shifts.id, id))
+    .get()
+}
+
 /** How many shifts a week has, without loading them. */
 export function shiftCount(week: IsoDate) {
   return getDb().select({ n: count() }).from(shifts).where(eq(shifts.weekStart, week)).get()!.n
