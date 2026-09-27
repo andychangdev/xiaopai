@@ -148,7 +148,7 @@ describe('weekDates', () => {
 })
 
 describe('canonicalWeek', () => {
-  const today = '2026-09-27'
+  const today = () => '2026-09-27'
 
   it('keeps a Monday as it is', () => {
     expect(canonicalWeek('2026-10-05', today)).toBe('2026-10-05')
@@ -158,9 +158,16 @@ describe('canonicalWeek', () => {
     expect(canonicalWeek('2026-10-08', today)).toBe('2026-10-05')
   })
 
-  it("falls back to this week's Monday for a malformed date", () => {
+  it("falls back to the fallback's Monday for a malformed date", () => {
     expect(canonicalWeek('nonsense', today)).toBe('2026-09-21')
     expect(canonicalWeek('2026-02-30', today)).toBe('2026-09-21')
+  })
+
+  it('only works out the fallback when it needs it', () => {
+    let asked = 0
+    const fallback = () => (asked++, '2026-09-27')
+    canonicalWeek('2026-10-08', fallback)
+    expect(asked).toBe(0)
   })
 })
 

@@ -13,13 +13,13 @@ export const dynamic = 'force-dynamic'
 type Props = { params: Promise<{ week: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const week = canonicalWeek((await params).week, openWeek())
+  const week = canonicalWeek((await params).week, openWeek)
   return { title: `Roster text, ${weekTitle(week)}` }
 }
 
 export default async function RosterTextPage({ params }: Props) {
   const { week: param } = await params
-  const week = canonicalWeek(param, openWeek())
+  const week = canonicalWeek(param, openWeek)
   if (week !== param) redirect(`/share/${week}`)
 
   const { days, roster, publish: state } = rosterWeek(week)

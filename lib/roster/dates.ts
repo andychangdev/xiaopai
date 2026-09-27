@@ -70,9 +70,12 @@ export function isInWeek(monday: IsoDate, date: string): boolean {
   return weekDates(monday).includes(date)
 }
 
-/** The Monday a URL naming a week should show: that date's week, or the fallback's if it isn't a date. */
-export function canonicalWeek(param: string, fallback: IsoDate): IsoDate {
-  return mondayOf(parseIsoDate(param) ?? fallback)
+/**
+ * The Monday a URL naming a week should show: that date's week, or the
+ * fallback's if it isn't a date. The fallback is only worked out then.
+ */
+export function canonicalWeek(param: string, fallback: () => IsoDate): IsoDate {
+  return mondayOf(parseIsoDate(param) ?? fallback())
 }
 
 /** 'Mon' */
