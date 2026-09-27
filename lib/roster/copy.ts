@@ -2,7 +2,7 @@
 // doesn't. Only shifts ever come across; N/A notes are that week's own.
 
 import { addDays, weekRange, weekdayIndex, type IsoDate } from './dates'
-import type { NewShift } from './shifts'
+import { shiftsLabel, type NewShift } from './shifts'
 
 /** How many shifts were left behind, by reason. */
 export type Skipped = { inactive: number }
@@ -53,8 +53,7 @@ export function nothingToCopy(from: IsoDate, skipped: Skipped = { inactive: 0 })
 
 /** '12 shifts copied from 28 Sep – 4 Oct. Skipped 1 for staff no longer active.' */
 export function copyReport(plan: CopyPlan, from: IsoDate): string {
-  const n = plan.shifts.length
-  return [`${n} shift${n === 1 ? '' : 's'} copied from ${weekRange(from)}.`, skipsText(plan.skipped)]
+  return [`${shiftsLabel(plan.shifts.length)} copied from ${weekRange(from)}.`, skipsText(plan.skipped)]
     .filter(Boolean)
     .join(' ')
 }

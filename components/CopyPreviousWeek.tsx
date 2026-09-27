@@ -4,6 +4,7 @@ import { useRef } from 'react'
 import { copyWeek } from '@/app/actions'
 import { nothingToCopy } from '@/lib/roster/copy'
 import { addDays, weekRange, type IsoDate } from '@/lib/roster/dates'
+import { shiftsLabel } from '@/lib/roster/shifts'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
@@ -38,7 +39,7 @@ export function CopyPreviousWeek({
       shifts &&
       !(await ask({
         title: 'Replace this week?',
-        body: `${weekRange(week)} already has ${shifts} shift${shifts === 1 ? '' : 's'} on it. Copying ${weekRange(from)} over the top replaces ${shifts === 1 ? 'it' : 'them'}.`,
+        body: `${weekRange(week)} already has ${shiftsLabel(shifts)} on it. Copying ${weekRange(from)} over the top replaces ${shifts === 1 ? 'it' : 'them'}.`,
         ok: 'Replace',
         danger: true,
       }))

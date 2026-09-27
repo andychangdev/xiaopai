@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { addShift, clearWeek } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
-import { cellKey, copyShift, shiftsByCell, type NewShift, type Shift } from '@/lib/roster/shifts'
+import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatRange } from '@/lib/roster/time'
 import { ShiftPopover, UNREACHABLE, actionError, type PopoverTarget } from './ShiftPopover'
@@ -94,7 +94,7 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Pro
     const yes = await ask({
       title: 'Clear this week?',
       body: `Removes every shift from ${weekRange(week)}. Booked leave, N/A notes and closed days stay as they are.`,
-      ok: `Clear ${n} shift${n === 1 ? '' : 's'}`,
+      ok: `Clear ${shiftsLabel(n)}`,
       danger: true,
     })
     if (!yes) return

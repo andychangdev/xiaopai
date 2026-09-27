@@ -8,6 +8,11 @@ export type Shift = { id: number; staffId: number; date: IsoDate; start: Minutes
 /** A shift that hasn't been saved yet, so has no id. */
 export type NewShift = Omit<Shift, 'id'>
 
+/** '1 shift', '12 shifts' */
+export function shiftsLabel(n: number): string {
+  return `${n} shift${n === 1 ? '' : 's'}`
+}
+
 /** One person on one day. */
 export const cellKey = (staffId: number, date: IsoDate) => `${staffId}|${date}`
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellKey, copyShift, shiftsByCell } from './shifts'
+import { cellKey, copyShift, shiftsByCell, shiftsLabel } from './shifts'
 
 const shift = (id: number, staffId: number, date: string, start: number, end: number) => ({
   id,
@@ -82,5 +82,13 @@ describe('copyShift', () => {
       start: 600,
       end: 1080,
     })
+  })
+})
+
+describe('shiftsLabel', () => {
+  it('counts one shift, or several', () => {
+    expect(shiftsLabel(1)).toBe('1 shift')
+    expect(shiftsLabel(12)).toBe('12 shifts')
+    expect(shiftsLabel(0)).toBe('0 shifts')
   })
 })

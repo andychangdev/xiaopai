@@ -1,6 +1,8 @@
 // Rules for the staff list: who gets a row on a week, the manual order, and
 // what the Staff page accepts.
 
+import { shiftsLabel } from './shifts'
+
 type Ordered = { id: number; sortOrder: number }
 
 const bySetOrder = (a: Ordered, b: Ordered) => a.sortOrder - b.sortOrder || a.id - b.id
@@ -68,7 +70,7 @@ export function whyNotRemovable(
   const { shifts, leave } = history
   if (shifts === 0 && leave === 0) return null
   const has = [
-    shifts > 0 && `${shifts} shift${shifts === 1 ? '' : 's'}`,
+    shifts > 0 && shiftsLabel(shifts),
     leave > 0 && 'booked leave',
   ]
     .filter(Boolean)
