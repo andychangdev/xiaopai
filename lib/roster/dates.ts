@@ -57,6 +57,15 @@ export function mondayOf(date: IsoDate): IsoDate {
   return addDays(date, -weekdayIndex(date))
 }
 
+/**
+ * The ISO week of the year a date falls in: week 1 is the one with the
+ * year's first Thursday, so a week always belongs to the year most of it is in.
+ */
+export function weekNumber(date: IsoDate): number {
+  const thursday = addDays(mondayOf(date), 3)
+  return Math.floor(daysBetween(`${thursday.slice(0, 4)}-01-01`, thursday) / 7) + 1
+}
+
 /** A real date that falls on a Monday, so it can name a week. */
 export function isMonday(s: string): boolean {
   return parseIsoDate(s) !== null && weekdayIndex(s) === 0

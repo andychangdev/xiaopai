@@ -3,7 +3,7 @@
 // never stored: it's the live week checked against its snapshot, by who and
 // when, so renaming someone or reordering the rows never counts.
 
-import { addDays, dayLabel, fullDate, weekRange, type IsoDate } from './dates'
+import { addDays, fullDate, weekNumber, weekRange, type IsoDate } from './dates'
 import { shiftsLabel } from './shifts'
 import { formatHours, type Minutes } from './time'
 import type { Snapshot } from './types'
@@ -58,9 +58,9 @@ export function publishBadge(state: PublishState): string {
   return state.changed ? 'Unpublished changes' : `Published · v${state.version}`
 }
 
-/** 'Week of Mon 5 Oct · Published 26 Sep 2026 · v2 · edited since', under the week's title. */
+/** 'Week 41 · Published 26 Sep 2026 · v2 · edited since', under the week's title. */
 export function weekSubtitle(weekStart: IsoDate, state: PublishState): string {
-  const week = `Week of ${dayLabel(weekStart)}`
+  const week = `Week ${weekNumber(weekStart)}`
   if (state.status === 'draft') return `${week} · Draft`
   return [
     week,

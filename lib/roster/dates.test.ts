@@ -14,6 +14,7 @@ import {
   shortDate,
   weekDates,
   weekRange,
+  weekNumber,
   weekTitle,
   weekdayIndex,
 } from './dates'
@@ -189,6 +190,30 @@ describe('day labels', () => {
   it('gives the date with its year', () => {
     expect(fullDate('2026-09-27')).toBe('27 Sep 2026')
     expect(fullDate('2027-01-04')).toBe('4 Jan 2027')
+  })
+})
+
+describe('weekNumber', () => {
+  it('counts weeks from the one with the first Thursday of the year', () => {
+    expect(weekNumber('2026-01-05')).toBe(2)
+    expect(weekNumber('2026-10-05')).toBe(41)
+  })
+
+  it('is the same any day of the week', () => {
+    expect(weekNumber('2026-10-08')).toBe(41)
+    expect(weekNumber('2026-10-11')).toBe(41)
+  })
+
+  it("gives a week that starts in December the new year's week 1 when most of it is January", () => {
+    expect(weekNumber('2025-12-29')).toBe(1)
+    expect(weekNumber('2026-01-01')).toBe(1)
+  })
+
+  it("gives a week that ends in January the old year's last week when most of it is December", () => {
+    expect(weekNumber('2026-12-28')).toBe(53)
+    expect(weekNumber('2027-01-03')).toBe(53)
+    expect(weekNumber('2027-01-04')).toBe(1)
+    expect(weekNumber('2027-12-27')).toBe(52)
   })
 })
 

@@ -119,15 +119,15 @@ describe('publishBadge', () => {
 })
 
 describe('weekSubtitle', () => {
-  it('says draft until published', () => {
-    expect(weekSubtitle(WEEK, { status: 'draft' })).toBe('Week of Mon 5 Oct · Draft')
+  it('says the week of the year, and draft until published', () => {
+    expect(weekSubtitle(WEEK, { status: 'draft' })).toBe('Week 41 · Draft')
   })
 
   it('says when it was published, with the version from v2, and whether it has been edited since', () => {
     const at = { status: 'published' as const, publishedAt: '2026-09-26' }
-    expect(weekSubtitle(WEEK, { ...at, version: 1, changed: false })).toBe('Week of Mon 5 Oct · Published 26 Sep 2026')
+    expect(weekSubtitle(WEEK, { ...at, version: 1, changed: false })).toBe('Week 41 · Published 26 Sep 2026')
     expect(weekSubtitle(WEEK, { ...at, version: 2, changed: true })).toBe(
-      'Week of Mon 5 Oct · Published 26 Sep 2026 · v2 · edited since',
+      'Week 41 · Published 26 Sep 2026 · v2 · edited since',
     )
   })
 })
