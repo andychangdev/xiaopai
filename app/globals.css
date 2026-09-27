@@ -24,6 +24,9 @@
   --color-crit-line: #eab3ac;
   --color-off: #9aa39c;
   --color-unavail: #e9ece9;
+  --color-scrim: rgb(12 18 15 / 0.42);
+
+  --shadow-dialog: 0 18px 48px rgb(0 0 0 / 0.28);
 
   --font-sans: var(--font-archivo), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -72,9 +75,35 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+  }
+}
+
+/* The few controls every page shares, from the mockup's .btn, .f and .link */
+@layer components {
+  .btn {
+    @apply inline-block rounded-control border border-line bg-surface px-[13px] py-[7px] text-[13px] font-medium hover:border-line-strong;
+  }
+  .btn-primary {
+    @apply border-accent bg-accent font-semibold text-accent-ink hover:border-accent-2 hover:bg-accent-2;
+  }
+  .btn-danger {
+    @apply text-crit hover:border-crit-line hover:bg-crit-bg;
+  }
+  .field {
+    @apply w-full rounded-chip border border-line bg-surface-3 px-2 py-[5px] text-[13px] text-inherit;
+  }
+  .field:focus {
+    @apply border-accent outline-2 -outline-offset-1 outline-accent;
+  }
+  .text-link {
+    @apply text-[12.5px] text-accent underline underline-offset-2;
   }
 }
 
