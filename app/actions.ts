@@ -59,6 +59,27 @@ function checkWeekday(weekday: unknown): asserts weekday is number {
 // Text from the client, which a direct POST can leave out or fake
 const text = (v: unknown) => (typeof v === 'string' ? v : '')
 
+/**
+ * Someone with a row on the week's grid, or why they have none. Inactive
+ * staff keep one only on weeks where they already have shifts.
+ */
+function gridRow(week: IsoDate, staffId: number): { error: string } | { name: string } {
+  const db = getDb()
+  const person = db
+    .select({ name: staff.name, active: staff.active })
+    .from(staff)
+    .where(eq(staff.id, staffId))
+    .get()
+  if (!person) return { error: 'That person is no longer on the staff list.' }
+  if (
+    !person.active &&
+    !db.select({ id: shifts.id }).from(shifts).where(and(eq(shifts.weekStart, week), eq(shifts.staffId, staffId))).get()
+  ) {
+    return { error: `${person.name} is inactive. Tick Active on the Staff page to put them back on the roster.` }
+  }
+  return person
+}
+
 export async function addStaff(input: { name: string; expectedHours: string; notes: string }): Promise<ActionResult> {
   const name = parseName(text(input?.name))
   if (!name) return { error: NAME_REQUIRED }
@@ -180,18 +201,9 @@ export async function addShift(input: {
   // Typed, from a template or pasted, a single shift comes through here
   if (isClosed(closedDaysOf(week), date)) return { error: dayClosedError(date) }
 
-  const db = getDb()
-  const person = db.select({ name: staff.name, active: staff.active }).from(staff).where(eq(staff.id, staffId)).get()
-  if (!person) return { error: 'That person is no longer on the staff list.' }
-  // Only where the grid gives them a row: inactive staff keep one only on
-  // weeks where they already have shifts
-  if (
-    !person.active &&
-    !db.select({ id: shifts.id }).from(shifts).where(and(eq(shifts.weekStart, week), eq(shifts.staffId, staffId))).get()
-  ) {
-    return { error: `${person.name} is inactive. Tick Active on the Staff page to put them back on the roster.` }
-  }
-  db.transaction((tx) => {
+  const row = gridRow(week, staffId)
+  if ('error' in row) return row
+  getDb().transaction((tx) => {
     tx.insert(rosters).values({ weekStart: week }).onConflictDoNothing().run()
     tx.insert(shifts).values({ weekStart: week, staffId, date, start, end }).run()
   })
