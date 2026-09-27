@@ -1,10 +1,11 @@
 import 'server-only'
 import { asc, count, eq } from 'drizzle-orm'
+import { ALL_OPEN } from '@/lib/roster/closed'
 import type { IsoDate } from '@/lib/roster/dates'
 import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
-import { leave, naNotes, shiftTemplates, shifts, staff, tradingHours } from './schema'
+import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
@@ -22,6 +23,16 @@ export function rosterWeek(week: IsoDate) {
     .from(staff)
     .all()
   return { staff: rosterRows(people, weekShifts), shifts: weekShifts }
+}
+
+/** Which days of a week are closed, Monday first. A week never saved has every day open. */
+export function closedDaysOf(week: IsoDate): boolean[] {
+  const roster = getDb()
+    .select({ closedDays: rosters.closedDays })
+    .from(rosters)
+    .where(eq(rosters.weekStart, week))
+    .get()
+  return roster?.closedDays ?? [...ALL_OPEN]
 }
 
 /** How many shifts a week has, without loading them. */

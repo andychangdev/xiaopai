@@ -39,7 +39,7 @@ export function CopyPreviousWeek({
       shifts &&
       !(await ask({
         title: 'Replace this week?',
-        body: `${weekRange(week)} already has ${shiftsLabel(shifts)} on it. Copying ${weekRange(from)} over the top replaces ${shifts === 1 ? 'it' : 'them'}.`,
+        body: `${weekRange(week)} already has ${shiftsLabel(shifts)} on it. Copying ${weekRange(from)} over the top replaces ${shifts === 1 ? 'it' : 'them'}, and brings that week's closed days with it.`,
         ok: 'Replace',
         danger: true,
       }))

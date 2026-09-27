@@ -1,4 +1,5 @@
 import { index, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core'
+import { ALL_OPEN } from '@/lib/roster/closed'
 import type { Snapshot } from '@/lib/roster/types'
 
 // Times are minutes since midnight (600 = 10:00). Dates are 'YYYY-MM-DD'.
@@ -35,10 +36,7 @@ export const rosters = sqliteTable('rosters', {
   version: integer().notNull().default(0),
   publishedAt: text(),
   weekNote: text(),
-  closedDays: text({ mode: 'json' }) // owned by the week; a new one starts all open
-    .$type<boolean[]>()
-    .notNull()
-    .default([false, false, false, false, false, false, false]),
+  closedDays: text({ mode: 'json' }).$type<boolean[]>().notNull().default(ALL_OPEN), // owned by the week
   snapshot: text({ mode: 'json' }).$type<Snapshot>(),
 })
 

@@ -6,7 +6,7 @@
 import { and, asc, eq, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
-import { staffHistory, tradingHoursWeek } from '@/lib/db/queries'
+import { closedDaysOf, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
@@ -195,9 +195,10 @@ export async function clearWeek(week: string): Promise<ActionResult> {
 
 /**
  * Replaces one week's shifts with a copy of another's, each on the same
- * weekday for the same person, less the ones planCopy skips. Only shifts come
- * across: the week's N/A notes are its own, and stay. A copy with nothing to
- * bring across changes nothing, rather than emptying the week.
+ * weekday for the same person, less the ones planCopy skips. The other
+ * week's closed days replace this week's, but its N/A notes don't come
+ * across: this week's are its own, and stay. A copy with nothing to bring
+ * across changes nothing, rather than emptying the week.
  */
 export async function copyWeek(input: { from: string; to: string }): Promise<ActionResult & { report?: string }> {
   const { from, to } = input ?? {}
@@ -212,16 +213,26 @@ export async function copyWeek(input: { from: string; to: string }): Promise<Act
     .where(eq(shifts.weekStart, from))
     .orderBy(asc(shifts.id))
     .all()
-  const plan = planCopy({ from: source, to, staff: db.select({ id: staff.id, active: staff.active }).from(staff).all() })
+  const plan = planCopy({
+    from: source,
+    closedDays: closedDaysOf(from),
+    to,
+    staff: db.select({ id: staff.id, active: staff.active }).from(staff).all(),
+  })
   if (!plan.shifts.length) return { error: nothingToCopy(from, plan.skipped) }
 
+  const closedBefore = closedDaysOf(to)
+  const { closedDays } = plan
   db.transaction((tx) => {
-    tx.insert(rosters).values({ weekStart: to }).onConflictDoNothing().run()
+    tx.insert(rosters)
+      .values({ weekStart: to, closedDays })
+      .onConflictDoUpdate({ target: rosters.weekStart, set: { closedDays } })
+      .run()
     tx.delete(shifts).where(eq(shifts.weekStart, to)).run()
     tx.insert(shifts).values(plan.shifts.map((s) => ({ weekStart: to, ...s }))).run()
   })
   gridChanged()
-  return { report: copyReport(plan, from) }
+  return { report: copyReport(plan, from, closedBefore) }
 }
 
 /** One weekday's opening or closing time, or both. A day with nothing stored starts from its default. */
