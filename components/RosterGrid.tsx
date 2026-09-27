@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { addShift, clearWeek } from '@/app/actions'
+import { addShift, clearWeek, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
+import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
@@ -29,12 +30,14 @@ type Props = {
   templates: Template[]
   /** The week's trading hours in one line, for the footer */
   tradingHours: string
+  /** Monday first */
+  closedDays: boolean[]
 }
 
 const headCell =
-  'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] text-ink-2 uppercase'
+  'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] uppercase'
 
-export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Props) {
+export function RosterGrid({ week, staff, shifts, templates, tradingHours, closedDays }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const [dialog, ask] = useAsk()
@@ -85,6 +88,26 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Pro
     )
   }
 
+  async function setClosed(date: IsoDate, closed: boolean) {
+    const day = dayName(date)
+    const n = closed ? shifts.filter((s) => s.date === date).length : 0
+    if (
+      n &&
+      !(await ask({
+        title: `Close ${day}?`,
+        body: `${day} has ${shiftsLabel(n)} on it. Closing the day removes ${n === 1 ? 'it' : 'them'}.`,
+        ok: 'Close the day',
+        danger: true,
+      }))
+    ) {
+      return
+    }
+    const error = await actionError(() => setDayClosed({ week, date, closed }))
+    if (error) {
+      await ask({ title: `Couldn't ${closed ? 'close' : 'reopen'} ${day}`, body: error, ok: 'OK', cancel: null })
+    }
+  }
+
   async function clear() {
     const n = shifts.length
     if (!n) {
@@ -110,19 +133,20 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Pro
       <div className="overflow-hidden rounded-card border border-line bg-surface">
         <div className="overflow-x-auto">
           <div className="roster-grid">
-            <div className={`${headCell} border-r border-r-line`}>Staff</div>
-            {days.map((date) => (
-              <div key={date} className={`${headCell} text-center`}>
-                {dayName(date)}
-                <span className="block font-mono text-[11px] font-normal tracking-normal text-ink-3 normal-case">
-                  {shortDate(date)}
-                </span>
-              </div>
+            <div className={`${headCell} border-r border-r-line text-ink-2`}>Staff</div>
+            {days.map((date, i) => (
+              <DayHeading
+                key={date}
+                date={date}
+                closed={closedDays[i]}
+                onClick={() => setClosed(date, !closedDays[i])}
+              />
             ))}
 
             {staff.map((person) => (
               <Row key={person.id} person={person}>
-                {days.map((date) => {
+                {days.map((date, i) => {
+                  if (closedDays[i]) return <ClosedCell key={date} />
                   const inCell = cells.get(cellKey(person.id, date)) ?? []
                   const copy = copying && copyShift(copying.shift, { staffId: person.id, date }, inCell)
                   return (
@@ -155,7 +179,9 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Pro
           <button className="btn btn-danger" onClick={clear}>
             Clear week
           </button>
-          <span className="order-last basis-full self-center text-[11.5px] text-ink-3">{tradingHours}</span>
+          <span className="order-last basis-full self-center text-[11.5px] text-ink-3">
+            {[tradingHours, closedThisWeek(closedDays)].filter(Boolean).join(' · ')}
+          </span>
         </div>
       </div>
       {open && (
@@ -181,6 +207,39 @@ export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Pro
       )}
       {dialog}
     </>
+  )
+}
+
+/** Closes the day for this week, or reopens it. */
+function DayHeading({ date, closed, onClick }: { date: IsoDate; closed: boolean; onClick: () => void }) {
+  const action = `${closed ? 'Reopen' : 'Close'} ${dayName(date)}`
+  return (
+    <button
+      aria-label={`${dayLabel(date)}${closed ? ', closed' : ''}. ${action}`}
+      title={action}
+      className={`${headCell} group relative text-center ${closed ? 'text-ink-3' : 'text-ink-2 hover:text-ink'} hover:bg-surface-2`}
+      onClick={onClick}
+    >
+      {dayName(date)}
+      <span className="block font-mono text-[11px] font-normal tracking-normal text-ink-3 normal-case">
+        {closed ? 'closed' : shortDate(date)}
+      </span>
+      <span
+        aria-hidden
+        className="absolute top-1.5 right-[5px] text-[10px] font-normal tracking-normal normal-case opacity-0 group-hover:opacity-75 group-focus-visible:opacity-75"
+      >
+        {closed ? '↺' : '✕'}
+      </span>
+    </button>
+  )
+}
+
+/** A day closed this week. It takes no shifts, so there's nothing to click. */
+function ClosedCell() {
+  return (
+    <div className="cell-closed grid min-h-14 place-items-center border-r border-b border-line">
+      <span className="font-mono text-[10px] tracking-[0.12em] text-ink-3">CLOSED</span>
+    </div>
   )
 }
 

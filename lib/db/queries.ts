@@ -9,7 +9,7 @@ import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } 
 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
- * inactive staff with shifts that week) and its shifts.
+ * inactive staff with shifts that week), its shifts and its closed days.
  */
 export function rosterWeek(week: IsoDate) {
   const db = getDb()
@@ -22,7 +22,7 @@ export function rosterWeek(week: IsoDate) {
     .select({ id: staff.id, name: staff.name, active: staff.active, sortOrder: staff.sortOrder })
     .from(staff)
     .all()
-  return { staff: rosterRows(people, weekShifts), shifts: weekShifts }
+  return { staff: rosterRows(people, weekShifts), shifts: weekShifts, closedDays: closedDaysOf(week) }
 }
 
 /** Which days of a week are closed, Monday first. A week never saved has every day open. */

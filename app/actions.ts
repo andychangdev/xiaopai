@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
 import { closedDaysOf, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
@@ -42,6 +43,10 @@ function checkId(id: unknown): asserts id is number {
 
 function checkWeek(week: unknown): asserts week is IsoDate {
   if (typeof week !== 'string' || !isMonday(week)) throw new Error('Expected a week, named by its Monday')
+}
+
+function checkDate(week: IsoDate, date: unknown): asserts date is IsoDate {
+  if (typeof date !== 'string' || !isInWeek(week, date)) throw new Error('Expected a date in that week')
 }
 
 // Text from the client, which a direct POST can leave out or fake
@@ -131,8 +136,8 @@ export async function removeStaff(id: number): Promise<ActionResult> {
 }
 
 /**
- * A shift in one cell. The first shift saved to a week creates the week's
- * roster, as a draft with every day open.
+ * A shift in one cell, on a day that's open. The first shift saved to a week
+ * creates the week's roster, as a draft with every day open.
  */
 export async function addShift(input: {
   week: string
@@ -144,9 +149,11 @@ export async function addShift(input: {
   const { week, staffId, date, start, end } = input ?? {}
   checkWeek(week)
   checkId(staffId)
-  if (typeof date !== 'string' || !isInWeek(week, date)) throw new Error('Expected a date in that week')
+  checkDate(week, date)
   const error = timesError(start, end)
   if (error) return { error }
+  // Typed, from a template or pasted, a single shift comes through here
+  if (isClosed(closedDaysOf(week), date)) return { error: dayClosedError(date) }
 
   const db = getDb()
   const person = db.select({ name: staff.name, active: staff.active }).from(staff).where(eq(staff.id, staffId)).get()
@@ -189,6 +196,29 @@ export async function removeShift(id: number): Promise<ActionResult> {
 export async function clearWeek(week: string): Promise<ActionResult> {
   checkWeek(week)
   getDb().delete(shifts).where(eq(shifts.weekStart, week)).run()
+  gridChanged()
+  return {}
+}
+
+/**
+ * Closes one day of one week, or reopens it. A closed day holds no shifts, so
+ * closing it removes the ones on it. Other weeks never change.
+ */
+export async function setDayClosed(input: { week: string; date: string; closed: boolean }): Promise<ActionResult> {
+  const { week, date, closed } = input ?? {}
+  checkWeek(week)
+  checkDate(week, date)
+  if (typeof closed !== 'boolean') throw new Error('Expected closed to be true or false')
+
+  const db = getDb()
+  db.transaction((tx) => {
+    const closedDays = withDayClosed(closedDaysOf(week), date, closed)
+    tx.insert(rosters)
+      .values({ weekStart: week, closedDays })
+      .onConflictDoUpdate({ target: rosters.weekStart, set: { closedDays } })
+      .run()
+    if (closed) tx.delete(shifts).where(and(eq(shifts.weekStart, week), eq(shifts.date, date))).run()
+  })
   gridChanged()
   return {}
 }

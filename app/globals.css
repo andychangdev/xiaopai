@@ -114,3 +114,14 @@
   grid-template-columns: 168px repeat(7, minmax(112px, 1fr));
   min-width: 960px;
 }
+
+/* A day closed this week, hatched down its whole column */
+.cell-closed {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 5px,
+    var(--color-surface-2) 5px,
+    var(--color-surface-2) 10px
+  );
+}

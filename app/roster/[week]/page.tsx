@@ -23,7 +23,7 @@ export default async function RosterPage({ params }: Props) {
   const week = canonicalWeek(param, today())
   if (week !== param) redirect(`/roster/${week}`)
 
-  const { staff, shifts } = rosterWeek(week)
+  const { staff, shifts, closedDays } = rosterWeek(week)
 
   return (
     <>
@@ -61,6 +61,7 @@ export default async function RosterPage({ params }: Props) {
           shifts={shifts}
           templates={templateList()}
           tradingHours={tradingSummary(tradingHoursWeek())}
+          closedDays={closedDays}
         />
       ) : (
         <NoRows everyoneInactive={hasStaff()} />
