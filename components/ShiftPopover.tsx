@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { addShift, removeShift, setMarkedNa, updateShift, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
@@ -8,6 +8,7 @@ import { alreadyNaNote, type NaReason } from '@/lib/roster/notAvailable'
 import type { Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatRange, parseShorthand, type Minutes } from '@/lib/roster/time'
+import { Popover } from './Popover'
 
 /** The cell a popover is for, why it shows N/A if it does, and the shift in it when a chip opened it. */
 export type PopoverTarget = {
@@ -17,9 +18,6 @@ export type PopoverTarget = {
   shift?: Shift
   anchor: HTMLElement
 }
-
-const GAP = 6
-const MARGIN = 8
 
 /** When a save never reached the server, or it failed there. */
 export const UNREACHABLE = "Couldn't save. Check the app is still running, then try again."
@@ -33,11 +31,11 @@ export function actionError(run: () => Promise<ActionResult>): Promise<string | 
 }
 
 /**
- * The small box that opens on a cell: type a range and press Enter, or click
- * a template, to add a shift, or Mark N/A for this week (Clear N/A takes it
- * off). Opened from a chip, the same change its times, Remove takes it off,
- * and Copy hands it to the grid to paste into other cells. Esc, Cancel or a
- * click anywhere else closes it without saving.
+ * What opens on a cell: type a range and press Enter, or click a template, to
+ * add a shift, or Mark N/A for this week (Clear N/A takes it off). Opened
+ * from a chip, the same change its times, Remove takes it off, and Copy hands
+ * it to the grid to paste into other cells. Esc, Cancel or a click anywhere
+ * else closes it without saving.
  */
 export function ShiftPopover({
   week,
@@ -55,34 +53,12 @@ export function ShiftPopover({
   const { person, date, na, shift, anchor } = target
   // Their pattern already says so, and a note on top would say nothing new
   const alreadyNa = !shift && na === 'usual'
-  const ref = useRef<HTMLDivElement>(null)
   const input = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string>()
   // A second Enter before the first save returns would add the shift twice
   const saving = useRef(false)
   // Closed by a click elsewhere while a save was on its way
   const gone = useRef(false)
-
-  // Below the cell, or above it if there's no room, kept inside the window.
-  // It's fixed, so it's placed again whenever the cell moves (the grid
-  // scrolls sideways) or the message under the box changes its height.
-  useLayoutEffect(() => {
-    const box = ref.current!
-    function place() {
-      const r = anchor.getBoundingClientRect()
-      const { clientWidth: vw, clientHeight: vh } = document.documentElement // not counting scrollbars
-      const { offsetWidth: w, offsetHeight: h } = box
-      box.style.left = `${Math.max(MARGIN, Math.min(vw - w - MARGIN, r.left))}px`
-      box.style.top = `${r.bottom + GAP + h + MARGIN > vh ? Math.max(MARGIN, r.top - GAP - h) : r.bottom + GAP}px`
-    }
-    place()
-    window.addEventListener('scroll', place, true)
-    window.addEventListener('resize', place)
-    return () => {
-      window.removeEventListener('scroll', place, true)
-      window.removeEventListener('resize', place)
-    }
-  }, [anchor, error])
 
   useEffect(() => {
     gone.current = false // Strict Mode mounts twice
@@ -93,17 +69,11 @@ export function ShiftPopover({
     }
   }, [])
 
-  useEffect(() => {
-    const away = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) onClose(target)
-    }
-    document.addEventListener('pointerdown', away)
-    return () => document.removeEventListener('pointerdown', away)
-  }, [onClose, target])
+  const close = useCallback(() => onClose(target), [onClose, target])
 
   /** Closes, handing focus back to the cell like a dialog would. */
   function done(focus: HTMLElement | null | undefined = anchor) {
-    onClose(target)
+    close()
     if (focus?.isConnected) focus.focus()
   }
 
@@ -148,22 +118,12 @@ export function ShiftPopover({
   }
 
   return (
-    <div
-      ref={ref}
-      role="dialog"
-      aria-label={`${shift ? 'Change shift' : 'Add a shift'} for ${person.name} on ${dayLabel(date)}`}
-      className="fixed z-50 max-h-[calc(100vh-16px)] w-[250px] overflow-y-auto rounded-card border border-line-strong bg-surface p-[11px] shadow-popover"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape') done()
-      }}
-      onBlur={(e) => {
-        // Tabbing out closes it. Clicks elsewhere are the pointerdown's job.
-        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) onClose(target)
-      }}
+    <Popover
+      anchor={anchor}
+      label={`${shift ? 'Change shift' : 'Add a shift'} for ${person.name} on ${dayLabel(date)}`}
+      heading={`${firstName(person.name)} · ${dayLabel(date)}`}
+      onClose={close}
     >
-      <h3 className="mb-[7px] text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
-        {firstName(person.name)} · {dayLabel(date)}
-      </h3>
       {templates.length > 0 && (
         <div className="mb-2.5 grid grid-cols-2 gap-[5px]">
           {templates.map((t) => {
@@ -252,6 +212,6 @@ export function ShiftPopover({
           Cancel
         </button>
       </div>
-    </div>
+    </Popover>
   )
 }
