@@ -17,12 +17,14 @@ type Props = {
   staff: Person[]
   shifts: Shift[]
   templates: Template[]
+  /** The week's trading hours in one line, for the footer */
+  tradingHours: string
 }
 
 const headCell =
   'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] text-ink-2 uppercase'
 
-export function RosterGrid({ week, staff, shifts, templates }: Props) {
+export function RosterGrid({ week, staff, shifts, templates, tradingHours }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const [dialog, ask] = useAsk()
@@ -86,9 +88,13 @@ export function RosterGrid({ week, staff, shifts, templates }: Props) {
           <Link href="/staff" className="btn">
             Manage staff
           </Link>
+          <Link href="/settings" className="btn">
+            Trading hours
+          </Link>
           <button className="btn btn-danger" onClick={clear}>
             Clear week
           </button>
+          <span className="order-last basis-full self-center text-[11.5px] text-ink-3">{tradingHours}</span>
         </div>
       </div>
       {open && (

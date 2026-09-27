@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
-import { hasStaff, rosterWeek, templateList } from '@/lib/db/queries'
+import { hasStaff, rosterWeek, templateList, tradingHoursWeek } from '@/lib/db/queries'
 import { addDays, canonicalWeek, dayLabel, weekTitle } from '@/lib/roster/dates'
+import { tradingSummary } from '@/lib/roster/settings'
 
 // Reads the database, which Next can't see, so render on every request
 export const dynamic = 'force-dynamic'
@@ -50,6 +51,7 @@ export default async function RosterPage({ params }: Props) {
           staff={staff}
           shifts={shifts}
           templates={templateList()}
+          tradingHours={tradingSummary(tradingHoursWeek())}
         />
       ) : (
         <NoRows everyoneInactive={hasStaff()} />
