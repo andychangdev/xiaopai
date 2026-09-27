@@ -33,19 +33,21 @@ export function actionError(run: () => Promise<ActionResult>): Promise<string | 
 /**
  * The small box that opens on a cell: type a range and press Enter, or click
  * a template, to add a shift. Opened from a chip, the same change its times,
- * and Remove takes it off. Esc, Cancel or a click anywhere else closes it
- * without saving.
+ * Remove takes it off, and Copy hands it to the grid to paste into other
+ * cells. Esc, Cancel or a click anywhere else closes it without saving.
  */
 export function ShiftPopover({
   week,
   target,
   templates,
   onClose,
+  onCopy,
 }: {
   week: IsoDate
   target: PopoverTarget
   templates: Template[]
   onClose: (target: PopoverTarget) => void
+  onCopy: (shift: Shift) => void
 }) {
   const { person, date, shift, anchor } = target
   const ref = useRef<HTMLDivElement>(null)
@@ -208,6 +210,20 @@ export function ShiftPopover({
             }}
           >
             Remove
+          </button>
+        )}
+        {shift && (
+          // The shift as saved, not whatever is typed in the box
+          <button
+            className="btn"
+            title="Put the same times in other cells"
+            onClick={() => {
+              if (saving.current) return // it's about to change, or go
+              done()
+              onCopy(shift)
+            }}
+          >
+            Copy
           </button>
         )}
         <button className="btn" onClick={() => done()}>
