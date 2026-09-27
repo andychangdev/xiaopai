@@ -22,6 +22,14 @@ const MARGIN = 8
 /** When a save never reached the server, or it failed there. */
 export const UNREACHABLE = "Couldn't save. Check the app is still running, then try again."
 
+/** Why a server action didn't save, or undefined when it did. One that never arrived counts. */
+export function actionError(run: () => Promise<ActionResult>): Promise<string | undefined> {
+  return run().then(
+    (result) => result.error,
+    () => UNREACHABLE,
+  )
+}
+
 /**
  * The small box that opens on a cell: type a range and press Enter, or click
  * a template, to add a shift. Opened from a chip, the same change its times,
@@ -97,10 +105,7 @@ export function ShiftPopover({
   async function save(run: () => Promise<ActionResult>, then?: HTMLElement | null) {
     if (saving.current) return
     saving.current = true
-    const error = await run().then(
-      (result) => result.error,
-      () => UNREACHABLE,
-    )
+    const error = await actionError(run)
     if (gone.current) return
     if (error) {
       saving.current = false
