@@ -1,11 +1,17 @@
 import 'server-only'
 import { and, asc, count, eq, gte, lte } from 'drizzle-orm'
+import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
-import { addDays, type IsoDate } from '@/lib/roster/dates'
+import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
 import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
 import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from './schema'
+
+/** The week the Roster and Roster text tabs open when none is named: this one. */
+export function openWeek(): IsoDate {
+  return mondayOf(today())
+}
 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
