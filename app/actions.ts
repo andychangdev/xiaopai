@@ -7,7 +7,7 @@ import { and, asc, count, eq, gte, lte, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { today } from '@/lib/clock'
 import { getDb } from '@/lib/db/client'
-import { closedDaysOf, leaveDuring, rosterWeek, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
+import { closedDaysOf, leaveDuring, rosterWeek, shiftCount, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
@@ -398,12 +398,20 @@ export async function publishWeek(week: string): Promise<ActionResult> {
  * landing on leave. The other week's closed days replace this week's, but its
  * N/A notes don't come across: this week's are its own, and stay. A copy with
  * nothing to bring across changes nothing, rather than emptying the week.
+ * Over shifts already there, the first try comes back with how many, and the
+ * copy only goes ahead once told to replace them. The count is the week's as
+ * it is now, not as whichever page asked last saw it.
  */
-export async function copyWeek(input: { from: string; to: string }): Promise<ActionResult & { report?: string }> {
-  const { from, to } = input ?? {}
+export async function copyWeek(input: {
+  from: string
+  to: string
+  replace?: boolean
+}): Promise<ActionResult & { report?: string; replacing?: number }> {
+  const { from, to, replace } = input ?? {}
   checkWeek(from)
   checkWeek(to)
   if (from === to) throw new Error('Expected two different weeks')
+  if (replace !== undefined && typeof replace !== 'boolean') throw new Error('Expected replace to be true or false')
 
   const db = getDb()
   const source = db
@@ -420,6 +428,8 @@ export async function copyWeek(input: { from: string; to: string }): Promise<Act
     leave: leaveDuring(to),
   })
   if (!plan.shifts.length) return { error: nothingToCopy(from, plan.skipped) }
+  const replacing = shiftCount(to)
+  if (replacing && !replace) return { replacing }
 
   const closedBefore = closedDaysOf(to)
   const { closedDays } = plan

@@ -211,7 +211,7 @@ export function RosterGrid({
           </div>
         </div>
         <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
-          <CopyPreviousWeek week={week} shifts={shifts.length} previousShifts={previousShifts} />
+          <CopyPreviousWeek week={week} previousShifts={previousShifts} />
           <button className="btn btn-danger" onClick={clear}>
             Clear week
           </button>
