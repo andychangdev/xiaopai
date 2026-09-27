@@ -22,7 +22,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 16 | [History](completed/16-history.md) | 15 |
 | 17 | [Undo](to-do/17-undo.md) | 06, 08, 12 |
 | 18 | [JSON export](to-do/18-json-export.md) | 05 |
-| 19 | [Dock launcher](to-do/19-dock-launcher.md) | 01 |
+| 19 | [Dock launcher](completed/19-dock-launcher.md) | 01 |
 | 20 | [Roster toolbar tidy and This week](completed/20-roster-toolbar-tidy.md) | 07, 15 |
 
 ## Calls made where the docs disagree
@@ -33,6 +33,12 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 - **The schema** (01): lands whole in ticket 01, so parallel tickets don't collide on migration files. This is the one piece that isn't a vertical slice.
 - **Roster buttons** (20): drops Manage staff and Trading hours, since the tabs already cover them, and puts Copy previous week in the grid footer. Roster text leaves the tab bar, is renamed Share roster, and sits next to Publish roster, taking the place of SPEC §2's View sheet. The mockup and ARCHITECTURE §4 have the old layout.
 - **History's list** (16): a published week stays listed after it's been emptied, since staff still hold what went out. SPEC lists only weeks with shifts on them. The open week travels in the URL (`/history?week=`), so History only knows it when you come from that week's grid or Share roster; from Staff or Settings it's the week the Roster tab would open.
+- **Dock launcher** (19): differs from ARCHITECTURE §8b's script and build steps in several ways:
+  - The bundle's executable is a stub that runs `scripts/launcher/run` from the project, instead of a copy with the path hard-coded. Launcher changes need no rebuild.
+  - The server listens on 127.0.0.1 only, and always uses the project's own `xiaopai.db`.
+  - Chrome opens with `open -n`, because without it the `--app` flag is dropped when Chrome is already open.
+  - The server check fetches `/icon.png`, which never touches the database.
+  - If the server doesn't start, an alert names the log, so the icon never seems to do nothing.
 - **Undo and JSON export** (17, 18): SPEC includes them, and ARCHITECTURE §9 says "later". Both are kept, at the end.
 
 ## Not ticketed

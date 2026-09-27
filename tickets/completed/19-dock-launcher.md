@@ -4,13 +4,13 @@
 
 **Blocked by:** 01 Walking skeleton
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] One build script assembles `Roster.app` in `~/Applications` with the existing icon, generating the icon first if it's missing.
-- [ ] Clicking the app does the following:
+- [x] One build script assembles `Roster.app` in `~/Applications` with the existing icon, generating the icon first if it's missing.
+- [x] Clicking the app does the following:
   - if nothing answers on port 3210, starts `npm start` there and waits up to about 10 seconds
   - opens the app in a Chrome `--app` window, with no address bar or tabs
   - if the server is already up, just opens the window
-- [ ] It works when launched from Finder or the Dock, where `PATH` is minimal: the Homebrew and nvm paths are set explicitly.
-- [ ] The launcher leaves no bouncing Dock icon of its own (`LSUIElement`).
-- [ ] The launcher never builds the app. The README says to run `npm run build` after code changes.
+- [x] It works when launched from Finder or the Dock, where `PATH` is minimal: the Homebrew and nvm paths are set explicitly.
+- [x] The launcher leaves no bouncing Dock icon of its own (`LSUIElement`).
+- [x] The launcher never builds the app. The README says to run `npm run build` after code changes.
