@@ -96,14 +96,12 @@ export function publishQuestion({
   shifts,
   minutes,
   warnings,
-  today,
 }: {
   weekStart: IsoDate
   state: PublishState
   shifts: number
   minutes: Minutes
   warnings: number
-  today: IsoDate
 }): { title: string; body: string; ok: string } {
   const what = shifts
     ? `${shiftsLabel(shifts)}, ${formatHours(minutes)} across ${weekRange(weekStart)}.`
@@ -122,7 +120,7 @@ export function publishQuestion({
   const next = state.version + 1
   return {
     title: 'Publish an update?',
-    body: `${what} This becomes version ${next}, and the text on Share roster will end “Updated ${fullDate(today)} (v${next})”, so nobody works from the copy already in the chat.${warned}`,
+    body: `${what} This becomes version ${next}.${warned}`,
     ok: `Publish v${next}`,
   }
 }

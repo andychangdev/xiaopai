@@ -140,7 +140,7 @@ describe('weekSubtitle', () => {
 })
 
 describe('publishQuestion', () => {
-  const ask = { weekStart: WEEK, shifts: 12, minutes: h(96), today: '2026-10-08' }
+  const ask = { weekStart: WEEK, shifts: 12, minutes: h(96) }
 
   it('names the shifts and hours of a first publish, and where it goes next', () => {
     expect(publishQuestion({ ...ask, state: { status: 'draft' }, warnings: 0 })).toEqual({
@@ -150,11 +150,11 @@ describe('publishQuestion', () => {
     })
   })
 
-  it('names the new version of an update, and how the text will end', () => {
+  it('names the new version of an update', () => {
     const state = { status: 'published' as const, version: 1, publishedAt: '2026-09-26', changed: true }
     expect(publishQuestion({ ...ask, state, warnings: 0 })).toEqual({
       title: 'Publish an update?',
-      body: '12 shifts, 96h across 5 Oct – 11 Oct. This becomes version 2, and the text on Share roster will end “Updated 8 Oct 2026 (v2)”, so nobody works from the copy already in the chat.',
+      body: '12 shifts, 96h across 5 Oct – 11 Oct. This becomes version 2.',
       ok: 'Publish v2',
     })
   })

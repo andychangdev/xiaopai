@@ -21,7 +21,6 @@ export function PublishButton({
   shifts,
   minutes,
   warnings,
-  today,
 }: {
   week: IsoDate
   state: PublishState
@@ -30,7 +29,6 @@ export function PublishButton({
   minutes: Minutes
   /** How many warnings are outstanding */
   warnings: number
-  today: IsoDate
 }) {
   const [dialog, ask] = useAsk()
   const router = useRouter()
@@ -58,7 +56,7 @@ export function PublishButton({
       await notify('Nothing to publish', NOTHING_TO_PUBLISH)
       return
     }
-    if (!(await ask(publishQuestion({ weekStart: week, state, shifts, minutes, warnings, today })))) return
+    if (!(await ask(publishQuestion({ weekStart: week, state, shifts, minutes, warnings })))) return
 
     publishing.current = true
     const result = await publishWeek(week).catch(() => ({ error: UNREACHABLE }))

@@ -71,7 +71,6 @@ export default async function RosterPage({ params }: Props) {
             shifts={shifts.length}
             minutes={weekTotal(shifts)}
             warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week }).length}
-            today={now}
           />
         </div>
       </div>
