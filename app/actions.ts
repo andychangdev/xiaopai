@@ -3,16 +3,16 @@
 // Every mutation. These are POST endpoints that anything reaching the app can
 // call, so each one checks its input with the same rules the UI uses.
 
-import { and, asc, eq, max } from 'drizzle-orm'
+import { and, asc, count, eq, gte, lte, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
 import { closedDaysOf, leaveDuring, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
-import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
-import { leaveOn, onLeaveError } from '@/lib/roster/leave'
+import { leaveOn, onLeaveError, overlapError, parseLeave } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
@@ -179,6 +179,59 @@ export async function removeStaff(id: number): Promise<ActionResult> {
     tx.delete(naNotes).where(eq(naNotes.staffId, id)).run()
     tx.delete(staff).where(eq(staff.id, id)).run()
   })
+  staffChanged()
+  return {}
+}
+
+/**
+ * Books leave, which is only ever done from the Staff page. Shifts already
+ * inside it are the manager's call: a booking over any comes back with how
+ * many, and only goes in once told to remove them or keep them. Kept shifts
+ * stay on the roster, and warn.
+ */
+export async function bookLeave(input: {
+  staffId: number
+  from: string
+  to: string
+  note: string
+  shifts?: 'remove' | 'keep'
+}): Promise<ActionResult & { clashes?: number }> {
+  const { staffId, shifts: inside } = input ?? {}
+  checkId(staffId)
+  if (inside !== undefined && inside !== 'remove' && inside !== 'keep') {
+    throw new Error("Expected shifts to be 'remove' or 'keep'")
+  }
+  const booking = parseLeave({ from: text(input?.from), to: text(input?.to), note: text(input?.note) })
+  if ('error' in booking) return booking
+
+  const db = getDb()
+  const person = db.select({ name: staff.name, active: staff.active }).from(staff).where(eq(staff.id, staffId)).get()
+  if (!person) return { error: 'That person is no longer on the staff list.' }
+  if (!person.active) return { error: `${person.name} is inactive. Tick Active to book leave for them.` }
+  const theirs = db
+    .select({ fromDate: leave.fromDate, toDate: leave.toDate })
+    .from(leave)
+    .where(eq(leave.staffId, staffId))
+    .all()
+  const overlap = overlapError(person.name, booking, theirs)
+  if (overlap) return { error: overlap }
+
+  const during = and(eq(shifts.staffId, staffId), gte(shifts.date, booking.fromDate), lte(shifts.date, booking.toDate))
+  const clashes = db.select({ n: count() }).from(shifts).where(during).get()!.n
+  if (clashes && !inside) return { clashes }
+
+  db.transaction((tx) => {
+    if (inside === 'remove') tx.delete(shifts).where(during).run()
+    tx.insert(leave).values({ staffId, ...booking }).run()
+  })
+  staffChanged()
+  return {}
+}
+
+/** Takes a booking off, so those days can take shifts again. Nothing else changes. */
+export async function cancelLeave(id: number): Promise<ActionResult> {
+  checkId(id)
+  getDb().delete(leave).where(eq(leave.id, id)).run()
   staffChanged()
   return {}
 }

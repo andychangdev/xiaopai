@@ -11,9 +11,10 @@ export function PageHead({ title, children }: { title: string; children: ReactNo
   )
 }
 
-export function Card({ title, children }: { title: string; children: ReactNode }) {
+/** `id` lets another page link straight to the card. */
+export function Card({ title, id, children }: { title: string; id?: string; children: ReactNode }) {
   return (
-    <section className="mb-4 overflow-hidden rounded-card border border-line bg-surface">
+    <section id={id} className="mb-4 scroll-mt-4 overflow-hidden rounded-card border border-line bg-surface">
       <h2 className="border-b border-line bg-surface-3 px-3.5 py-2.5 text-[11px] font-semibold tracking-[0.1em] text-ink-2 uppercase">
         {title}
       </h2>

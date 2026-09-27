@@ -100,6 +100,23 @@ export function staffHistory() {
   return (id: number) => ({ shifts: shiftN.get(id) ?? 0, leave: leaveN.get(id) ?? 0, naNotes: naN.get(id) ?? 0 })
 }
 
+/** Every booking, soonest first, with whose it is. */
+export function leaveList() {
+  return getDb()
+    .select({
+      id: leave.id,
+      staffId: leave.staffId,
+      name: staff.name,
+      fromDate: leave.fromDate,
+      toDate: leave.toDate,
+      note: leave.note,
+    })
+    .from(leave)
+    .innerJoin(staff, eq(staff.id, leave.staffId))
+    .orderBy(asc(leave.fromDate), asc(leave.toDate), asc(leave.id))
+    .all()
+}
+
 /** Opening and closing for each weekday, Monday first. */
 export function tradingHoursWeek() {
   return tradingWeek(getDb().select().from(tradingHours).all())
@@ -119,4 +136,5 @@ export function hasStaff() {
 }
 
 export type StaffListRow = ReturnType<typeof staffList>[number]
+export type LeaveListRow = ReturnType<typeof leaveList>[number]
 export type Template = ReturnType<typeof templateList>[number]
