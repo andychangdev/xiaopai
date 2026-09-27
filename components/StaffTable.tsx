@@ -84,7 +84,8 @@ function StaffRow({
   const [active, setActive] = useOptimistic(person.active)
   const [, startTransition] = useTransition()
 
-  const save = async (patch: Parameters<typeof updateStaff>[1]) => report(await updateStaff(person.id, patch))
+  const save = async (patch: Parameters<typeof updateStaff>[1]) =>
+    report(await updateStaff(person.id, patch).catch(() => ({ error: UNREACHABLE })))
 
   async function remove() {
     const reason = whyNotRemovable(person, person.history)
