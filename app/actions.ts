@@ -5,8 +5,9 @@
 
 import { and, asc, count, eq, gte, lte, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import { today } from '@/lib/clock'
 import { getDb } from '@/lib/db/client'
-import { closedDaysOf, leaveDuring, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
+import { closedDaysOf, leaveDuring, rosterWeek, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
@@ -14,6 +15,8 @@ import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { leaveOn, onLeaveError, overlapError, parseLeave } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
+import { NOTHING_TO_PUBLISH, publishState, snapshotOf } from '@/lib/roster/publish'
+import { rosterDays } from '@/lib/roster/rosterText'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
@@ -361,6 +364,32 @@ export async function setDayClosed(input: { week: string; date: string; closed: 
       .run()
     if (closed) tx.delete(shifts).where(and(eq(shifts.weekStart, week), eq(shifts.date, date))).run()
   })
+  gridChanged()
+  return {}
+}
+
+/**
+ * Publishes the week as it stands: freezes it as the next version, dated
+ * today, for Roster text to show from then on. Warnings never stop it. A
+ * week already published and unchanged since stays as it is, rather than
+ * going up a version for nothing.
+ */
+export async function publishWeek(week: string): Promise<ActionResult> {
+  checkWeek(week)
+  const { staff, shifts, closedDays, roster } = rosterWeek(week)
+  if (!shifts.length) return { error: NOTHING_TO_PUBLISH }
+  const days = rosterDays({ weekStart: week, staff, shifts, closedDays })
+  const state = publishState(roster, days)
+  if (state.status === 'published' && !state.changed) return {}
+
+  const previous = state.status === 'published' ? state : null
+  const snapshot = snapshotOf({ weekStart: week, days, today: today(), previous })
+  // A week with shifts always has its roster: the first shift made it
+  getDb()
+    .update(rosters)
+    .set({ status: 'published', version: snapshot.version, publishedAt: snapshot.publishedAt, snapshot })
+    .where(eq(rosters.weekStart, week))
+    .run()
   gridChanged()
   return {}
 }

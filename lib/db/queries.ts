@@ -29,8 +29,8 @@ export function openWeek(): IsoDate {
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
  * inactive staff with shifts that week) with their expected hours and
- * availability, its shifts, its N/A notes, the leave booked during it and
- * its closed days.
+ * availability, its shifts, its N/A notes, the leave booked during it, its
+ * closed days, and what's been published of it.
  */
 export function rosterWeek(week: IsoDate) {
   const db = getDb()
@@ -61,7 +61,22 @@ export function rosterWeek(week: IsoDate) {
     naNotes: notes,
     leave: leaveDuring(week),
     closedDays: closedDaysOf(week),
+    roster: publishedOf(week),
   }
+}
+
+/** The week's roster as far as publishing goes. A week never saved has none. */
+export function publishedOf(week: IsoDate) {
+  return getDb()
+    .select({
+      status: rosters.status,
+      version: rosters.version,
+      publishedAt: rosters.publishedAt,
+      snapshot: rosters.snapshot,
+    })
+    .from(rosters)
+    .where(eq(rosters.weekStart, week))
+    .get()
 }
 
 /** Every booking with at least one day in the week, whoever it's for. */
