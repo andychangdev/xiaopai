@@ -35,7 +35,8 @@ export function PublishButton({
 }) {
   const [dialog, ask] = useAsk()
   const router = useRouter()
-  // With the dialog up, a second click can't happen, but a slow publish could be clicked again
+  // With the dialog up, a second click can't happen, but a slow publish, or
+  // the moment before Roster text opens, could be clicked again
   const publishing = useRef(false)
   const notify = (title: string, body: string) => ask({ title, body, ok: 'OK', cancel: null })
 
@@ -57,9 +58,12 @@ export function PublishButton({
 
     publishing.current = true
     const result = await publishWeek(week).catch(() => ({ error: UNREACHABLE }))
-    publishing.current = false
-    if (result.error) await notify("Couldn't publish", result.error)
-    else router.push(`/share/${week}`)
+    if (result.error) {
+      publishing.current = false
+      await notify("Couldn't publish", result.error)
+    } else {
+      router.push(`/share/${week}`) // publishing stays set: this page is on its way out
+    }
   }
 
   return (
