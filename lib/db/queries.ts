@@ -1,7 +1,7 @@
 import 'server-only'
-import { asc, count, eq } from 'drizzle-orm'
+import { and, asc, count, eq, gte, lte } from 'drizzle-orm'
 import { ALL_OPEN } from '@/lib/roster/closed'
-import type { IsoDate } from '@/lib/roster/dates'
+import { addDays, type IsoDate } from '@/lib/roster/dates'
 import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
@@ -10,7 +10,8 @@ import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
  * inactive staff with shifts that week) with their expected hours and
- * availability, its shifts, its N/A notes and its closed days.
+ * availability, its shifts, its N/A notes, the leave booked during it and
+ * its closed days.
  */
 export function rosterWeek(week: IsoDate) {
   const db = getDb()
@@ -35,7 +36,22 @@ export function rosterWeek(week: IsoDate) {
     .from(naNotes)
     .where(eq(naNotes.weekStart, week))
     .all()
-  return { staff: rosterRows(people, weekShifts), shifts: weekShifts, naNotes: notes, closedDays: closedDaysOf(week) }
+  return {
+    staff: rosterRows(people, weekShifts),
+    shifts: weekShifts,
+    naNotes: notes,
+    leave: leaveDuring(week),
+    closedDays: closedDaysOf(week),
+  }
+}
+
+/** Every booking with at least one day in the week, whoever it's for. */
+export function leaveDuring(week: IsoDate) {
+  return getDb()
+    .select({ id: leave.id, staffId: leave.staffId, fromDate: leave.fromDate, toDate: leave.toDate, note: leave.note })
+    .from(leave)
+    .where(and(lte(leave.fromDate, addDays(week, 6)), gte(leave.toDate, week)))
+    .all()
 }
 
 /** Which days of a week are closed, Monday first. A week never saved has every day open. */

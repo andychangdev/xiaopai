@@ -6,7 +6,7 @@
 import { and, asc, eq, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
-import { closedDaysOf, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
+import { closedDaysOf, leaveDuring, staffHistory, tradingHoursWeek } from '@/lib/db/queries'
 import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
@@ -304,10 +304,10 @@ export async function setDayClosed(input: { week: string; date: string; closed: 
 
 /**
  * Replaces one week's shifts with a copy of another's, each on the same
- * weekday for the same person, less the ones planCopy skips. The other
- * week's closed days replace this week's, but its N/A notes don't come
- * across: this week's are its own, and stay. A copy with nothing to bring
- * across changes nothing, rather than emptying the week.
+ * weekday for the same person, less the ones planCopy skips, such as any
+ * landing on leave. The other week's closed days replace this week's, but its
+ * N/A notes don't come across: this week's are its own, and stay. A copy with
+ * nothing to bring across changes nothing, rather than emptying the week.
  */
 export async function copyWeek(input: { from: string; to: string }): Promise<ActionResult & { report?: string }> {
   const { from, to } = input ?? {}
@@ -327,6 +327,7 @@ export async function copyWeek(input: { from: string; to: string }): Promise<Act
     closedDays: closedDaysOf(from),
     to,
     staff: db.select({ id: staff.id, active: staff.active }).from(staff).all(),
+    leave: leaveDuring(to),
   })
   if (!plan.shifts.length) return { error: nothingToCopy(from, plan.skipped) }
 

@@ -14,9 +14,12 @@ const WED_CLOSED = [false, false, true, false, false, false, false]
 
 type Input = Parameters<typeof planCopy>[0]
 
-// Into this week with every day open, unless a test says otherwise
+// Into this week with every day open and no one on leave, unless a test says otherwise
 const copyPlan = (input: Pick<Input, 'from' | 'staff'> & Partial<Input>) =>
-  planCopy({ closedDays: ALL_OPEN, to: THIS_WEEK, ...input })
+  planCopy({ closedDays: ALL_OPEN, to: THIS_WEEK, leave: [], ...input })
+
+// Person 1 away Mon 5 – Tue 6 Oct, this week
+const AWAY = { staffId: 1, fromDate: '2026-10-05', toDate: '2026-10-06' }
 
 describe('planCopy', () => {
   it('puts each shift on the same weekday of the new week, for the same person and times', () => {
@@ -59,7 +62,7 @@ describe('planCopy', () => {
     expect(copyPlan({ from: [], staff: [person(1)] })).toEqual({
       shifts: [],
       closedDays: ALL_OPEN,
-      skipped: { inactive: 0, closed: 0 },
+      skipped: { inactive: 0, onLeave: 0, closed: 0 },
     })
   })
 
@@ -84,7 +87,7 @@ describe('planCopy', () => {
       staff: [person(1), person(2, false)],
     })
     expect(plan.shifts).toEqual([shift(1, '2026-10-05', 600, 1080)])
-    expect(plan.skipped).toEqual({ inactive: 2, closed: 0 })
+    expect(plan.skipped).toEqual({ inactive: 2, onLeave: 0, closed: 0 })
   })
 
   it('counts someone no longer on the staff list as no longer active', () => {
@@ -93,7 +96,7 @@ describe('planCopy', () => {
       staff: [person(1)],
     })
     expect(plan.shifts).toEqual([])
-    expect(plan.skipped).toEqual({ inactive: 1, closed: 0 })
+    expect(plan.skipped).toEqual({ inactive: 1, onLeave: 0, closed: 0 })
   })
 
   it('skips nothing when everyone is still active', () => {
@@ -101,7 +104,7 @@ describe('planCopy', () => {
       from: [shift(1, '2026-09-28', 600, 1080)],
       staff: [person(1)],
     })
-    expect(plan.skipped).toEqual({ inactive: 0, closed: 0 })
+    expect(plan.skipped).toEqual({ inactive: 0, onLeave: 0, closed: 0 })
   })
 
   it('brings the closed days of the week it copies from', () => {
@@ -128,7 +131,7 @@ describe('planCopy', () => {
       staff: [person(1), person(2)],
     })
     expect(plan.shifts).toEqual([shift(1, '2026-10-05', 600, 1080)])
-    expect(plan.skipped).toEqual({ inactive: 0, closed: 2 })
+    expect(plan.skipped).toEqual({ inactive: 0, onLeave: 0, closed: 2 })
   })
 
   it('counts a shift once, as for staff no longer active, when it would also land on a closed day', () => {
@@ -137,7 +140,48 @@ describe('planCopy', () => {
       closedDays: TUE_CLOSED,
       staff: [person(2, false)],
     })
-    expect(plan.skipped).toEqual({ inactive: 1, closed: 0 })
+    expect(plan.skipped).toEqual({ inactive: 1, onLeave: 0, closed: 0 })
+  })
+})
+
+describe('planCopy on leave', () => {
+  it('skips a shift that would land on booked leave, and counts it', () => {
+    const plan = copyPlan({
+      from: [shift(1, '2026-09-28', 600, 1080), shift(1, '2026-09-29', 600, 1080), shift(1, '2026-09-30', 600, 1080)],
+      staff: [person(1)],
+      leave: [AWAY],
+    })
+    expect(plan.shifts).toEqual([shift(1, '2026-10-07', 600, 1080)])
+    expect(plan.skipped).toEqual({ inactive: 0, onLeave: 2, closed: 0 })
+  })
+
+  it("goes by the leave of the week copied into, not the week copied from", () => {
+    const plan = copyPlan({
+      from: [shift(1, '2026-09-28', 600, 1080)],
+      staff: [person(1)],
+      leave: [{ staffId: 1, fromDate: '2026-09-28', toDate: '2026-09-28' }],
+    })
+    expect(plan.shifts).toEqual([shift(1, '2026-10-05', 600, 1080)])
+  })
+
+  it("only skips the shifts of the person who's away", () => {
+    const plan = copyPlan({ from: [shift(2, '2026-09-28', 600, 1080)], staff: [person(1), person(2)], leave: [AWAY] })
+    expect(plan.shifts).toEqual([shift(2, '2026-10-05', 600, 1080)])
+  })
+
+  it('counts a shift once, as on a closed day, when it would also land on leave', () => {
+    const plan = copyPlan({
+      from: [shift(1, '2026-09-29', 600, 1080)],
+      closedDays: TUE_CLOSED,
+      staff: [person(1)],
+      leave: [AWAY],
+    })
+    expect(plan.skipped).toEqual({ inactive: 0, onLeave: 0, closed: 1 })
+  })
+
+  it('counts a shift once, as for staff no longer active, when it would also land on leave', () => {
+    const plan = copyPlan({ from: [shift(1, '2026-09-28', 600, 1080)], staff: [person(1, false)], leave: [AWAY] })
+    expect(plan.skipped).toEqual({ inactive: 1, onLeave: 0, closed: 0 })
   })
 })
 
@@ -171,6 +215,17 @@ describe('copyReport', () => {
     )
   })
 
+  it('names the shifts skipped landing on booked leave', () => {
+    const plan = copyPlan({
+      from: [...week(12, 1, '2026-09-30'), ...week(2, 1, '2026-09-29')],
+      staff: [person(1)],
+      leave: [AWAY],
+    })
+    expect(copyReport(plan, LAST_WEEK, ALL_OPEN)).toBe(
+      '12 shifts copied from 28 Sep – 4 Oct. Skipped 2 landing on booked leave.',
+    )
+  })
+
   it('names every kind of skip in one sentence', () => {
     const plan = copyPlan({
       from: [...week(12), ...week(1, 2), ...week(1, 1, '2026-09-29')],
@@ -179,6 +234,18 @@ describe('copyReport', () => {
     })
     expect(copyReport(plan, LAST_WEEK, TUE_CLOSED)).toBe(
       '12 shifts copied from 28 Sep – 4 Oct. Skipped 1 for staff no longer active, 1 on a day this week is closed.',
+    )
+  })
+
+  it('names the leave skips between the other two', () => {
+    const plan = copyPlan({
+      from: [...week(12, 3), ...week(1, 2), ...week(1, 1, '2026-09-30'), ...week(1, 3, '2026-09-29')],
+      closedDays: TUE_CLOSED,
+      staff: [person(1), person(2, false), person(3)],
+      leave: [{ ...AWAY, toDate: '2026-10-07' }],
+    })
+    expect(copyReport(plan, LAST_WEEK, TUE_CLOSED)).toBe(
+      '12 shifts copied from 28 Sep – 4 Oct. Skipped 1 for staff no longer active, 1 landing on booked leave, 1 on a day this week is closed.',
     )
   })
 
@@ -246,6 +313,13 @@ describe('nothingToCopy', () => {
     })
     expect(nothingToCopy(LAST_WEEK, plan.skipped)).toBe(
       'Nothing on 28 Sep – 4 Oct can come across, so this week is unchanged. Skipped 1 for staff no longer active.',
+    )
+  })
+
+  it('says why when every shift would land on booked leave', () => {
+    const plan = copyPlan({ from: [shift(1, '2026-09-28', 600, 1080)], staff: [person(1)], leave: [AWAY] })
+    expect(nothingToCopy(LAST_WEEK, plan.skipped)).toBe(
+      'Nothing on 28 Sep – 4 Oct can come across, so this week is unchanged. Skipped 1 landing on booked leave.',
     )
   })
 

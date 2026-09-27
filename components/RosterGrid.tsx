@@ -7,6 +7,7 @@ import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
+import type { Leave } from '@/lib/roster/leave'
 import { naNote, naReason, type NaNote } from '@/lib/roster/notAvailable'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
@@ -37,6 +38,8 @@ type Props = {
   shifts: Shift[]
   /** Who's marked not available on which day, this week only */
   naNotes: NaNote[]
+  /** Leave booked during the week, whoever it's for */
+  leave: Leave[]
   templates: Template[]
   /** The week's trading hours in one line, for the footer */
   tradingHours: string
@@ -47,7 +50,7 @@ type Props = {
 const headCell =
   'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] uppercase'
 
-export function RosterGrid({ week, staff, shifts, naNotes, templates, tradingHours, closedDays }: Props) {
+export function RosterGrid({ week, staff, shifts, naNotes, leave, templates, tradingHours, closedDays }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const overlapping = overlappingShifts(shifts)
@@ -203,7 +206,7 @@ export function RosterGrid({ week, staff, shifts, naNotes, templates, tradingHou
       </div>
       {/* Below the grid rather than beside it, so the roster keeps the full width */}
       <div className="mt-4 grid items-start gap-4 min-[820px]:grid-cols-[minmax(0,1fr)_330px]">
-        <WarningsPanel warnings={buildWarnings({ staff, shifts, naNotes, weekStart: week })} />
+        <WarningsPanel warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week })} />
         <HoursThisWeek staff={staff} shifts={shifts} />
       </div>
       {open && (

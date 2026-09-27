@@ -43,6 +43,11 @@ export function addDays(date: IsoDate, n: number): IsoDate {
   return fromUtc(t)
 }
 
+/** How many days on from `from` `to` is: 1 for the next day, negative for an earlier one. */
+export function daysBetween(from: IsoDate, to: IsoDate): number {
+  return Math.round((toUtc(to).getTime() - toUtc(from).getTime()) / 86_400_000)
+}
+
 /** 0 = Monday … 6 = Sunday. */
 export function weekdayIndex(date: IsoDate): number {
   return (toUtc(date).getUTCDay() + 6) % 7

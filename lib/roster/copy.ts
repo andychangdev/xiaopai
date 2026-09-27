@@ -1,15 +1,17 @@
 // Copy previous week: what comes across from one week into another, and what
 // doesn't. Shifts come across, and so do the week's closed days, which is how
-// the usual Tuesday closure travels. N/A notes are that week's own.
+// the usual Tuesday closure travels. N/A notes are that week's own, and leave
+// belongs to the person, so neither travels.
 
 import { isClosed } from './closed'
 import { DAY_NAMES, addDays, weekRange, weekdayIndex, type IsoDate } from './dates'
+import { leaveOn, type Leave } from './leave'
 import { shiftsLabel, type NewShift } from './shifts'
 
 /** How many shifts were left behind, by reason. */
-export type Skipped = { inactive: number; closed: number }
+export type Skipped = { inactive: number; onLeave: number; closed: number }
 
-const NONE_SKIPPED: Skipped = { inactive: 0, closed: 0 }
+const NONE_SKIPPED: Skipped = { inactive: 0, onLeave: 0, closed: 0 }
 
 /** What to put in the week copied into: its shifts and closed days, and what was left behind. */
 export type CopyPlan = { shifts: NewShift[]; closedDays: boolean[]; skipped: Skipped }
@@ -17,14 +19,15 @@ export type CopyPlan = { shifts: NewShift[]; closedDays: boolean[]; skipped: Ski
 /**
  * The week copied into takes on the closed days of the week copied from.
  * Each shift lands on the same weekday, for the same person, unless they're
- * no longer active or that day is closed. Skipped shifts are counted rather
- * than dropped, so the report can name them.
+ * no longer active, that day is closed, or they're on leave then. Skipped
+ * shifts are counted rather than dropped, so the report can name them.
  */
 export function planCopy({
   from,
   closedDays,
   to,
   staff,
+  leave,
 }: {
   /** The shifts of the week being copied */
   from: NewShift[]
@@ -33,6 +36,8 @@ export function planCopy({
   /** The Monday of the week they go into */
   to: IsoDate
   staff: { id: number; active: boolean }[]
+  /** Leave booked during the week they go into */
+  leave: Pick<Leave, 'staffId' | 'fromDate' | 'toDate'>[]
 }): CopyPlan {
   const active = new Set(staff.filter((p) => p.active).map((p) => p.id))
   const plan: CopyPlan = { shifts: [], closedDays: [...closedDays], skipped: { ...NONE_SKIPPED } }
@@ -40,6 +45,7 @@ export function planCopy({
     const date = addDays(to, weekdayIndex(s.date))
     if (!active.has(s.staffId)) plan.skipped.inactive++
     else if (isClosed(plan.closedDays, date)) plan.skipped.closed++
+    else if (leaveOn(leave, s.staffId, date)) plan.skipped.onLeave++
     else plan.shifts.push({ staffId: s.staffId, date, start: s.start, end: s.end })
   }
   return plan
@@ -49,6 +55,7 @@ export function planCopy({
 function skipsText(skipped: Skipped): string {
   const skips = [
     skipped.inactive > 0 && `${skipped.inactive} for staff no longer active`,
+    skipped.onLeave > 0 && `${skipped.onLeave} landing on booked leave`,
     skipped.closed > 0 && `${skipped.closed} on a day this week is closed`,
   ].filter(Boolean)
   return skips.length ? `Skipped ${skips.join(', ')}.` : ''

@@ -1,0 +1,82 @@
+// Leave: a booked absence, one day or three weeks, belonging to the person and
+// to real dates rather than to any week. It's the one thing that blocks: a day
+// inside it takes no shift. Days are compared as 'YYYY-MM-DD' strings, which
+// sort the same way the calendar does.
+
+import { dayLabel, daysBetween, parseIsoDate, type IsoDate } from './dates'
+import { firstName } from './staff'
+
+export type Leave = { id: number; staffId: number; fromDate: IsoDate; toDate: IsoDate; note: string | null }
+
+/** The days a booking covers, first and last included. */
+type Span = { fromDate: IsoDate; toDate: IsoDate }
+
+const covers = (l: Span, date: IsoDate) => l.fromDate <= date && date <= l.toDate
+
+/** The booking that has this person away on this day, if one does. */
+export function leaveOn<T extends Span & { staffId: number }>(
+  leave: T[],
+  staffId: number,
+  date: IsoDate,
+): T | undefined {
+  return leave.find((l) => l.staffId === staffId && covers(l, date))
+}
+
+/** How many days it covers, both ends counted. */
+export function leaveDays(l: Span): number {
+  return daysBetween(l.fromDate, l.toDate) + 1
+}
+
+/** 'Thu 8 Oct – Fri 9 Oct', or 'Wed 7 Oct' for one day. */
+export function leaveSpan(l: Span): string {
+  return l.fromDate === l.toDate ? dayLabel(l.fromDate) : `${dayLabel(l.fromDate)} – ${dayLabel(l.toDate)}`
+}
+
+/** 'On leave — Thu 8 Oct – Fri 9 Oct · Family', for the cell's popover. */
+export function onLeaveSummary(l: Span & { note: string | null }): string {
+  return `On leave — ${leaveSpan(l)}${l.note ? ` · ${l.note}` : ''}`
+}
+
+/** 'Lisa — on leave Thu 8 Oct – Fri 9 Oct', for the cell. */
+export function onLeaveNote(name: string, l: Span): string {
+  return `${firstName(name)} — on leave ${leaveSpan(l)}`
+}
+
+/** Why a day inside someone's leave takes nothing. */
+export function onLeaveError(name: string, l: Span): string {
+  return `${firstName(name)} is on leave ${leaveSpan(l)}. Leave is booked on the Staff page.`
+}
+
+/**
+ * A booking as typed on the Staff page. With no last day it's one day long.
+ * A blank reason is none.
+ */
+export function parseLeave(input: {
+  from: string
+  to: string
+  note: string
+}): (Span & { note: string | null }) | { error: string } {
+  const fromDate = parseIsoDate(input.from.trim())
+  if (!fromDate) return { error: 'Pick the first day of the leave.' }
+  const to = input.to.trim()
+  const toDate = to ? parseIsoDate(to) : fromDate
+  if (!toDate) return { error: 'The last day of the leave is not a date.' }
+  if (toDate < fromDate) return { error: "Leave can't end before it starts." }
+  return { fromDate, toDate, note: input.note.trim() || null }
+}
+
+/**
+ * Why a new booking can't go in alongside the person's others, or null when
+ * it can. Two bookings sharing a day would leave the grid unsure which one
+ * to name.
+ */
+export function overlapError(name: string, booking: Span, theirs: Span[]): string | null {
+  const clash = theirs.find((l) => l.fromDate <= booking.toDate && booking.fromDate <= l.toDate)
+  if (!clash) return null
+  return `${firstName(name)} already has leave booked ${leaveSpan(clash)}. Cancel that first to change it.`
+}
+
+/** Over, so the Staff page greys it. */
+export function isPast(l: Span, today: IsoDate): boolean {
+  return l.toDate < today
+}

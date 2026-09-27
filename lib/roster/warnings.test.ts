@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import type { Leave } from './leave'
 import type { NaNote } from './notAvailable'
 import { EVERY_DAY } from './staff'
 import { buildWarnings, overlappingShifts } from './warnings'
@@ -21,8 +22,12 @@ const h = (hours: number) => hours * 60
 const JOHN = { id: 7, name: 'John Reyes', expectedHours: null, available: EVERY_DAY }
 const LISA = { id: 8, name: 'Lisa Chen', expectedHours: 20, available: EVERY_DAY }
 
-const warnings = (staff: (typeof JOHN | typeof LISA)[], shifts: ReturnType<typeof shift>[], naNotes: NaNote[] = []) =>
-  buildWarnings({ staff, shifts, naNotes, weekStart: WEEK })
+const warnings = (
+  staff: (typeof JOHN | typeof LISA)[],
+  shifts: ReturnType<typeof shift>[],
+  naNotes: NaNote[] = [],
+  leave: Leave[] = [],
+) => buildWarnings({ staff, shifts, naNotes, leave, weekStart: WEEK })
 
 const texts = (...args: Parameters<typeof warnings>) => warnings(...args).map((w) => w.text)
 
@@ -222,6 +227,44 @@ describe('buildWarnings', () => {
 
     it('is serious', () => {
       const [w] = warnings([JOHN], [shift(7, FRI, h(10), h(18))], [FRI_NOTE])
+      expect(w.level).toBe('high')
+    })
+  })
+
+  describe('rostered during booked leave', () => {
+    // John away Wednesday to Friday, kept on shifts when it was booked
+    const AWAY = { id: 1, staffId: 7, fromDate: WED, toDate: FRI, note: null }
+
+    it('warns for a shift kept on a leave day', () => {
+      expect(texts([JOHN], [shift(7, WED, h(10), h(18))], [], [AWAY])).toEqual([
+        'Rostered on Wed, which is booked as leave.',
+      ])
+    })
+
+    it('warns once a day, however many shifts are on it', () => {
+      const shifts = [shift(7, THU, h(10), h(14)), shift(7, THU, h(17), h(21)), shift(7, FRI, h(10), h(18))]
+      expect(texts([JOHN], shifts, [], [AWAY])).toEqual([
+        'Rostered on Thu, which is booked as leave.',
+        'Rostered on Fri, which is booked as leave.',
+      ])
+    })
+
+    it('takes the place of an N/A warning for the same day', () => {
+      const weekdaysOnly = { ...JOHN, available: [true, true, true, true, false, false, false] }
+      const shifts = [shift(7, THU, h(10), h(18)), shift(7, FRI, h(10), h(18))]
+      expect(texts([weekdaysOnly], shifts, [{ staffId: 7, date: THU }], [AWAY])).toEqual([
+        'Rostered on Thu, which is booked as leave.',
+        'Rostered on Fri, which is booked as leave.',
+      ])
+    })
+
+    it("doesn't warn for days either side, or someone else's leave", () => {
+      expect(texts([JOHN], [shift(7, TUE, h(10), h(18)), shift(7, SAT, h(10), h(18))], [], [AWAY])).toEqual([])
+      expect(texts([LISA], [shift(8, WED, h(10), h(20)), shift(8, THU, h(10), h(20))], [], [AWAY])).toEqual([])
+    })
+
+    it('is serious', () => {
+      const [w] = warnings([JOHN], [shift(7, WED, h(10), h(18))], [], [AWAY])
       expect(w.level).toBe('high')
     })
   })

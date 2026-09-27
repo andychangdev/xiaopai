@@ -3,6 +3,7 @@ import {
   addDays,
   canonicalWeek,
   dayLabel,
+  daysBetween,
   dayName,
   isInWeek,
   isMonday,
@@ -42,6 +43,24 @@ describe('isoDateOf', () => {
   it('reads the local calendar date, not the UTC one', () => {
     expect(isoDateOf(new Date(2026, 8, 27, 23, 59))).toBe('2026-09-27')
     expect(isoDateOf(new Date(2026, 9, 5, 0, 1))).toBe('2026-10-05')
+  })
+})
+
+describe('daysBetween', () => {
+  it('counts the days from one date to another, across month and year ends', () => {
+    expect(daysBetween('2026-10-08', '2026-10-09')).toBe(1)
+    expect(daysBetween('2026-09-28', '2026-10-04')).toBe(6)
+    expect(daysBetween('2026-12-28', '2027-01-04')).toBe(7)
+  })
+
+  it('is 0 for the same date, and negative going back', () => {
+    expect(daysBetween('2026-10-07', '2026-10-07')).toBe(0)
+    expect(daysBetween('2026-10-05', '2026-09-28')).toBe(-7)
+  })
+
+  it('ignores daylight saving, because dates have no time', () => {
+    // Sydney clocks go forward on 4 Oct 2026
+    expect(daysBetween('2026-10-03', '2026-10-05')).toBe(2)
   })
 })
 

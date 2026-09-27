@@ -4,6 +4,7 @@
 
 import { addDays, dayName, weekDates, type IsoDate } from './dates'
 import { againstExpected, hoursFor, percentOff } from './hours'
+import { leaveOn, type Leave } from './leave'
 import { naReason, type NaNote, type NaReason } from './notAvailable'
 import { shiftsByCell, type Shift } from './shifts'
 import { DAY_END, formatHours, type Minutes } from './time'
@@ -18,7 +19,9 @@ const MIN_REST: Minutes = 10 * 60
 
 const rank = { high: 0, low: 1 }
 
-const naWarning: Record<NaReason, (date: IsoDate) => string> = {
+// Why the person shouldn't be on this day, the strongest reason first
+const dayWarning: Record<'leave' | NaReason, (date: IsoDate) => string> = {
+  leave: (date) => `Rostered on ${dayName(date)}, which is booked as leave.`,
   marked: (date) => `Rostered on ${dayName(date)}, marked not available this week.`,
   usual: (date) => `Rostered on ${dayName(date)} — not usually available.`,
 }
@@ -44,11 +47,14 @@ export function buildWarnings({
   staff,
   shifts,
   naNotes,
+  leave,
   weekStart,
 }: {
   staff: Person[]
   shifts: Shift[]
   naNotes: NaNote[]
+  /** Leave booked during the week */
+  leave: Pick<Leave, 'staffId' | 'fromDate' | 'toDate'>[]
   weekStart: IsoDate
 }): Warning[] {
   const overlapping = overlappingShifts(shifts)
@@ -73,11 +79,12 @@ export function buildWarnings({
       }
     }
 
-    // Marked this week or outside their pattern, the warning says which, and never both
+    // On leave (only when it was booked over them), marked this week or outside
+    // their pattern: one warning a day, naming the strongest
     for (const date of weekDates(weekStart)) {
       if (!theirs.some((s) => s.date === date)) continue
-      const na = naReason(person, date, naNotes)
-      if (na) warn('high', naWarning[na](date))
+      const why = leaveOn(leave, person.id, date) ? 'leave' : naReason(person, date, naNotes)
+      if (why) warn('high', dayWarning[why](date))
     }
 
     const { expectedHours } = person
