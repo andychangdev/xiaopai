@@ -124,7 +124,7 @@ The three states, shown as a badge next to the button:
 | State | Badge | Button |
 |---|---|---|
 | Never published | Draft | Publish roster |
-| Published, untouched | Published · v1 | View sheet |
+| Published, untouched | Published · v1 | Publish update, greyed out |
 | Published, then edited | Unpublished changes | Publish update |
 
 ---

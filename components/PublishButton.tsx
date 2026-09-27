@@ -4,21 +4,16 @@ import { useRouter } from 'next/navigation'
 import { useRef } from 'react'
 import { publishWeek } from '@/app/actions'
 import type { IsoDate } from '@/lib/roster/dates'
-import {
-  NOTHING_TO_PUBLISH,
-  needsPublishing,
-  nothingToPublish,
-  publishQuestion,
-  type PublishState,
-} from '@/lib/roster/publish'
+import { NOTHING_TO_PUBLISH, nothingToPublish, publishQuestion, type PublishState } from '@/lib/roster/publish'
 import type { Minutes } from '@/lib/roster/time'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
 /**
  * Publish roster for a draft, Publish update once it's been edited since, and
- * nothing in between. Publishing asks first, naming what's going out and any
- * warnings, which never stop it, then opens Share roster to copy.
+ * Publish update greyed out in between, so the button doesn't come and go.
+ * Publishing asks first, naming what's going out and any warnings, which
+ * never stop it, then opens Share roster to copy.
  */
 export function PublishButton({
   week,
@@ -44,7 +39,18 @@ export function PublishButton({
   const publishing = useRef(false)
   const notify = (title: string, body: string) => ask({ title, body, ok: 'OK', cancel: null })
 
-  if (!needsPublishing(state)) return null
+  // Published and untouched: there's nothing to send until the week changes
+  if (state.status === 'published' && !state.changed) {
+    return (
+      <button
+        className="btn disabled:cursor-default disabled:opacity-50 disabled:hover:border-line"
+        disabled
+        title={`Nothing to publish: the week is as v${state.version} went out`}
+      >
+        Publish update
+      </button>
+    )
+  }
 
   async function publish() {
     if (publishing.current) return
