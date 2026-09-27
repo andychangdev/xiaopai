@@ -21,3 +21,8 @@ export function Card({ title, children }: { title: string; children: ReactNode }
     </section>
   )
 }
+
+// The admin tables' header and body cells
+export const th =
+  'border-b border-line px-3 py-[9px] text-left text-[10.5px] font-semibold tracking-[0.09em] text-ink-3 uppercase'
+export const td = 'border-b border-line px-3 py-[7px] align-middle text-[13px]'

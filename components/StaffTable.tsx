@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useOptimistic, useRef, useState, useTransition, type ComponentProps } from 'react'
+import { useOptimistic, useRef, useState, useTransition } from 'react'
 import { addStaff, moveStaff, removeStaff, updateStaff, type ActionResult } from '@/app/actions'
 import type { StaffListRow } from '@/lib/db/queries'
 import { whyNotRemovable } from '@/lib/roster/staff'
+import { td, th } from './Page'
+import { SaveOnBlur } from './SaveOnBlur'
 import { useAsk, type AskOptions } from './useAsk'
 
-const th = 'border-b border-line px-3 py-[9px] text-left text-[10.5px] font-semibold tracking-[0.09em] text-ink-3 uppercase'
-const td = 'border-b border-line px-3 py-[7px] align-middle text-[13px]'
 const hoursField = 'field w-[74px] font-mono tabular-nums'
 
 /** Returns the refusal, if there was one, so a box can put its old value back. */
@@ -155,52 +155,6 @@ function StaffRow({
         </button>
       </td>
     </tr>
-  )
-}
-
-/**
- * A text box that saves when you leave it or press Enter, and puts the saved
- * value back if the save is refused. Esc abandons the edit.
- */
-function SaveOnBlur({
-  value,
-  onSave,
-  ...props
-}: { value: string; onSave: (v: string) => Promise<string | undefined> } & Omit<
-  ComponentProps<'input'>,
-  'value' | 'defaultValue'
->) {
-  const ref = useRef<HTMLInputElement>(null)
-
-  // Show the stored value once it comes back (trimmed, say), unless you're
-  // still typing in the box
-  useEffect(() => {
-    if (ref.current && document.activeElement !== ref.current) ref.current.value = value
-  }, [value])
-
-  return (
-    <input
-      {...props}
-      ref={ref}
-      defaultValue={value}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur()
-        if (e.key === 'Escape') {
-          e.currentTarget.value = value
-          e.currentTarget.blur()
-        }
-      }}
-      onBlur={async (e) => {
-        const box = e.currentTarget
-        if (box.value.trim() === value) {
-          box.value = value
-          return
-        }
-        const refused = await onSave(box.value)
-        // Back in the box and typing again? Leave that alone.
-        if (refused && document.activeElement !== box) box.value = value
-      }}
-    />
   )
 }
 
