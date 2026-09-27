@@ -2,8 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { CopyText } from '@/components/CopyText'
 import { Card, PageHead } from '@/components/Page'
-import { today } from '@/lib/clock'
-import { rosterWeek } from '@/lib/db/queries'
+import { openWeek, rosterWeek } from '@/lib/db/queries'
 import { canonicalWeek, weekTitle } from '@/lib/roster/dates'
 import { rosterDays, rosterText } from '@/lib/roster/rosterText'
 
@@ -13,13 +12,13 @@ export const dynamic = 'force-dynamic'
 type Props = { params: Promise<{ week: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const week = canonicalWeek((await params).week, today())
+  const week = canonicalWeek((await params).week, openWeek())
   return { title: `Roster text, ${weekTitle(week)}` }
 }
 
 export default async function RosterTextPage({ params }: Props) {
   const { week: param } = await params
-  const week = canonicalWeek(param, today())
+  const week = canonicalWeek(param, openWeek())
   if (week !== param) redirect(`/share/${week}`)
 
   const { staff, shifts, closedDays } = rosterWeek(week)

@@ -3,8 +3,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CopyPreviousWeek } from '@/components/CopyPreviousWeek'
 import { RosterGrid } from '@/components/RosterGrid'
-import { today } from '@/lib/clock'
-import { hasStaff, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
+import { hasStaff, openWeek, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
 import { addDays, canonicalWeek, dayLabel, weekTitle } from '@/lib/roster/dates'
 import { tradingSummary } from '@/lib/roster/settings'
 
@@ -14,13 +13,13 @@ export const dynamic = 'force-dynamic'
 type Props = { params: Promise<{ week: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const week = canonicalWeek((await params).week, today())
+  const week = canonicalWeek((await params).week, openWeek())
   return { title: weekTitle(week) }
 }
 
 export default async function RosterPage({ params }: Props) {
   const { week: param } = await params
-  const week = canonicalWeek(param, today())
+  const week = canonicalWeek(param, openWeek())
   if (week !== param) redirect(`/roster/${week}`)
 
   const { staff, shifts, naNotes, leave, closedDays } = rosterWeek(week)
