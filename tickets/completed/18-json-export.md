@@ -4,8 +4,8 @@
 
 **Blocked by:** 05 Settings
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] An Export backup button on Settings downloads one JSON file named with the date, e.g. `xiaopai-2026-09-27.json`.
-- [ ] The file holds every table: settings, staff, shift templates, trading hours, rosters with their snapshots, shifts, N/A notes and leave.
-- [ ] Exporting changes nothing, and there's no import.
+- [x] An Export backup button on Settings downloads one JSON file named with the date, e.g. `xiaopai-2026-09-27.json`.
+- [x] The file holds every table: settings, staff, shift templates, trading hours, rosters with their snapshots, shifts, N/A notes and leave.
+- [x] Exporting changes nothing, and there's no import.

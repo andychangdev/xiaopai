@@ -21,7 +21,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 15 | [Publish and snapshot](completed/15-publish-and-snapshot.md) | 10, 14 |
 | 16 | [History](completed/16-history.md) | 15 |
 | 17 | [Undo](to-do/17-undo.md) | 06, 08, 12 |
-| 18 | [JSON export](to-do/18-json-export.md) | 05 |
+| 18 | [JSON export](completed/18-json-export.md) | 05 |
 | 19 | [Dock launcher](completed/19-dock-launcher.md) | 01 |
 | 20 | [Roster toolbar tidy and This week](completed/20-roster-toolbar-tidy.md) | 07, 15 |
 
@@ -40,6 +40,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
   - The server check fetches `/icon.png`, which never touches the database.
   - If the server doesn't start, an alert names the log, so the icon never seems to do nothing.
 - **Undo and JSON export** (17, 18): SPEC includes them, and ARCHITECTURE §9 says "later". Both are kept, at the end.
+- **JSON export** (18): the file comes from a route, `/settings/backup`, because a Server Action can't hand the browser a download. It's the one route that isn't a page; ARCHITECTURE §1 has none. The route reads the schema to find every table, so a table added later is exported too. Lists of plain values, like the seven weekday flags, stay on one line so the file is easier to read.
 
 ## Not ticketed
 
