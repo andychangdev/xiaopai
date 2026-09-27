@@ -11,7 +11,7 @@ import { getDb } from './client'
 import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
 /**
- * The week the Roster and Roster text tabs open when none is named: the
+ * The week the Roster tab and Share roster open when none is named: the
  * earliest that still needs work, this week or next. A week published and
  * edited since still does.
  */

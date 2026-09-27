@@ -7,7 +7,7 @@ import { today } from '@/lib/clock'
 import { hasStaff, openWeek, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
 import { addDays, canonicalWeek, mondayOf, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
 import { weekTotal } from '@/lib/roster/hours'
-import { publishBadge, weekSubtitle, type PublishState } from '@/lib/roster/publish'
+import { needsPublishing, publishBadge, weekSubtitle, type PublishState } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
 import { buildWarnings } from '@/lib/roster/warnings'
 
@@ -59,6 +59,10 @@ export default async function RosterPage({ params }: Props) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge state={state} />
+          {/* With nothing to publish, sharing is the one thing left to do */}
+          <Link href={`/share/${week}`} className={`btn ${needsPublishing(state) ? '' : 'btn-primary'}`}>
+            Share roster
+          </Link>
           <PublishButton
             key={`publish-${week}`}
             week={week}

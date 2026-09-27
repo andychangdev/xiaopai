@@ -112,14 +112,14 @@ export function publishQuestion({
   if (state.status === 'draft') {
     return {
       title: 'Publish this week?',
-      body: `${what} The roster text becomes the version staff work from.${warned}`,
+      body: `${what} This becomes the version staff work from, and Share roster opens ready to copy.${warned}`,
       ok: 'Publish',
     }
   }
   const next = state.version + 1
   return {
     title: 'Publish an update?',
-    body: `${what} This becomes version ${next}, and the roster text will end “Updated ${fullDate(today)} (v${next})”, so nobody works from the copy already in the chat.${warned}`,
+    body: `${what} This becomes version ${next}, and the text on Share roster will end “Updated ${fullDate(today)} (v${next})”, so nobody works from the copy already in the chat.${warned}`,
     ok: `Publish v${next}`,
   }
 }

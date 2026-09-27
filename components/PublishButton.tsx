@@ -1,20 +1,24 @@
 'use client'
 
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useRef } from 'react'
 import { publishWeek } from '@/app/actions'
 import type { IsoDate } from '@/lib/roster/dates'
-import { NOTHING_TO_PUBLISH, nothingToPublish, publishQuestion, type PublishState } from '@/lib/roster/publish'
+import {
+  NOTHING_TO_PUBLISH,
+  needsPublishing,
+  nothingToPublish,
+  publishQuestion,
+  type PublishState,
+} from '@/lib/roster/publish'
 import type { Minutes } from '@/lib/roster/time'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
 /**
- * Publish roster for a draft, Publish update once it's been edited since,
- * and in between View sheet, which opens the roster text. Publishing asks
- * first, naming what's going out and any warnings, which never stop it,
- * then opens the roster text to copy.
+ * Publish roster for a draft, Publish update once it's been edited since, and
+ * nothing in between. Publishing asks first, naming what's going out and any
+ * warnings, which never stop it, then opens Share roster to copy.
  */
 export function PublishButton({
   week,
@@ -36,17 +40,11 @@ export function PublishButton({
   const [dialog, ask] = useAsk()
   const router = useRouter()
   // With the dialog up, a second click can't happen, but a slow publish, or
-  // the moment before Roster text opens, could be clicked again
+  // the moment before Share roster opens, could be clicked again
   const publishing = useRef(false)
   const notify = (title: string, body: string) => ask({ title, body, ok: 'OK', cancel: null })
 
-  if (state.status === 'published' && !state.changed) {
-    return (
-      <Link href={`/share/${week}`} className="btn btn-primary">
-        View sheet
-      </Link>
-    )
-  }
+  if (!needsPublishing(state)) return null
 
   async function publish() {
     if (publishing.current) return

@@ -4,7 +4,8 @@ import { openWeek } from '@/lib/db/queries'
 // Reads the clock, so it must run on every request, never at build time
 export const dynamic = 'force-dynamic'
 
-// Roster text on its own means the same week the Roster tab would open
-export default function RosterTextIndex() {
+// Share roster on its own, from a bookmark made when it was a tab, means the
+// same week the Roster tab would open
+export default function ShareRosterIndex() {
   redirect(`/share/${openWeek()}`)
 }

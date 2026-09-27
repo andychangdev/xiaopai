@@ -14,10 +14,10 @@ type Props = { params: Promise<{ week: string }> }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const week = canonicalWeek((await params).week, openWeek)
-  return { title: `Roster text, ${weekTitle(week)}` }
+  return { title: `Share roster, ${weekTitle(week)}` }
 }
 
-export default async function RosterTextPage({ params }: Props) {
+export default async function ShareRosterPage({ params }: Props) {
   const { week: param } = await params
   const week = canonicalWeek(param, openWeek)
   if (week !== param) redirect(`/share/${week}`)
@@ -31,7 +31,7 @@ export default async function RosterTextPage({ params }: Props) {
 
   return (
     <div className="max-w-[840px]">
-      <PageHead title="Roster text">
+      <PageHead title="Share roster">
         Plain text, sized for the group chat. Only people on shift appear: no N/A, no leave, no one sitting the
         week out. Until the week is published it ends with DRAFT, so a half-built week can&apos;t be taken for
         the real one.

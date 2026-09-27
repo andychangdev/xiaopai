@@ -369,7 +369,7 @@ export async function setDayClosed(input: { week: string; date: string; closed: 
 
 /**
  * Publishes the week as it stands: freezes it as the next version, dated
- * today, for Roster text to show from then on. Warnings never stop it. A
+ * today, for Share roster to show from then on. Warnings never stop it. A
  * week already published and unchanged since stays as it is, rather than
  * going up a version for nothing.
  */
