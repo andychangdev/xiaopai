@@ -32,9 +32,12 @@ export type ActionResult = { error?: string }
 // Staff show on every page, so a change to them refreshes everything
 const staffChanged = () => revalidatePath('/', 'layout')
 
-// Any week's grid, rather than working out which: the pages aren't cached, so
-// it costs nothing
-const gridChanged = () => revalidatePath('/roster/[week]', 'page')
+// Any week's grid and its roster text, rather than working out which: the
+// pages aren't cached, so it costs nothing
+const gridChanged = () => {
+  revalidatePath('/roster/[week]', 'page')
+  revalidatePath('/share/[week]', 'page')
+}
 
 // Settings reach every grid (the footer, the popover's templates) as well as
 // the Settings page itself
