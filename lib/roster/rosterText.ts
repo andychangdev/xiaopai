@@ -24,7 +24,10 @@ export function rosterDays({
   closedDays,
 }: {
   weekStart: IsoDate
-  /** The week's rows, in order */
+  /**
+   * The week's rows, in order. Anyone with a shift must be among them, as
+   * rosterRows sees to, or their shifts are left out of the text.
+   */
   staff: { id: number; name: string }[]
   shifts: Shift[]
   closedDays: boolean[]
