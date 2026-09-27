@@ -3,6 +3,7 @@ import {
   NOTHING_TO_PUBLISH,
   changedSince,
   landingWeek,
+  needsPublishing,
   nothingToPublish,
   publishBadge,
   publishQuestion,
@@ -190,21 +191,35 @@ describe('NOTHING_TO_PUBLISH', () => {
   })
 })
 
+describe('needsPublishing', () => {
+  const published = { status: 'published' as const, version: 1, publishedAt: '2026-09-26' }
+
+  it('is true of a draft, and of a published week changed since', () => {
+    expect(needsPublishing({ status: 'draft' })).toBe(true)
+    expect(needsPublishing({ ...published, changed: true })).toBe(true)
+  })
+
+  it('is false of a published week as it went out', () => {
+    expect(needsPublishing({ ...published, changed: false })).toBe(false)
+  })
+})
+
 describe('landingWeek', () => {
   const THIS = '2026-09-28'
   const NEXT = '2026-10-05'
-  const published = (...weeks: string[]) => (week: string) => weeks.includes(week)
+  // Every week needs work but the ones named
+  const done = (...weeks: string[]) => (week: string) => !weeks.includes(week)
 
-  it("is this week while it's unpublished", () => {
-    expect(landingWeek(THIS, published())).toBe(THIS)
-    expect(landingWeek(THIS, published(NEXT))).toBe(THIS)
+  it('is this week while it needs work', () => {
+    expect(landingWeek(THIS, done())).toBe(THIS)
+    expect(landingWeek(THIS, done(NEXT))).toBe(THIS)
   })
 
-  it("moves on to next week once this week is published and next week isn't", () => {
-    expect(landingWeek(THIS, published(THIS))).toBe(NEXT)
+  it("moves on to next week once this week is done and next week isn't", () => {
+    expect(landingWeek(THIS, done(THIS))).toBe(NEXT)
   })
 
-  it("comes back to this week once both are published, to look at what's live", () => {
-    expect(landingWeek(THIS, published(THIS, NEXT))).toBe(THIS)
+  it("comes back to this week once both are done, to look at what's live", () => {
+    expect(landingWeek(THIS, done(THIS, NEXT))).toBe(THIS)
   })
 })

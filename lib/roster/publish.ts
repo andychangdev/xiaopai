@@ -124,15 +124,20 @@ export function publishQuestion({
   }
 }
 
+/** Still to go out: never published, or edited since it was. */
+export function needsPublishing(state: PublishState): boolean {
+  return state.status === 'draft' || state.changed
+}
+
 /**
  * The week the app opens on: the earliest one that still needs work. That's
- * this week until it's published, then next week until that is, then back to
- * this week to see what's live. Never further ahead, which would drop you into
- * some half-built week months away.
+ * this week until it's done, then next week until that is, then back to this
+ * week to see what's live. Never further ahead, which would drop you into some
+ * half-built week months away.
  */
-export function landingWeek(thisWeek: IsoDate, isPublished: (week: IsoDate) => boolean): IsoDate {
+export function landingWeek(thisWeek: IsoDate, needsWork: (week: IsoDate) => boolean): IsoDate {
   const nextWeek = addDays(thisWeek, 7)
-  if (!isPublished(thisWeek)) return thisWeek
-  if (!isPublished(nextWeek)) return nextWeek
+  if (needsWork(thisWeek)) return thisWeek
+  if (needsWork(nextWeek)) return nextWeek
   return thisWeek
 }

@@ -1,9 +1,9 @@
 import 'server-only'
-import { and, asc, count, eq, gte, inArray, lte } from 'drizzle-orm'
+import { and, asc, count, eq, gte, lte } from 'drizzle-orm'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
-import { landingWeek, publishState } from '@/lib/roster/publish'
+import { landingWeek, needsPublishing, publishState } from '@/lib/roster/publish'
 import { rosterDays } from '@/lib/roster/rosterText'
 import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
@@ -12,19 +12,11 @@ import { leave, naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } 
 
 /**
  * The week the Roster and Roster text tabs open when none is named: the
- * earliest that still needs work, this week or next.
+ * earliest that still needs work, this week or next. A week published and
+ * edited since still does.
  */
 export function openWeek(): IsoDate {
-  const thisWeek = mondayOf(today())
-  const published = new Set(
-    getDb()
-      .select({ weekStart: rosters.weekStart })
-      .from(rosters)
-      .where(and(eq(rosters.status, 'published'), inArray(rosters.weekStart, [thisWeek, addDays(thisWeek, 7)])))
-      .all()
-      .map((r) => r.weekStart),
-  )
-  return landingWeek(thisWeek, (week) => published.has(week))
+  return landingWeek(mondayOf(today()), (week) => needsPublishing(rosterWeek(week).publish))
 }
 
 /**
