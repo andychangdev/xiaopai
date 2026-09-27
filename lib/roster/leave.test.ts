@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  describeLeave,
   isPast,
   leaveDays,
   leaveOn,
@@ -77,6 +78,16 @@ describe('leaveSpan', () => {
 
   it('names the one day of a one-day booking', () => {
     expect(leaveSpan(MEDICAL)).toBe('Wed 7 Oct')
+  })
+})
+
+describe('describeLeave', () => {
+  it('names the days and the reason', () => {
+    expect(describeLeave(FAMILY)).toBe('Thu 8 Oct – Fri 9 Oct · Family')
+  })
+
+  it('is just the days when there is no reason', () => {
+    expect(describeLeave(booking(4, '2026-10-07', '2026-10-07'))).toBe('Wed 7 Oct')
   })
 })
 

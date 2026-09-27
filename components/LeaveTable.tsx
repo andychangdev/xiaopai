@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { bookLeave, cancelLeave } from '@/app/actions'
 import type { LeaveListRow } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
-import { isPast, leaveDays, leaveSpan, parseLeave } from '@/lib/roster/leave'
+import { describeLeave, isPast, leaveDays, leaveSpan, parseLeave } from '@/lib/roster/leave'
 import { shiftsLabel } from '@/lib/roster/shifts'
 import { td, th } from './Page'
 import { UNREACHABLE } from './ShiftPopover'
@@ -56,7 +56,7 @@ export function LeaveTable({
   async function cancel(l: LeaveListRow) {
     const yes = await ask({
       title: `Cancel ${l.name}'s leave?`,
-      body: `${leaveSpan(l)}${l.note ? ` · ${l.note}` : ''}. Those days can take shifts again.`,
+      body: `${describeLeave(l)}. Those days can take shifts again.`,
       ok: 'Cancel leave',
       cancel: 'Keep it',
       danger: true,

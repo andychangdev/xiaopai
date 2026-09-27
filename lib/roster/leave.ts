@@ -32,9 +32,14 @@ export function leaveSpan(l: Span): string {
   return l.fromDate === l.toDate ? dayLabel(l.fromDate) : `${dayLabel(l.fromDate)} – ${dayLabel(l.toDate)}`
 }
 
+/** 'Thu 8 Oct – Fri 9 Oct · Family': the days, then the reason if there is one. */
+export function describeLeave(l: Span & { note: string | null }): string {
+  return l.note ? `${leaveSpan(l)} · ${l.note}` : leaveSpan(l)
+}
+
 /** 'On leave — Thu 8 Oct – Fri 9 Oct · Family', for the cell's popover. */
 export function onLeaveSummary(l: Span & { note: string | null }): string {
-  return `On leave — ${leaveSpan(l)}${l.note ? ` · ${l.note}` : ''}`
+  return `On leave — ${describeLeave(l)}`
 }
 
 /** 'Lisa — on leave Thu 8 Oct – Fri 9 Oct', for the cell. */
