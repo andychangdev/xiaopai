@@ -2,10 +2,11 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react'
 import { addShift, removeShift, updateShift, type ActionResult } from '@/app/actions'
+import type { Template } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
 import type { Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
-import { formatRange, parseShorthand } from '@/lib/roster/time'
+import { formatRange, parseShorthand, type Minutes } from '@/lib/roster/time'
 
 /** The cell a popover is for, and the shift in it when a chip opened it. */
 export type PopoverTarget = {
@@ -22,17 +23,20 @@ const MARGIN = 8
 export const UNREACHABLE = "Couldn't save. Check the app is still running, then try again."
 
 /**
- * The small box that opens on a cell: type a range and press Enter to add a
- * shift, or, opened from a chip, change its times or remove it. Esc, Cancel
- * or a click anywhere else closes it without saving.
+ * The small box that opens on a cell: type a range and press Enter, or click
+ * a template, to add a shift. Opened from a chip, the same change its times,
+ * and Remove takes it off. Esc, Cancel or a click anywhere else closes it
+ * without saving.
  */
 export function ShiftPopover({
   week,
   target,
+  templates,
   onClose,
 }: {
   week: IsoDate
   target: PopoverTarget
+  templates: Template[]
   onClose: (target: PopoverTarget) => void
 }) {
   const { person, date, shift, anchor } = target
@@ -111,6 +115,14 @@ export function ShiftPopover({
     input.current?.select()
   }
 
+  /** Adds a shift with these times, or moves the chip's shift to them. */
+  function saveTimes(times: { start: Minutes; end: Minutes }) {
+    const { start, end } = times
+    if (!shift) return save(() => addShift({ week, staffId: person.id, date, start, end }))
+    if (start === shift.start && end === shift.end) return done()
+    return save(() => updateShift(shift.id, { start, end }))
+  }
+
   function submit(e: FormEvent) {
     e.preventDefault()
     const typed = input.current!.value
@@ -120,9 +132,7 @@ export function ShiftPopover({
     if (shift && typed === formatRange(shift.start, shift.end)) return done()
     const times = parseShorthand(typed)
     if ('error' in times) return refuse(times.error)
-    if (!shift) return save(() => addShift({ week, staffId: person.id, date, ...times }))
-    if (times.start === shift.start && times.end === shift.end) return done()
-    return save(() => updateShift(shift.id, times))
+    return saveTimes(times)
   }
 
   return (
@@ -130,7 +140,7 @@ export function ShiftPopover({
       ref={ref}
       role="dialog"
       aria-label={`${shift ? 'Change shift' : 'Add a shift'} for ${person.name} on ${dayLabel(date)}`}
-      className="fixed z-50 w-[250px] rounded-card border border-line-strong bg-surface p-[11px] shadow-popover"
+      className="fixed z-50 max-h-[calc(100vh-16px)] w-[250px] overflow-y-auto rounded-card border border-line-strong bg-surface p-[11px] shadow-popover"
       onKeyDown={(e) => {
         if (e.key === 'Escape') done()
       }}
@@ -142,6 +152,24 @@ export function ShiftPopover({
       <h3 className="mb-[7px] text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
         {firstName(person.name)} · {dayLabel(date)}
       </h3>
+      {templates.length > 0 && (
+        <div className="mb-2.5 grid grid-cols-2 gap-[5px]">
+          {templates.map((t) => {
+            const times = formatRange(t.start, t.end)
+            return (
+              <button
+                key={t.id}
+                aria-label={`${shift ? 'Change to' : 'Add'} ${t.name}, ${times}`}
+                className="min-w-0 rounded-chip border border-line bg-surface-3 px-[7px] py-1.5 text-left hover:border-accent hover:bg-surface-2"
+                onClick={() => saveTimes(t)}
+              >
+                <span className="block text-[12px] font-semibold wrap-break-word">{t.name}</span>
+                <span className="font-mono text-[10.5px] text-ink-3">{times}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
       <form className="flex gap-[5px]" onSubmit={submit}>
         <input
           ref={input}

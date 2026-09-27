@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useState } from 'react'
 import { clearWeek } from '@/app/actions'
+import type { Template } from '@/lib/db/queries'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { cellKey, shiftsByCell, type Shift } from '@/lib/roster/shifts'
 import { formatRange } from '@/lib/roster/time'
@@ -15,12 +16,13 @@ type Props = {
   week: IsoDate
   staff: Person[]
   shifts: Shift[]
+  templates: Template[]
 }
 
 const headCell =
   'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] text-ink-2 uppercase'
 
-export function RosterGrid({ week, staff, shifts }: Props) {
+export function RosterGrid({ week, staff, shifts, templates }: Props) {
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const [dialog, ask] = useAsk()
@@ -89,7 +91,15 @@ export function RosterGrid({ week, staff, shifts }: Props) {
           </button>
         </div>
       </div>
-      {open && <ShiftPopover key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')} week={week} target={open} onClose={close} />}
+      {open && (
+        <ShiftPopover
+          key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')}
+          week={week}
+          target={open}
+          templates={templates}
+          onClose={close}
+        />
+      )}
       {dialog}
     </>
   )
