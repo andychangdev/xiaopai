@@ -29,9 +29,12 @@ export function snapshotOf({
   return { weekStart, publishedAt: today, version: (previous?.version ?? 0) + 1, days }
 }
 
-/** A day as who's on and when, whatever their names are now and whatever order the rows are in. */
+/**
+ * A day as who's on and when, whatever their names are now, whatever order
+ * the rows are in, and whatever order two shifts starting together were saved in.
+ */
 function dayKey(day: Snapshot['days'][number]): string {
-  const on = day.on.map((p) => `${p.staffId}:${p.times.join(',')}`).sort()
+  const on = day.on.map((p) => `${p.staffId}:${[...p.times].sort().join(',')}`).sort()
   return `${day.closed}|${on.join(';')}`
 }
 

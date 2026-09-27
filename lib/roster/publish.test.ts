@@ -82,6 +82,13 @@ describe('changedSince', () => {
   it('is unchanged when the rows are put in another order since', () => {
     expect(changedSince(published, days([LISA, JOHN]))).toBe(false)
   })
+
+  it('is unchanged when two shifts starting together are saved again the other way round', () => {
+    const [short, long] = [shift(LISA, WED, 10, 14), shift(LISA, WED, 10, 18)]
+    const before = snapshotOf({ weekStart: WEEK, days: days(undefined, [short, long]), today: '2026-09-27', previous: null })
+    // The short one removed and added back, so it now has the later id
+    expect(changedSince(before, days(undefined, [long, { ...short, id: nextId++ }]))).toBe(false)
+  })
 })
 
 describe('publishState', () => {
