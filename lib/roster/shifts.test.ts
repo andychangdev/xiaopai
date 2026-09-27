@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cellKey, shiftsByCell } from './shifts'
+import { cellKey, copyShift, shiftsByCell } from './shifts'
 
 const shift = (id: number, staffId: number, date: string, start: number, end: number) => ({
   id,
@@ -29,5 +29,58 @@ describe('shiftsByCell', () => {
   it('breaks a start-time tie by id, so chips never swap between renders', () => {
     const cells = shiftsByCell([shift(5, 7, '2026-10-05', 600, 960), shift(4, 7, '2026-10-05', 600, 1080)])
     expect(cells.get(cellKey(7, '2026-10-05'))?.map((s) => s.id)).toEqual([4, 5])
+  })
+})
+
+describe('copyShift', () => {
+  const source = shift(1, 7, '2026-10-05', 600, 1080)
+
+  it('puts the same times in another day for the same person', () => {
+    expect(copyShift(source, { staffId: 7, date: '2026-10-07' }, [])).toEqual({
+      staffId: 7,
+      date: '2026-10-07',
+      start: 600,
+      end: 1080,
+    })
+  })
+
+  it("puts the same times in someone else's cell", () => {
+    expect(copyShift(source, { staffId: 8, date: '2026-10-05' }, [])).toEqual({
+      staffId: 8,
+      date: '2026-10-05',
+      start: 600,
+      end: 1080,
+    })
+  })
+
+  it('sits alongside the shifts already in the cell', () => {
+    expect(copyShift(source, { staffId: 8, date: '2026-10-06' }, [shift(2, 8, '2026-10-06', 1020, 1260)])).toEqual({
+      staffId: 8,
+      date: '2026-10-06',
+      start: 600,
+      end: 1080,
+    })
+  })
+
+  it('leaves the original as it was', () => {
+    copyShift(source, { staffId: 8, date: '2026-10-06' }, [])
+    expect(source).toEqual(shift(1, 7, '2026-10-05', 600, 1080))
+  })
+
+  it('has nothing to add to the cell it came from', () => {
+    expect(copyShift(source, { staffId: 7, date: '2026-10-05' }, [source])).toBeNull()
+  })
+
+  it('has nothing to add to a cell it was already pasted into', () => {
+    expect(copyShift(source, { staffId: 8, date: '2026-10-06' }, [shift(3, 8, '2026-10-06', 600, 1080)])).toBeNull()
+  })
+
+  it('can go back into the cell it came from once the original is gone', () => {
+    expect(copyShift(source, { staffId: 7, date: '2026-10-05' }, [])).toEqual({
+      staffId: 7,
+      date: '2026-10-05',
+      start: 600,
+      end: 1080,
+    })
   })
 })
