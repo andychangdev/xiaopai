@@ -6,9 +6,10 @@
 import { and, asc, eq, max } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { getDb } from '@/lib/db/client'
-import { staffHistory } from '@/lib/db/queries'
-import { naNotes, rosters, shifts, staff } from '@/lib/db/schema'
+import { staffHistory, tradingHoursWeek } from '@/lib/db/queries'
+import { naNotes, rosters, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
+import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
   HOURS_INVALID,
@@ -29,6 +30,10 @@ const staffChanged = () => revalidatePath('/', 'layout')
 // Any week's grid, rather than working out which: the pages aren't cached, so
 // it costs nothing
 const gridChanged = () => revalidatePath('/roster/[week]', 'page')
+
+// Settings reach every grid (the footer, the popover's templates) as well as
+// the Settings page itself
+const settingsChanged = () => revalidatePath('/', 'layout')
 
 function checkId(id: unknown): asserts id is number {
   if (!Number.isInteger(id)) throw new Error('Expected a numeric id')
@@ -184,5 +189,77 @@ export async function clearWeek(week: string): Promise<ActionResult> {
   checkWeek(week)
   getDb().delete(shifts).where(eq(shifts.weekStart, week)).run()
   gridChanged()
+  return {}
+}
+
+/** One weekday's opening or closing time, or both. A day with nothing stored starts from its default. */
+export async function setTradingHours(weekday: number, patch: { open?: number; close?: number }): Promise<ActionResult> {
+  if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) throw new Error('Expected a weekday, 0 for Monday')
+  const { open, close } = patch ?? {}
+
+  const day = tradingHoursWeek()[weekday]
+  if (open !== undefined) day.open = open
+  if (close !== undefined) day.close = close
+  const error = tradingHoursError(day.open, day.close)
+  if (error) return { error }
+
+  getDb()
+    .insert(tradingHours)
+    .values({ weekday, ...day })
+    .onConflictDoUpdate({ target: tradingHours.weekday, set: day })
+    .run()
+  settingsChanged()
+  return {}
+}
+
+/** A new template at the end of the list, ready to be renamed. */
+export async function addTemplate(): Promise<ActionResult & { id?: number }> {
+  const db = getDb()
+  const last = db.select({ n: max(shiftTemplates.sortOrder) }).from(shiftTemplates).get()?.n ?? -1
+  const { id } = db
+    .insert(shiftTemplates)
+    .values({ ...NEW_TEMPLATE, sortOrder: last + 1 })
+    .returning({ id: shiftTemplates.id })
+    .get()
+  settingsChanged()
+  return { id }
+}
+
+/** Shifts copy a template's times when placed, so changing it never touches them. */
+export async function updateTemplate(
+  id: number,
+  patch: { name?: string; start?: number; end?: number },
+): Promise<ActionResult> {
+  checkId(id)
+  const { name, start, end } = patch ?? {}
+  const db = getDb()
+  const template = db.select().from(shiftTemplates).where(eq(shiftTemplates.id, id)).get()
+  if (!template) return { error: 'That template has already been removed.' }
+
+  const set: Partial<typeof shiftTemplates.$inferInsert> = {}
+  if (name !== undefined) {
+    const parsed = parseName(text(name))
+    if (!parsed) return { error: NAME_REQUIRED }
+    set.name = parsed
+  }
+  if (start !== undefined) set.start = start
+  if (end !== undefined) set.end = end
+  // What it would become, so a start or end sent as null is refused, not filled in
+  const times = { ...template, ...set }
+  const error = timesError(times.start, times.end)
+  if (error) return { error }
+
+  if (Object.keys(set).length) {
+    db.update(shiftTemplates).set(set).where(eq(shiftTemplates.id, id)).run()
+    settingsChanged()
+  }
+  return {}
+}
+
+/** Shifts placed from it keep their times: they never pointed at it. */
+export async function removeTemplate(id: number): Promise<ActionResult> {
+  checkId(id)
+  getDb().delete(shiftTemplates).where(eq(shiftTemplates.id, id)).run()
+  settingsChanged()
   return {}
 }

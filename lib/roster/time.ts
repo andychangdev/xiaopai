@@ -22,6 +22,26 @@ export function formatRange(start: Minutes, end: Minutes): string {
   return `${formatTime(start)}–${formatTime(end)}`
 }
 
+/** A length of time in hours: '8h', '7.5h'. */
+export function formatHours(t: Minutes): string {
+  return `${Math.round((t / 60) * 100) / 100}h`
+}
+
+const PICK_FROM: Minutes = 7 * 60
+const PICK_TO: Minutes = DAY_END
+const PICK_STEP: Minutes = 30
+
+/**
+ * The times a drop-down offers: every half hour, 07:00–24:00. A current value
+ * that isn't one of them is added in its place, so the box can still show it.
+ */
+export function timeOptions(current: Minutes): Minutes[] {
+  const options: Minutes[] = []
+  for (let t = PICK_FROM; t <= PICK_TO; t += PICK_STEP) options.push(t)
+  if (!options.includes(current)) options.push(current)
+  return options.sort((a, b) => a - b)
+}
+
 /** Why a start and end can't be a shift, or null when they can. */
 export function timesError(start: Minutes, end: Minutes): string | null {
   const minute = (t: Minutes) => Number.isInteger(t) && t >= 0

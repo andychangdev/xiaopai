@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { END_AFTER_START, NOT_A_RANGE, PAST_MIDNIGHT, formatRange, formatTime, parseShorthand, timesError } from './time'
+import {
+  END_AFTER_START,
+  NOT_A_RANGE,
+  PAST_MIDNIGHT,
+  formatHours,
+  formatRange,
+  formatTime,
+  parseShorthand,
+  timeOptions,
+  timesError,
+} from './time'
 
 describe('formatTime', () => {
   it('shows minutes since midnight as 24-hour HH:MM', () => {
@@ -17,6 +27,39 @@ describe('formatTime', () => {
 describe('formatRange', () => {
   it('joins the two times with an en dash', () => {
     expect(formatRange(600, 1080)).toBe('10:00–18:00')
+  })
+})
+
+describe('formatHours', () => {
+  it('shows a length of time in hours', () => {
+    expect(formatHours(480)).toBe('8h')
+    expect(formatHours(660)).toBe('11h')
+    expect(formatHours(0)).toBe('0h')
+  })
+
+  it('shows part of an hour as a decimal, to two places at most', () => {
+    expect(formatHours(450)).toBe('7.5h')
+    expect(formatHours(435)).toBe('7.25h')
+    expect(formatHours(440)).toBe('7.33h')
+  })
+})
+
+describe('timeOptions', () => {
+  it('offers every half hour from 07:00 to midnight', () => {
+    const options = timeOptions(600)
+    expect(options[0]).toBe(420)
+    expect(options.at(-1)).toBe(1440)
+    expect(options).toHaveLength(35)
+    expect(options.every((t, i) => i === 0 || t - options[i - 1] === 30)).toBe(true)
+  })
+
+  it('adds the current time in its place when it is not on the list, so it can still show', () => {
+    expect(timeOptions(615).slice(6, 9)).toEqual([600, 615, 630])
+    expect(timeOptions(360)[0]).toBe(360)
+  })
+
+  it('lists a current time that is already on it only once', () => {
+    expect(timeOptions(600)).toEqual(timeOptions(630))
   })
 })
 

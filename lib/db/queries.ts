@@ -1,9 +1,10 @@
 import 'server-only'
 import { asc, count, eq } from 'drizzle-orm'
 import type { IsoDate } from '@/lib/roster/dates'
+import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
-import { leave, naNotes, shifts, staff } from './schema'
+import { leave, naNotes, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
@@ -53,8 +54,23 @@ export function staffHistory() {
   return (id: number) => ({ shifts: shiftN.get(id) ?? 0, leave: leaveN.get(id) ?? 0, naNotes: naN.get(id) ?? 0 })
 }
 
+/** Opening and closing for each weekday, Monday first. */
+export function tradingHoursWeek() {
+  return tradingWeek(getDb().select().from(tradingHours).all())
+}
+
+/** The shift templates, in the order they were added. */
+export function templateList() {
+  return getDb()
+    .select({ id: shiftTemplates.id, name: shiftTemplates.name, start: shiftTemplates.start, end: shiftTemplates.end })
+    .from(shiftTemplates)
+    .orderBy(asc(shiftTemplates.sortOrder), asc(shiftTemplates.id))
+    .all()
+}
+
 export function hasStaff() {
   return getDb().select({ n: count() }).from(staff).get()!.n > 0
 }
 
 export type StaffListRow = ReturnType<typeof staffList>[number]
+export type Template = ReturnType<typeof templateList>[number]

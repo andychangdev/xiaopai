@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 const TABS = [
   { label: 'Roster', href: '/', section: '/roster' },
   { label: 'Staff', href: '/staff', section: '/staff' },
+  { label: 'Settings', href: '/settings', section: '/settings' },
 ]
 
 export function TabBar() {
