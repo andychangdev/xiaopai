@@ -1,0 +1,140 @@
+import { describe, expect, it } from 'vitest'
+import {
+  addDays,
+  canonicalWeek,
+  dayLabel,
+  dayName,
+  isoDateOf,
+  mondayOf,
+  parseIsoDate,
+  shortDate,
+  weekDates,
+  weekTitle,
+  weekdayIndex,
+} from './dates'
+
+describe('parseIsoDate', () => {
+  it('accepts a real YYYY-MM-DD date', () => {
+    expect(parseIsoDate('2026-10-05')).toBe('2026-10-05')
+    expect(parseIsoDate('2028-02-29')).toBe('2028-02-29')
+  })
+
+  it('rejects anything malformed', () => {
+    expect(parseIsoDate('')).toBeNull()
+    expect(parseIsoDate('banana')).toBeNull()
+    expect(parseIsoDate('2026-10-5')).toBeNull()
+    expect(parseIsoDate('2026-10-05x')).toBeNull()
+    expect(parseIsoDate('05-10-2026')).toBeNull()
+  })
+
+  it('rejects dates that do not exist', () => {
+    expect(parseIsoDate('2026-02-30')).toBeNull()
+    expect(parseIsoDate('2027-02-29')).toBeNull()
+    expect(parseIsoDate('2026-13-01')).toBeNull()
+    expect(parseIsoDate('2026-00-10')).toBeNull()
+  })
+})
+
+describe('isoDateOf', () => {
+  it('reads the local calendar date, not the UTC one', () => {
+    expect(isoDateOf(new Date(2026, 8, 27, 23, 59))).toBe('2026-09-27')
+    expect(isoDateOf(new Date(2026, 9, 5, 0, 1))).toBe('2026-10-05')
+  })
+})
+
+describe('addDays', () => {
+  it('moves across month and year ends', () => {
+    expect(addDays('2026-09-28', 6)).toBe('2026-10-04')
+    expect(addDays('2026-12-28', 7)).toBe('2027-01-04')
+    expect(addDays('2026-10-05', -7)).toBe('2026-09-28')
+    expect(addDays('2028-02-28', 1)).toBe('2028-02-29')
+  })
+
+  it('ignores daylight saving, because dates have no time', () => {
+    // Sydney clocks go forward on 4 Oct 2026
+    expect(addDays('2026-10-03', 1)).toBe('2026-10-04')
+    expect(addDays('2026-10-04', 1)).toBe('2026-10-05')
+  })
+})
+
+describe('weekdayIndex', () => {
+  it('counts from Monday', () => {
+    expect(weekdayIndex('2026-10-05')).toBe(0)
+    expect(weekdayIndex('2026-10-08')).toBe(3)
+    expect(weekdayIndex('2026-10-11')).toBe(6)
+  })
+})
+
+describe('mondayOf', () => {
+  it('returns the same day for a Monday', () => {
+    expect(mondayOf('2026-10-05')).toBe('2026-10-05')
+  })
+
+  it('goes back to the Monday for any other day', () => {
+    expect(mondayOf('2026-10-08')).toBe('2026-10-05')
+    expect(mondayOf('2026-10-11')).toBe('2026-10-05')
+    expect(mondayOf('2026-09-27')).toBe('2026-09-21')
+    expect(mondayOf('2027-01-03')).toBe('2026-12-28')
+  })
+})
+
+describe('weekDates', () => {
+  it('lists the seven dates from Monday to Sunday', () => {
+    expect(weekDates('2026-09-28')).toEqual([
+      '2026-09-28',
+      '2026-09-29',
+      '2026-09-30',
+      '2026-10-01',
+      '2026-10-02',
+      '2026-10-03',
+      '2026-10-04',
+    ])
+  })
+})
+
+describe('canonicalWeek', () => {
+  const today = '2026-09-27'
+
+  it('keeps a Monday as it is', () => {
+    expect(canonicalWeek('2026-10-05', today)).toBe('2026-10-05')
+  })
+
+  it('moves any other date to its Monday', () => {
+    expect(canonicalWeek('2026-10-08', today)).toBe('2026-10-05')
+  })
+
+  it("falls back to this week's Monday for a malformed date", () => {
+    expect(canonicalWeek('nonsense', today)).toBe('2026-09-21')
+    expect(canonicalWeek('2026-02-30', today)).toBe('2026-09-21')
+  })
+})
+
+describe('day labels', () => {
+  it('names the weekday', () => {
+    expect(dayName('2026-10-05')).toBe('Mon')
+    expect(dayName('2026-10-11')).toBe('Sun')
+  })
+
+  it('gives the short date', () => {
+    expect(shortDate('2026-10-05')).toBe('5 Oct')
+    expect(shortDate('2026-12-25')).toBe('25 Dec')
+  })
+
+  it('combines both', () => {
+    expect(dayLabel('2026-10-05')).toBe('Mon 5 Oct')
+  })
+})
+
+describe('weekTitle', () => {
+  it('names the month once when the week sits inside it', () => {
+    expect(weekTitle('2026-10-05')).toBe('5 – 11 October 2026')
+  })
+
+  it('names both months when the week crosses one', () => {
+    expect(weekTitle('2026-09-28')).toBe('28 Sep – 4 Oct 2026')
+  })
+
+  it('names both years when the week crosses one', () => {
+    expect(weekTitle('2026-12-28')).toBe('28 Dec 2026 – 3 Jan 2027')
+  })
+})
