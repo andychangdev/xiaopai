@@ -31,15 +31,25 @@ export function timesError(start: Minutes, end: Minutes): string | null {
   return null
 }
 
-// H or H:MM, a hyphen, then H or H:MM
-const RANGE = /^(\d{1,2})(?::(\d{2}))?\s*-\s*(\d{1,2})(?::(\d{2}))?$/
+// H or H:MM, then -, – or 'to', then H or H:MM
+const RANGE = /^(\d{1,2})(?::(\d{2}))?\s*(?:-|–|to)\s*(\d{1,2})(?::(\d{2}))?$/i
 
-/** A typed 24-hour range, '10-18' or '10:00-18:00', taken literally. */
-export function parseTimeRange(input: string): { start: Minutes; end: Minutes } | { error: string } {
+const FIRST_START: Minutes = 7 * 60
+const HALF_DAY: Minutes = 12 * 60
+
+/**
+ * A range the way the manager types it. A start hour below 7 means the
+ * afternoon, and an end at or before the start moves on 12 hours at a time
+ * until it's after it. Otherwise it's taken literally, as 24-hour. So '10-18'
+ * and '10-6' are both 10:00–18:00, and '5-9' is 17:00–21:00.
+ */
+export function parseShorthand(input: string): { start: Minutes; end: Minutes } | { error: string } {
   const m = input.trim().match(RANGE)
   if (!m) return { error: NOT_A_RANGE }
-  const [start, end] = [time(m[1], m[2]), time(m[3], m[4])]
+  let [start, end] = [time(m[1], m[2]), time(m[3], m[4])]
   if (start === null || end === null) return { error: NOT_A_RANGE }
+  if (start < FIRST_START) start += HALF_DAY
+  while (end <= start) end += HALF_DAY
   const error = timesError(start, end)
   return error ? { error } : { start, end }
 }

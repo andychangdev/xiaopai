@@ -5,7 +5,7 @@ import { addShift, removeShift, updateShift, type ActionResult } from '@/app/act
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
 import type { Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
-import { formatTime, parseTimeRange } from '@/lib/roster/time'
+import { formatRange, parseShorthand } from '@/lib/roster/time'
 
 /** The cell a popover is for, and the shift in it when a chip opened it. */
 export type PopoverTarget = {
@@ -113,7 +113,12 @@ export function ShiftPopover({
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    const times = parseTimeRange(input.current!.value)
+    const typed = input.current!.value
+    // Left as it opened, it's the shift as it stands. Reading it again could
+    // move one that starts before 7:00, since the shorthand takes that as the
+    // afternoon.
+    if (shift && typed === formatRange(shift.start, shift.end)) return done()
+    const times = parseShorthand(typed)
     if ('error' in times) return refuse(times.error)
     if (!shift) return save(() => addShift({ week, staffId: person.id, date, ...times }))
     if (times.start === shift.start && times.end === shift.end) return done()
@@ -145,7 +150,7 @@ export function ShiftPopover({
           aria-describedby="shift-popover-note"
           autoComplete="off"
           placeholder="10-18"
-          defaultValue={shift ? `${formatTime(shift.start)}-${formatTime(shift.end)}` : ''}
+          defaultValue={shift ? formatRange(shift.start, shift.end) : ''}
           onChange={() => setError(undefined)}
           className="field min-w-0 flex-1 border-line-strong py-1.5 font-mono focus:border-accent"
         />
@@ -158,7 +163,7 @@ export function ShiftPopover({
         role={error ? 'alert' : undefined}
         className={`mt-[7px] text-[11px] ${error ? 'leading-snug text-crit' : 'font-mono text-ink-3'}`}
       >
-        {error ?? '24-hour: 10-18 or 10:30-16:00'}
+        {error ?? '10-18 or 10-6 → 10:00–18:00'}
       </p>
       <div className="mt-[9px] flex gap-1.5 border-t border-line pt-[9px] [&>.btn]:flex-1 [&>.btn]:p-[5px] [&>.btn]:text-center [&>.btn]:text-[12px]">
         {shift && (
