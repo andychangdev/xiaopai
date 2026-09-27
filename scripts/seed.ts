@@ -8,6 +8,7 @@ import { count } from 'drizzle-orm'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { openDb } from '../lib/db/open'
 import * as t from '../lib/db/schema'
+import { DEFAULT_TRADING_HOURS } from '../lib/roster/settings'
 import { EVERY_DAY } from '../lib/roster/staff'
 
 // Placeholders from the mockup. Rename them on the Staff page.
@@ -25,8 +26,6 @@ const TEMPLATES = [
   { name: 'Full day', start: 600, end: 1080 }, // 10:00–18:00
   { name: 'Shopping night', start: 600, end: 1260 }, // 10:00–21:00
 ]
-
-const THURSDAY = 3
 
 const db = openDb()
 
@@ -60,13 +59,7 @@ db.transaction((tx) => {
     .values(TEMPLATES.map((s, i) => ({ ...s, sortOrder: i })))
     .run()
   tx.insert(t.tradingHours)
-    .values(
-      [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
-        weekday,
-        open: 600,
-        close: weekday === THURSDAY ? 1260 : 1080,
-      })),
-    )
+    .values(DEFAULT_TRADING_HOURS.map((hours, weekday) => ({ weekday, ...hours })))
     .run()
 })
 
