@@ -12,7 +12,8 @@ const SHOWN_FOR = 5000
  */
 export function CopyText({ text, back }: { text: string; /** The week's grid */ back: string }) {
   const pre = useRef<HTMLPreElement>(null)
-  const [message, setMessage] = useState<string>()
+  // Counted, so the same words again still read out as a new message
+  const [message, setMessage] = useState<{ words: string; n: number }>()
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => () => clearTimeout(timer.current), [])
@@ -20,7 +21,7 @@ export function CopyText({ text, back }: { text: string; /** The week's grid */ 
   // Each copy shows its message for the full time, even the same message again
   function say(words: string) {
     clearTimeout(timer.current)
-    setMessage(words)
+    setMessage((last) => ({ words, n: (last?.n ?? 0) + 1 }))
     timer.current = setTimeout(() => setMessage(undefined), SHOWN_FOR)
   }
 
@@ -55,7 +56,7 @@ export function CopyText({ text, back }: { text: string; /** The week's grid */ 
           Back to roster
         </Link>
         <span role="status" className="text-[12.5px] font-medium text-accent">
-          {message}
+          {message && <span key={message.n}>{message.words}</span>}
         </span>
       </div>
     </>
