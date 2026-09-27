@@ -25,8 +25,8 @@ const MARGIN = 8
 
 /**
  * The small box that opens on a grid cell, headed with whose day it is. Esc,
- * a click anywhere else or tabbing out closes it, and Esc hands focus back to
- * the cell like a dialog would.
+ * a click anywhere else, a click on the cell again or tabbing out closes it,
+ * and Esc hands focus back to the cell like a dialog would.
  */
 export function Popover({
   target,
@@ -68,13 +68,16 @@ export function Popover({
     }
   }, [anchor])
 
+  // Not on the cell that opened it: clicking that again is the grid's to
+  // close, and closing here first would have the click open it again
   useEffect(() => {
     const away = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) close()
+      const t = e.target as Node
+      if (!ref.current?.contains(t) && !anchor.contains(t)) close()
     }
     document.addEventListener('pointerdown', away)
     return () => document.removeEventListener('pointerdown', away)
-  }, [close])
+  }, [close, anchor])
 
   return (
     <div
@@ -88,8 +91,10 @@ export function Popover({
         if (anchor.isConnected) anchor.focus()
       }}
       onBlur={(e) => {
-        // Tabbing out closes it. Clicks elsewhere are the pointerdown's job.
-        if (e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) close()
+        // Tabbing out closes it. Clicks elsewhere are the pointerdown's job,
+        // and a click on the cell that opened it, which focuses it, the grid's.
+        const to = e.relatedTarget
+        if (to && !e.currentTarget.contains(to) && !anchor.contains(to)) close()
       }}
     >
       <h3 className="mb-[7px] text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">

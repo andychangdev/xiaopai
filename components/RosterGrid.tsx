@@ -203,9 +203,14 @@ export function RosterGrid({
                       mode={!copying ? 'edit' : copy ? 'paste' : away ? 'away' : 'holds'}
                       copying={copying?.shift}
                       onClick={(e, shift) => {
-                        if (!copying) setOpen({ person, date, shift, na, leave: away, anchor: e.currentTarget })
-                        // A double click is one paste, not two
-                        else if (copy && e.detail < 2) paste(copy, person, copying)
+                        if (copying) {
+                          // A double click is one paste, not two
+                          if (copy && e.detail < 2) paste(copy, person, copying)
+                          return
+                        }
+                        // Clicking what opened the popover again closes it
+                        const anchor = e.currentTarget
+                        setOpen((o) => (o?.anchor === anchor ? null : { person, date, shift, na, leave: away, anchor }))
                       }}
                     />
                   )
