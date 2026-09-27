@@ -8,8 +8,7 @@ import { today } from '@/lib/clock'
 import { hasStaff, openWeek, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
 import { addDays, canonicalWeek, weekTitle } from '@/lib/roster/dates'
 import { weekTotal } from '@/lib/roster/hours'
-import { publishBadge, publishState, weekSubtitle, type PublishState } from '@/lib/roster/publish'
-import { rosterDays } from '@/lib/roster/rosterText'
+import { publishBadge, weekSubtitle, type PublishState } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
 import { buildWarnings } from '@/lib/roster/warnings'
 
@@ -28,8 +27,7 @@ export default async function RosterPage({ params }: Props) {
   const week = canonicalWeek(param, openWeek())
   if (week !== param) redirect(`/roster/${week}`)
 
-  const { staff, shifts, naNotes, leave, closedDays, roster } = rosterWeek(week)
-  const state = publishState(roster, rosterDays({ weekStart: week, staff, shifts, closedDays }))
+  const { staff, shifts, naNotes, leave, closedDays, publish: state } = rosterWeek(week)
 
   return (
     <>

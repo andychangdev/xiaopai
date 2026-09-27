@@ -5,8 +5,7 @@ import { CopyText } from '@/components/CopyText'
 import { Card, PageHead } from '@/components/Page'
 import { openWeek, rosterWeek } from '@/lib/db/queries'
 import { canonicalWeek, weekTitle } from '@/lib/roster/dates'
-import { publishState } from '@/lib/roster/publish'
-import { rosterDays, rosterText } from '@/lib/roster/rosterText'
+import { rosterText } from '@/lib/roster/rosterText'
 
 // Reads the database, which Next can't see, so render on every request
 export const dynamic = 'force-dynamic'
@@ -23,9 +22,7 @@ export default async function RosterTextPage({ params }: Props) {
   const week = canonicalWeek(param, openWeek())
   if (week !== param) redirect(`/share/${week}`)
 
-  const { staff, shifts, closedDays, roster } = rosterWeek(week)
-  const days = rosterDays({ weekStart: week, staff, shifts, closedDays })
-  const state = publishState(roster, days)
+  const { days, roster, publish: state } = rosterWeek(week)
   // Once published, the text is the snapshot's, so edits since stay out of it until they're published too
   const text =
     state.status === 'published' && roster?.snapshot

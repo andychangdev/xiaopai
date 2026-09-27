@@ -15,8 +15,7 @@ import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { leaveOn, onLeaveError, overlapError, parseLeave } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
-import { NOTHING_TO_PUBLISH, nothingToPublish, publishState, snapshotOf } from '@/lib/roster/publish'
-import { rosterDays } from '@/lib/roster/rosterText'
+import { NOTHING_TO_PUBLISH, nothingToPublish, snapshotOf } from '@/lib/roster/publish'
 import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
@@ -376,9 +375,7 @@ export async function setDayClosed(input: { week: string; date: string; closed: 
  */
 export async function publishWeek(week: string): Promise<ActionResult> {
   checkWeek(week)
-  const { staff, shifts, closedDays, roster } = rosterWeek(week)
-  const days = rosterDays({ weekStart: week, staff, shifts, closedDays })
-  const state = publishState(roster, days)
+  const { shifts, days, publish: state } = rosterWeek(week)
   if (nothingToPublish(state, shifts.length)) return { error: NOTHING_TO_PUBLISH }
   if (state.status === 'published' && !state.changed) return {}
 

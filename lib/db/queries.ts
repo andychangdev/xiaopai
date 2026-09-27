@@ -3,7 +3,8 @@ import { and, asc, count, eq, gte, inArray, lte } from 'drizzle-orm'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
-import { landingWeek } from '@/lib/roster/publish'
+import { landingWeek, publishState } from '@/lib/roster/publish'
+import { rosterDays } from '@/lib/roster/rosterText'
 import { tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
@@ -29,8 +30,9 @@ export function openWeek(): IsoDate {
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
  * inactive staff with shifts that week) with their expected hours and
- * availability, its shifts, its N/A notes, the leave booked during it, its
- * closed days, and what's been published of it.
+ * availability, its shifts, its N/A notes, the leave booked during it and its
+ * closed days. Then, for publishing: its roster, the week day by day as the
+ * roster text reads it, and where it stands against what was published.
  */
 export function rosterWeek(week: IsoDate) {
   const db = getDb()
@@ -55,20 +57,27 @@ export function rosterWeek(week: IsoDate) {
     .from(naNotes)
     .where(eq(naNotes.weekStart, week))
     .all()
+  const roster = rosterOf(week)
+  const rows = rosterRows(people, weekShifts)
+  const closedDays = roster?.closedDays ?? [...ALL_OPEN]
+  const days = rosterDays({ weekStart: week, staff: rows, shifts: weekShifts, closedDays })
   return {
-    staff: rosterRows(people, weekShifts),
+    staff: rows,
     shifts: weekShifts,
     naNotes: notes,
     leave: leaveDuring(week),
-    closedDays: closedDaysOf(week),
-    roster: publishedOf(week),
+    closedDays,
+    roster,
+    days,
+    publish: publishState(roster, days),
   }
 }
 
-/** The week's roster as far as publishing goes. A week never saved has none. */
-export function publishedOf(week: IsoDate) {
+/** The week's own row: its closed days and what's been published of it. A week never saved has none. */
+function rosterOf(week: IsoDate) {
   return getDb()
     .select({
+      closedDays: rosters.closedDays,
       status: rosters.status,
       version: rosters.version,
       publishedAt: rosters.publishedAt,
