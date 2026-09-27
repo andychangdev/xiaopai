@@ -20,8 +20,10 @@ const h = (hours: number) => hours * 60
 const JOHN = { id: 7, name: 'John Reyes', expectedHours: null, available: EVERY_DAY }
 const LISA = { id: 8, name: 'Lisa Chen', expectedHours: 20, available: EVERY_DAY }
 
-const texts = (staff: (typeof JOHN | typeof LISA)[], shifts: ReturnType<typeof shift>[]) =>
-  buildWarnings({ staff, shifts, weekStart: WEEK }).map((w) => w.text)
+const warnings = (staff: (typeof JOHN | typeof LISA)[], shifts: ReturnType<typeof shift>[]) =>
+  buildWarnings({ staff, shifts, weekStart: WEEK })
+
+const texts = (...args: Parameters<typeof warnings>) => warnings(...args).map((w) => w.text)
 
 describe('overlappingShifts', () => {
   it('picks out both of two shifts that overlap on the same day', () => {
@@ -55,11 +57,7 @@ describe('buildWarnings', () => {
   })
 
   it('names the person each time', () => {
-    const [warning] = buildWarnings({
-      staff: [JOHN],
-      shifts: [shift(7, MON, h(10), h(18)), shift(7, MON, h(12), h(16))],
-      weekStart: WEEK,
-    })
+    const [warning] = warnings([JOHN], [shift(7, MON, h(10), h(18)), shift(7, MON, h(12), h(16))])
     expect(warning.who).toBe('John Reyes')
   })
 
@@ -75,11 +73,7 @@ describe('buildWarnings', () => {
     })
 
     it('is serious', () => {
-      const [w] = buildWarnings({
-        staff: [JOHN],
-        shifts: [shift(7, MON, h(10), h(18)), shift(7, MON, h(12), h(16))],
-        weekStart: WEEK,
-      })
+      const [w] = warnings([JOHN], [shift(7, MON, h(10), h(18)), shift(7, MON, h(12), h(16))])
       expect(w.level).toBe('high')
     })
   })
@@ -99,7 +93,7 @@ describe('buildWarnings', () => {
 
     it('is serious', () => {
       const shifts = [...days.map((d) => shift(7, d, h(10), h(20))), shift(7, SAT, h(10), h(11))]
-      const [w] = buildWarnings({ staff: [JOHN], shifts, weekStart: WEEK })
+      const [w] = warnings([JOHN], shifts)
       expect(w.level).toBe('high')
     })
 
@@ -154,11 +148,7 @@ describe('buildWarnings', () => {
     })
 
     it('is only a caution', () => {
-      const [w] = buildWarnings({
-        staff: [JOHN],
-        shifts: [shift(7, THU, h(12), h(23)), shift(7, FRI, h(7), h(15))],
-        weekStart: WEEK,
-      })
+      const [w] = warnings([JOHN], [shift(7, THU, h(12), h(23)), shift(7, FRI, h(7), h(15))])
       expect(w.level).toBe('low')
     })
   })
@@ -183,7 +173,7 @@ describe('buildWarnings', () => {
     })
 
     it('is serious', () => {
-      const [w] = buildWarnings({ staff: [WEEKDAYS_ONLY], shifts: [shift(7, SUN, h(10), h(18))], weekStart: WEEK })
+      const [w] = warnings([WEEKDAYS_ONLY], [shift(7, SUN, h(10), h(18))])
       expect(w.level).toBe('high')
     })
 
@@ -227,7 +217,7 @@ describe('buildWarnings', () => {
     })
 
     it('is only a caution', () => {
-      const [w] = buildWarnings({ staff: [LISA], shifts: [shift(8, MON, h(10), h(14))], weekStart: WEEK })
+      const [w] = warnings([LISA], [shift(8, MON, h(10), h(14))])
       expect(w.level).toBe('low')
     })
   })
@@ -240,7 +230,7 @@ describe('buildWarnings', () => {
         shift(8, MON, h(10), h(18)),
         shift(8, MON, h(12), h(16)),
       ]
-      expect(buildWarnings({ staff: [JOHN, LISA], shifts, weekStart: WEEK })).toEqual([
+      expect(warnings([JOHN, LISA], shifts)).toEqual([
         { level: 'high', who: 'Lisa Chen', text: 'Two shifts overlap on the same day.' },
         { level: 'low', who: 'John Reyes', text: 'Only 8h between Thu close and Fri start.' },
         { level: 'low', who: 'Lisa Chen', text: '12h vs 20h expected — 40% under.' },
