@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { dayName, shortDate, weekDates, type IsoDate } from '@/lib/roster/dates'
 
 type Props = {
@@ -28,6 +29,11 @@ export function RosterGrid({ week, staff }: Props) {
             <Row key={person.id} name={person.name} days={days} />
           ))}
         </div>
+      </div>
+      <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
+        <Link href="/staff" className="btn">
+          Manage staff
+        </Link>
       </div>
     </div>
   )

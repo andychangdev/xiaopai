@@ -8,17 +8,16 @@ import { count } from 'drizzle-orm'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { openDb } from '../lib/db/open'
 import * as t from '../lib/db/schema'
-
-const ALL_WEEK = [true, true, true, true, true, true, true]
+import { EVERY_DAY } from '../lib/roster/staff'
 
 // Placeholders from the mockup. Rename them on the Staff page.
 const STAFF = [
   { name: 'John Reyes', expectedHours: 24, available: [true, true, true, true, true, true, false] },
-  { name: 'Priya Naidu', expectedHours: null, available: ALL_WEEK },
-  { name: 'Sarah Dunn', expectedHours: 24, available: ALL_WEEK },
+  { name: 'Priya Naidu', expectedHours: null, available: EVERY_DAY },
+  { name: 'Sarah Dunn', expectedHours: 24, available: EVERY_DAY },
   { name: 'Lisa Chen', expectedHours: 20, available: [true, true, true, true, true, true, false] },
   { name: 'Mike Tulloch', expectedHours: 18, available: [false, false, true, true, true, true, true] },
-  { name: 'Dana Okafor', expectedHours: null, available: ALL_WEEK, active: false },
+  { name: 'Dana Okafor', expectedHours: null, available: EVERY_DAY, active: false },
 ]
 
 const TEMPLATES = [

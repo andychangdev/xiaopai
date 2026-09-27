@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 // `/` redirects to the right week, so the Roster tab points there
-const TABS = [{ label: 'Roster', href: '/', section: '/roster' }]
+const TABS = [
+  { label: 'Roster', href: '/', section: '/roster' },
+  { label: 'Staff', href: '/staff', section: '/staff' },
+]
 
 export function TabBar() {
   const pathname = usePathname()
