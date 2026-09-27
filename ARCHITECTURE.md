@@ -276,8 +276,8 @@ parseShorthand('10-18')   // { start: 600, end: 1080 }
 parseShorthand('10-6')    // { start: 600, end: 1080 }  — resolves forward
 formatTime(1260)          // '21:00'
 
-hoursFor(staffId, shifts)                 // 24
-weekTotal(shifts)                         // 109
+hoursFor(staffId, shifts)                 // 1440 — minutes, so 24h
+weekTotal(shifts)                         // 6540, 109h
 
 buildWarnings({ staff, shifts, leave, naNotes, closedDays, weekStart })
 // → [{ level: 'high', who: 'John Reyes', text: 'Rostered on Sun — not usually available.' }]
