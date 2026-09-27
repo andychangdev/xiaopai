@@ -8,6 +8,8 @@ export type Snapshot = {
   days: {
     date: string
     closed: boolean
-    on: { name: string; times: string[] }[] // only people actually working
+    // Only people actually working. The name is as it was then; the id says
+    // who it was, so a later rename can't make the week look changed.
+    on: { staffId: number; name: string; times: string[] }[]
   }[]
 }

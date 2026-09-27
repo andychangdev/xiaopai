@@ -4,7 +4,7 @@
 // snapshot freezes (ARCHITECTURE §6).
 
 import { isClosed } from './closed'
-import { addDays, dayLabel, shortDate, weekDates, type IsoDate } from './dates'
+import { addDays, dayLabel, fullDate, shortDate, weekDates, type IsoDate } from './dates'
 import { cellKey, shiftsByCell, type Shift } from './shifts'
 import { firstName } from './staff'
 import { formatTime } from './time'
@@ -41,7 +41,7 @@ export function rosterDays({
           const theirs = cells.get(cellKey(person.id, date)) ?? []
           // Plain hyphens: the chat is no place for typography
           const times = theirs.map((s) => `${formatTime(s.start)}-${formatTime(s.end)}`)
-          return times.length ? [{ name: person.name, times }] : []
+          return times.length ? [{ staffId: person.id, name: person.name, times }] : []
         })
     return { date, closed, on }
   })
@@ -56,13 +56,24 @@ function rangeLine(weekStart: IsoDate): string {
     : `${shortDate(weekStart)} ${from} - ${shortDate(sunday)} ${to}`
 }
 
+/** 'Published 27 Sep 2026', then 'Updated 8 Oct 2026 (v2)', so a fresh copy can be told from the last. */
+function publishedLine(publishedAt: IsoDate, version: number): string {
+  return version > 1 ? `Updated ${fullDate(publishedAt)} (v${version})` : `Published ${fullDate(publishedAt)}`
+}
+
 /**
  * The text to paste: a heading, then each day, first names only, a split
  * shift on one line. A closed day says so, and an open one with nobody on it
- * says that, so it can't be taken for a line missed out. Until the week is
- * published it ends by saying it's a draft.
+ * says that, so it can't be taken for a line missed out. It ends by saying
+ * when it was published, or that it's a draft, so a half-built week can't be
+ * pasted by accident.
  */
-export function rosterText({ weekStart, days }: Pick<Snapshot, 'weekStart' | 'days'>): string {
+export function rosterText({
+  weekStart,
+  days,
+  publishedAt,
+  version,
+}: Pick<Snapshot, 'weekStart' | 'days'> & Partial<Pick<Snapshot, 'publishedAt' | 'version'>>): string {
   const lines = [`${BUSINESS.toUpperCase()} — STAFF ROSTER`, rangeLine(weekStart), '']
   for (const day of days) {
     if (day.closed) {
@@ -72,6 +83,6 @@ export function rosterText({ weekStart, days }: Pick<Snapshot, 'weekStart' | 'da
     const on = day.on.map((p) => `${firstName(p.name)} ${p.times.join(', ')}`)
     lines.push(dayLabel(day.date), ...(on.length ? on : ['(no one rostered)']), '')
   }
-  lines.push('DRAFT - not published yet')
+  lines.push(publishedAt && version ? publishedLine(publishedAt, version) : 'DRAFT - not published yet')
   return lines.join('\n')
 }

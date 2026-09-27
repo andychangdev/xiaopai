@@ -49,8 +49,12 @@ describe('rosterDays', () => {
     expect(days[3].on.map((p) => p.name)).toEqual(['Priya Naidu', 'Sarah Dunn', 'Mike Tulloch'])
   })
 
+  it('keeps whose each entry is, as well as their name', () => {
+    expect(days[3].on.map((p) => p.staffId)).toEqual([PRIYA.id, SARAH.id, MIKE.id])
+  })
+
   it('gives the times with plain hyphens, a split shift in time order', () => {
-    expect(days[5].on).toEqual([{ name: 'John Reyes', times: ['10:00-14:00', '17:00-21:00'] }])
+    expect(days[5].on).toEqual([{ staffId: JOHN.id, name: 'John Reyes', times: ['10:00-14:00', '17:00-21:00'] }])
   })
 
   it('marks a closed day, with no one on it', () => {
@@ -78,7 +82,7 @@ describe('rosterDays', () => {
       shifts: [shift(JOHN, MON, 17, 24)],
       closedDays: TUE_CLOSED,
     })
-    expect(mon.on).toEqual([{ name: 'John Reyes', times: ['17:00-24:00'] }])
+    expect(mon.on).toEqual([{ staffId: JOHN.id, name: 'John Reyes', times: ['17:00-24:00'] }])
   })
 })
 
@@ -119,6 +123,20 @@ describe('rosterText', () => {
         'DRAFT - not published yet',
       ].join('\n'),
     )
+  })
+
+  it('ends with the day it was published, once it has been', () => {
+    const days = rosterDays({ weekStart: WEEK, staff: STAFF, shifts: SPEC_WEEK, closedDays: TUE_CLOSED })
+    const last = (version: number) =>
+      rosterText({ weekStart: WEEK, days, publishedAt: '2026-09-27', version }).split('\n').at(-1)
+    expect(last(1)).toBe('Published 27 Sep 2026')
+  })
+
+  it('says Updated from the second version on, with the version', () => {
+    const days = rosterDays({ weekStart: WEEK, staff: STAFF, shifts: SPEC_WEEK, closedDays: TUE_CLOSED })
+    const text = rosterText({ weekStart: WEEK, days, publishedAt: '2026-10-08', version: 2 })
+    expect(text.split('\n').at(-1)).toBe('Updated 8 Oct 2026 (v2)')
+    expect(text).not.toContain('DRAFT')
   })
 
   it('names both years for a week that crosses New Year', () => {

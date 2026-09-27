@@ -86,6 +86,11 @@ export function shortDate(date: IsoDate): string {
   return `${t.getUTCDate()} ${MONTHS[t.getUTCMonth()]}`
 }
 
+/** '27 Sep 2026' */
+export function fullDate(date: IsoDate): string {
+  return `${shortDate(date)} ${date.slice(0, 4)}`
+}
+
 /** 'Mon 5 Oct' */
 export function dayLabel(date: IsoDate): string {
   return `${dayName(date)} ${shortDate(date)}`

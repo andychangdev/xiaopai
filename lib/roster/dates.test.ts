@@ -5,6 +5,7 @@ import {
   dayLabel,
   daysBetween,
   dayName,
+  fullDate,
   isInWeek,
   isMonday,
   isoDateOf,
@@ -176,6 +177,11 @@ describe('day labels', () => {
 
   it('combines both', () => {
     expect(dayLabel('2026-10-05')).toBe('Mon 5 Oct')
+  })
+
+  it('gives the date with its year', () => {
+    expect(fullDate('2026-09-27')).toBe('27 Sep 2026')
+    expect(fullDate('2027-01-04')).toBe('4 Jan 2027')
   })
 })
 
