@@ -33,6 +33,13 @@ export function againstExpected(rostered: Minutes, expectedHours: number | null)
   return null
 }
 
+/** How far a week is from the expected hours, as a whole percentage. An exact half rounds away from expected. */
+export function percentOff(rostered: Minutes, expectedHours: number): number {
+  const usual = expectedHours * 60
+  // Off by a whole number of minutes, so a half is exact and rounds the same over or under
+  return Math.round((Math.abs(rostered - usual) * 100) / usual)
+}
+
 /** What each highlight means, for a tooltip or a screen reader. */
 export const AGAINST_EXPECTED = {
   over: 'More than 20% over expected hours',

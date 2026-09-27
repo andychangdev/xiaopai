@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { againstExpected, hoursAgainst, hoursAgainstShort, hoursFor, weekTotal } from './hours'
+import { againstExpected, hoursAgainst, hoursAgainstShort, hoursFor, percentOff, weekTotal } from './hours'
 
 const shift = (staffId: number, start: number, end: number) => ({ staffId, start, end })
 
@@ -76,6 +76,19 @@ describe('againstExpected', () => {
 
   it('never highlights someone with no hours this week', () => {
     expect(againstExpected(0, 24)).toBeNull()
+  })
+})
+
+describe('percentOff', () => {
+  it('is how far over or under expected, as a whole percentage', () => {
+    expect(percentOff(h(26), 20)).toBe(30)
+    expect(percentOff(h(12), 20)).toBe(40)
+    expect(percentOff(h(20), 20)).toBe(0)
+  })
+
+  it('rounds an exact half away from expected, over or under', () => {
+    expect(percentOff(h(24.5), 20)).toBe(23)
+    expect(percentOff(h(15.5), 20)).toBe(23)
   })
 })
 

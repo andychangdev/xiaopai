@@ -3,9 +3,9 @@
 // being saved or the week being published.
 
 import { addDays, dayName, weekDates, type IsoDate } from './dates'
-import { againstExpected, hoursFor } from './hours'
-import type { Shift } from './shifts'
-import { formatHours, type Minutes } from './time'
+import { againstExpected, hoursFor, percentOff } from './hours'
+import { shiftsByCell, type Shift } from './shifts'
+import { DAY_END, formatHours, type Minutes } from './time'
 
 /** 'high' is something that shouldn't happen; 'low' is worth a second look. */
 export type Warning = { level: 'high' | 'low'; who: string; text: string }
@@ -14,7 +14,6 @@ type Person = { id: number; name: string; expectedHours: number | null }
 
 const MAX_WEEK: Minutes = 38 * 60
 const MIN_REST: Minutes = 10 * 60
-const DAY: Minutes = 24 * 60
 
 const rank = { high: 0, low: 1 }
 
@@ -26,9 +25,9 @@ const overlap = (a: Shift, b: Shift) => a.start < b.end && b.start < a.end
  */
 export function overlappingShifts(shifts: Shift[]): Set<number> {
   const flagged = new Set<number>()
-  for (const [i, a] of shifts.entries()) {
-    for (const b of shifts.slice(i + 1)) {
-      if (a.staffId === b.staffId && a.date === b.date && overlap(a, b)) flagged.add(a.id).add(b.id)
+  for (const cell of shiftsByCell(shifts).values()) {
+    for (const [i, a] of cell.entries()) {
+      for (const b of cell.slice(i + 1)) if (overlap(a, b)) flagged.add(a.id).add(b.id)
     }
   }
   return flagged
@@ -52,7 +51,7 @@ export function buildWarnings({
 
     if (theirs.some((s) => overlapping.has(s.id))) warn('high', 'Two shifts overlap on the same day.')
 
-    const hours = hoursFor(person.id, theirs)
+    const hours = hoursFor(person.id, shifts)
     if (hours > MAX_WEEK) warn('high', `${formatHours(hours)} rostered — over the ${formatHours(MAX_WEEK)} week.`)
 
     for (const date of weekDates(weekStart).slice(0, -1)) {
@@ -60,7 +59,7 @@ export function buildWarnings({
       const today = theirs.filter((s) => s.date === date)
       const tomorrow = theirs.filter((s) => s.date === next)
       if (!today.length || !tomorrow.length) continue
-      const rest = DAY - Math.max(...today.map((s) => s.end)) + Math.min(...tomorrow.map((s) => s.start))
+      const rest = DAY_END - Math.max(...today.map((s) => s.end)) + Math.min(...tomorrow.map((s) => s.start))
       if (rest < MIN_REST) {
         warn('low', `Only ${formatHours(rest)} between ${dayName(date)} close and ${dayName(next)} start.`)
       }
@@ -69,10 +68,7 @@ export function buildWarnings({
     const { expectedHours } = person
     const mark = againstExpected(hours, expectedHours)
     if (mark && expectedHours !== null) {
-      const usual = expectedHours * 60
-      // Off by a whole number of minutes, so an exact half percent rounds away from expected
-      const percent = Math.round((Math.abs(hours - usual) * 100) / usual)
-      warn('low', `${formatHours(hours)} vs ${expectedHours}h expected — ${percent}% ${mark}.`)
+      warn('low', `${formatHours(hours)} vs ${expectedHours}h expected — ${percentOff(hours, expectedHours)}% ${mark}.`)
     }
     return out
   })

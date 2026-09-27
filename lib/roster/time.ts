@@ -4,7 +4,8 @@
 
 export type Minutes = number
 
-const DAY_END: Minutes = 24 * 60
+/** Midnight at the end of the day, the latest a shift can finish. */
+export const DAY_END: Minutes = 24 * 60
 
 export const NOT_A_RANGE = 'Type the start and end, like 10-18 or 10:30-16:00.'
 export const END_AFTER_START = "The end has to be after the start. Overnight shifts aren't supported."
