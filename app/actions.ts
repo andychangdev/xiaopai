@@ -49,6 +49,12 @@ function checkDate(week: IsoDate, date: unknown): asserts date is IsoDate {
   if (typeof date !== 'string' || !isInWeek(week, date)) throw new Error('Expected a date in that week')
 }
 
+function checkWeekday(weekday: unknown): asserts weekday is number {
+  if (typeof weekday !== 'number' || !Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
+    throw new Error('Expected a weekday, 0 for Monday')
+  }
+}
+
 // Text from the client, which a direct POST can leave out or fake
 const text = (v: unknown) => (typeof v === 'string' ? v : '')
 
@@ -267,7 +273,7 @@ export async function copyWeek(input: { from: string; to: string }): Promise<Act
 
 /** One weekday's opening or closing time, or both. A day with nothing stored starts from its default. */
 export async function setTradingHours(weekday: number, patch: { open?: number; close?: number }): Promise<ActionResult> {
-  if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) throw new Error('Expected a weekday, 0 for Monday')
+  checkWeekday(weekday)
   const { open, close } = patch ?? {}
 
   const day = tradingHoursWeek()[weekday]
