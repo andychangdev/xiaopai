@@ -19,13 +19,12 @@ export function rosterRows<T extends Ordered & { active: boolean }>(
   return staff.filter((p) => p.active || rostered.has(p.id)).sort(bySetOrder)
 }
 
-/** The order after moving one person a place up (-1) or down (1). */
-export function moveInOrder(ids: number[], id: number, dir: -1 | 1): number[] {
-  const out = [...ids]
-  const i = out.indexOf(id)
-  const j = i + dir
-  if (i < 0 || j < 0 || j >= out.length) return out
-  ;[out[i], out[j]] = [out[j], out[i]]
+/** The order after moving one person to place `to`, counting from 0; past either end is that end. */
+export function moveInOrder<T extends { id: number }>(rows: T[], id: number, to: number): T[] {
+  const person = rows.find((p) => p.id === id)
+  if (!person) return [...rows]
+  const out = rows.filter((p) => p !== person)
+  out.splice(Math.min(Math.max(to, 0), out.length), 0, person)
   return out
 }
 

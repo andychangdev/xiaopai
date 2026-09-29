@@ -14,7 +14,7 @@ export default function StaffPage() {
   return (
     <div className="max-w-210">
       <PageHead title="Staff">
-        Rows appear on the roster in this order, so use ↑↓ to arrange them the way you think about your staff.
+        Rows appear on the roster in this order, so drag them by the handle at the end to arrange them the way you think about your staff.
         Everyone active appears on every week&apos;s roster. Available is the weekdays someone can normally
         work: rostering them on another day raises a warning, but is never blocked. Unticking Active takes
         someone off new weeks, but leaves them on any week where they already have shifts.

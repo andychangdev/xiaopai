@@ -39,3 +39,14 @@ export function CrossIcon() {
     </Icon>
   )
 }
+
+/** Two columns of dots, for something that drags. */
+export function GripIcon() {
+  return (
+    <Icon>
+      {[4, 8, 12].map((y) =>
+        [6, 10].map((x) => <circle key={`${x},${y}`} cx={x} cy={y} r="1.2" fill="currentColor" stroke="none" />),
+      )}
+    </Icon>
+  )
+}

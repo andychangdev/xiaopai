@@ -165,18 +165,18 @@ export async function setAvailable(id: number, weekday: number, available: boole
   return {}
 }
 
-export async function moveStaff(id: number, dir: -1 | 1): Promise<ActionResult> {
+/** Puts someone at place `to` in the order, counting from 0. */
+export async function moveStaff(id: number, to: number): Promise<ActionResult> {
   checkId(id)
-  if (dir !== -1 && dir !== 1) throw new Error('Expected a direction of -1 or 1')
+  if (!Number.isInteger(to) || to < 0) throw new Error('Expected a place of 0 or more')
 
   const db = getDb()
-  const ids = db.select({ id: staff.id }).from(staff).orderBy(asc(staff.sortOrder), asc(staff.id)).all()
-  const before = ids.map((p) => p.id)
-  const order = moveInOrder(before, id, dir)
-  if (order.every((staffId, i) => staffId === before[i])) return {}
+  const before = db.select({ id: staff.id }).from(staff).orderBy(asc(staff.sortOrder), asc(staff.id)).all()
+  const order = moveInOrder(before, id, to)
+  if (order.every((p, i) => p === before[i])) return {}
   // Rewrite the whole order, which also evens out any gaps a removal left
   db.transaction((tx) => {
-    order.forEach((staffId, i) => tx.update(staff).set({ sortOrder: i }).where(eq(staff.id, staffId)).run())
+    order.forEach((p, i) => tx.update(staff).set({ sortOrder: i }).where(eq(staff.id, p.id)).run())
   })
   staffChanged()
   return {}

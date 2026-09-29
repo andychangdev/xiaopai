@@ -26,27 +26,35 @@ describe('rosterRows', () => {
 })
 
 describe('moveInOrder', () => {
+  const rows = (...ids: number[]) => ids.map((id) => ({ id }))
+  const move = (ids: number[], id: number, to: number) => moveInOrder(rows(...ids), id, to).map((p) => p.id)
+
   it('moves a person one place up', () => {
-    expect(moveInOrder([1, 2, 3], 3, -1)).toEqual([1, 3, 2])
+    expect(move([1, 2, 3], 3, 1)).toEqual([1, 3, 2])
   })
 
   it('moves a person one place down', () => {
-    expect(moveInOrder([1, 2, 3], 1, 1)).toEqual([2, 1, 3])
+    expect(move([1, 2, 3], 1, 1)).toEqual([2, 1, 3])
   })
 
-  it('does nothing past either end', () => {
-    expect(moveInOrder([1, 2, 3], 1, -1)).toEqual([1, 2, 3])
-    expect(moveInOrder([1, 2, 3], 3, 1)).toEqual([1, 2, 3])
+  it('moves a person several places either way', () => {
+    expect(move([1, 2, 3, 4], 4, 0)).toEqual([4, 1, 2, 3])
+    expect(move([1, 2, 3, 4], 1, 3)).toEqual([2, 3, 4, 1])
+  })
+
+  it('stops at either end', () => {
+    expect(move([1, 2, 3], 1, -1)).toEqual([1, 2, 3])
+    expect(move([1, 2, 3], 3, 3)).toEqual([1, 2, 3])
   })
 
   it('does nothing for someone not in the list', () => {
-    expect(moveInOrder([1, 2, 3], 9, 1)).toEqual([1, 2, 3])
+    expect(move([1, 2, 3], 9, 0)).toEqual([1, 2, 3])
   })
 
   it('leaves the list it was given alone', () => {
-    const ids = [1, 2, 3]
-    moveInOrder(ids, 1, 1)
-    expect(ids).toEqual([1, 2, 3])
+    const list = rows(1, 2, 3)
+    moveInOrder(list, 1, 1)
+    expect(list.map((p) => p.id)).toEqual([1, 2, 3])
   })
 })
 

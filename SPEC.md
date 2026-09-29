@@ -37,9 +37,9 @@ database file, easy to back up.
 
 **Employee** — `id`, `name`, `active`, `available[7]`, `sort_order`,
 `expected_weekly_hours?`, `notes?`
-`sort_order` is set by hand with ↑↓ on the Staff page and is the row order on
-every roster. Not alphabetical: you think of your staff in a particular order,
-and rows must never move around while you're editing.
+`sort_order` is set by hand on the Staff page, dragging rows by their handle,
+and is the row order on every roster. Not alphabetical: you think of your staff
+in a particular order, and rows must never move around while you're editing.
 `available` is one flag per weekday — the recurring pattern of when someone can
 work. A dated absence is a **Leave** row instead.
 

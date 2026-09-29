@@ -5,7 +5,8 @@ import { addStaff, moveStaff, removeStaff, setAvailable, updateStaff, type Actio
 import type { StaffListRow } from '@/lib/db/queries'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { DAY_NAMES } from '@/lib/roster/dates'
-import { whyNotRemovable } from '@/lib/roster/staff'
+import { moveInOrder, whyNotRemovable } from '@/lib/roster/staff'
+import { GripIcon } from './Icons'
 import { td, th } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
@@ -19,11 +20,49 @@ type Report = (result: ActionResult) => string | undefined
 export function StaffTable({ staff }: { staff: StaffListRow[] }) {
   const [dialog, ask] = useAsk()
   const [error, setError] = useState<string>()
+  // A row moves the moment it's dropped, rather than when the server answers
+  const [rows, reorder] = useOptimistic(staff, (rows, to: { id: number; place: number }) =>
+    moveInOrder(rows, to.id, to.place),
+  )
+  const [, startTransition] = useTransition()
 
   // Every save reports back; the last refusal shows under the table
   const report: Report = (result) => {
     setError(result.error)
     return result.error
+  }
+
+  function move(id: number, place: number) {
+    startTransition(async () => {
+      reorder({ id, place })
+      report(await moveStaff(id, place).catch(() => ({ error: UNREACHABLE })))
+    })
+  }
+
+  const [dragging, setDragging] = useState<number | null>(null)
+  // The gap a drop would land in, 0 above the first row, so it can show it
+  const [gap, setGap] = useState<number | null>(null)
+  const dragFrame = useRef(0)
+  const from = rows.findIndex((p) => p.id === dragging)
+  // Either side of the row being dragged is where it already is
+  const shownGap = gap === from || gap === from + 1 ? null : gap
+
+  function startDrag(id: number) {
+    // A frame later, once the browser has its picture of the row, which would otherwise be the dimmed one
+    dragFrame.current = requestAnimationFrame(() => setDragging(id))
+  }
+
+  function endDrag() {
+    cancelAnimationFrame(dragFrame.current)
+    setDragging(null)
+    setGap(null)
+  }
+
+  function drop() {
+    endDrag()
+    if (from < 0 || shownGap === null) return
+    // Once the row's out, every gap below it is a place higher
+    move(rows[from].id, shownGap > from ? shownGap - 1 : shownGap)
   }
 
   return (
@@ -38,21 +77,42 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
               <th className={th}>Notes</th>
               <th className={th}>Active</th>
               <th className={th}>
-                <span className="sr-only">Order and remove</span>
+                <span className="sr-only">Remove and reorder</span>
               </th>
             </tr>
           </thead>
-          <tbody>
-            {staff.map((person, i) => (
+          <tbody
+            onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
+            // Only while a row's being dragged, so text still drops into the boxes
+            onDrop={
+              dragging !== null
+                ? (e) => {
+                    e.preventDefault()
+                    drop()
+                  }
+                : undefined
+            }
+          >
+            {rows.map((person, i) => (
               <StaffRow
                 key={person.id}
                 person={person}
-                first={i === 0}
-                last={i === staff.length - 1}
                 report={report}
                 ask={ask}
+                dragged={person.id === dragging}
+                drop={shownGap === i ? 'above' : shownGap === rows.length && i === rows.length - 1 ? 'below' : undefined}
+                onDragStart={() => startDrag(person.id)}
+                onDragEnd={endDrag}
+                onDragOver={dragging !== null ? (below) => setGap(below ? i + 1 : i) : undefined}
+                onMove={(by) => {
+                  const place = i + by
+                  if (place >= 0 && place < rows.length) move(person.id, place)
+                }}
               />
             ))}
+          </tbody>
+          {/* Its own body, so dragging onto it leaves the rows */}
+          <tbody>
             <AddRow onAdd={async (input) => report(await addStaff(input))} />
           </tbody>
         </table>
@@ -67,18 +127,35 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
   )
 }
 
+/**
+ * The handle at the end drags the row to another place in the order. While
+ * one's being dragged, a line shows where it would land. With the handle
+ * focused, the arrow keys move it a place at a time.
+ */
 function StaffRow({
   person,
-  first,
-  last,
   report,
   ask,
+  dragged,
+  drop,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onMove,
 }: {
   person: StaffListRow
-  first: boolean
-  last: boolean
   report: Report
   ask: (options: AskOptions) => Promise<boolean>
+  /** Being dragged, wherever the pointer is */
+  dragged: boolean
+  /** Which edge the line goes on, when a drop would land next to this row */
+  drop?: 'above' | 'below'
+  onDragStart: () => void
+  onDragEnd: () => void
+  /** While a row's being dragged, whether the pointer's over this one's lower half */
+  onDragOver?: (below: boolean) => void
+  /** A place up (-1) or down (1), from the arrow keys */
+  onMove: (by: -1 | 1) => void
 }) {
   // The box ticks the moment you click, rather than when the server answers
   const [active, setActive] = useOptimistic(person.active)
@@ -106,7 +183,18 @@ function StaffRow({
   }
 
   return (
-    <tr className={active ? '' : 'text-ink-3'}>
+    <tr
+      className={`${active ? '' : 'text-ink-3'} ${dragged ? 'opacity-40' : ''} ${drop ? dropLine[drop] : ''}`}
+      onDragOver={
+        onDragOver &&
+        ((e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          const { top, height } = e.currentTarget.getBoundingClientRect()
+          onDragOver(e.clientY > top + height / 2)
+        })
+      }
+    >
       <td className={td}>
         <SaveOnBlur className="field" aria-label="Name" value={person.name} onSave={(name) => save({ name })} />
       </td>
@@ -150,16 +238,32 @@ function StaffRow({
         </label>
       </td>
       <td className={`${td} text-right whitespace-nowrap`}>
-        <span className="mr-2.5 inline-flex gap-1.5">
-          <OrderButton label="Move up" disabled={first} onClick={async () => report(await moveStaff(person.id, -1))}>
-            ↑
-          </OrderButton>
-          <OrderButton label="Move down" disabled={last} onClick={async () => report(await moveStaff(person.id, 1))}>
-            ↓
-          </OrderButton>
-        </span>
         <button className="text-link text-crit-deep" onClick={remove}>
           Remove
+        </button>
+        <button
+          draggable
+          aria-label={`Move ${person.name} up or down, with the arrow keys`}
+          title="Drag to reorder, or use the arrow keys"
+          className="ml-3 inline-grid cursor-grab place-items-center align-middle text-ink-3 hover:text-ink"
+          onDragStart={(e) => {
+            // The whole row goes with the pointer, not just the handle
+            const row = e.currentTarget.closest('tr')!
+            const { left, top } = row.getBoundingClientRect()
+            e.dataTransfer.setDragImage(row, e.clientX - left, e.clientY - top)
+            e.dataTransfer.effectAllowed = 'move'
+            e.dataTransfer.setData('text/plain', person.name)
+            onDragStart()
+          }}
+          onDragEnd={onDragEnd}
+          onKeyDown={(e) => {
+            const by = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0
+            if (!by) return
+            e.preventDefault() // rather than scroll the page
+            onMove(by)
+          }}
+        >
+          <GripIcon />
         </button>
       </td>
     </tr>
@@ -200,28 +304,10 @@ function AvailableDays({ id, available, report }: { id: number; available: boole
   )
 }
 
-function OrderButton({
-  label,
-  disabled,
-  onClick,
-  children,
-}: {
-  label: string
-  disabled: boolean
-  onClick: () => void
-  children: string
-}) {
-  return (
-    <button
-      title={label}
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-      className="text-[14px] leading-none text-ink-3 hover:text-ink disabled:opacity-30"
-    >
-      {children}
-    </button>
-  )
+// A line along the row's edge, drawn on its cells since not every browser shadows a tr
+const dropLine = {
+  above: '[&>td]:shadow-[inset_0_2px_0_var(--color-accent)]',
+  below: '[&>td]:shadow-[inset_0_-2px_0_var(--color-accent)]',
 }
 
 /** The last row: a new person, active, at the bottom of the order. */
