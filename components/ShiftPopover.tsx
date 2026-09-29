@@ -52,8 +52,6 @@ export function ShiftPopover({
 
   useEffect(() => {
     gone.current = false // Strict Mode mounts twice
-    input.current?.focus({ preventScroll: true })
-    input.current?.select()
     return () => {
       gone.current = true
     }

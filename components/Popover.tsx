@@ -68,6 +68,13 @@ export function Popover({
     }
   }, [anchor])
 
+  // Focus comes inside, so Esc and Tab work here, unless what's in it has
+  // already taken it (its effects run first)
+  useEffect(() => {
+    const box = ref.current!
+    if (!box.contains(document.activeElement)) box.focus({ preventScroll: true })
+  }, [])
+
   // Not on the cell that opened it: clicking that again is the grid's to
   // close, and closing here first would have the click open it again
   useEffect(() => {
@@ -84,7 +91,8 @@ export function Popover({
       ref={ref}
       role="dialog"
       aria-label={label}
-      className="fixed z-50 max-h-[calc(100vh-16px)] w-62.5 overflow-y-auto rounded-card border border-line-strong bg-surface p-2.75 shadow-popover"
+      tabIndex={-1}
+      className="fixed z-50 outline-none max-h-[calc(100vh-16px)] w-62.5 overflow-y-auto rounded-card border border-line-strong bg-surface p-2.75 shadow-popover"
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
         close()
