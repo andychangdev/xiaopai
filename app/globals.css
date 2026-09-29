@@ -1,8 +1,8 @@
 @import 'tailwindcss';
 
 /* The mockup's tokens (mockup/roster-editor.html), as Tailwind theme
-   variables: bg-surface, border-line, text-accent and so on. Dark mode
-   redefines the same variables below, so components never need `dark:`. */
+   variables: bg-surface, border-line, text-accent and so on. Always
+   light, whatever the system setting. */
 @theme {
   --color-canvas: #f1f3f1;
   --color-surface: #fff;
@@ -37,34 +37,9 @@
   --radius-card: 10px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-canvas: #121614;
-    --color-surface: #1a1f1c;
-    --color-surface-2: #232925;
-    --color-surface-3: #1f2522;
-    --color-line: #333b36;
-    --color-line-strong: #47514a;
-    --color-ink: #e7ece9;
-    --color-ink-2: #9ba69f;
-    --color-ink-3: #6e7a73;
-    --color-accent: #4bbfa6;
-    --color-accent-2: #63d4bb;
-    --color-accent-ink: #0b1512;
-    --color-warn: #efb45f;
-    --color-warn-bg: #33270f;
-    --color-warn-line: #5c4720;
-    --color-crit: #f18d80;
-    --color-crit-bg: #361b17;
-    --color-crit-line: #5e2f28;
-    --color-off: #69736c;
-    --color-unavail: #1e2320;
-  }
-}
-
 @layer base {
   :root {
-    color-scheme: light dark;
+    color-scheme: light;
   }
 
   body {
