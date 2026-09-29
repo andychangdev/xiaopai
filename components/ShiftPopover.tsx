@@ -117,7 +117,7 @@ export function ShiftPopover({
               <button
                 key={t.id}
                 aria-label={`${shift ? 'Change to' : 'Add'} ${t.name}, ${times}`}
-                className="min-w-0 rounded-chip border border-line bg-surface-3 px-1.75 py-1.5 text-left hover:border-accent hover:bg-surface-2"
+                className="min-w-0 rounded-chip border border-line bg-surface-3 px-1.75 py-1.5 text-left hover:border-accent hover:bg-surface-1"
                 onClick={() => saveTimes(t)}
               >
                 <span className="block text-[12px] font-semibold wrap-break-word">{t.name}</span>
