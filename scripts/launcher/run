@@ -1,13 +1,17 @@
 #!/bin/bash
 # What the Dock icon does: start the production server if it isn't up, wait
 # for it, then open the app in a Chrome window with no address bar or tabs.
-# It never builds: after changing code, run `npm run build` (see README).
+# It never builds: after changing code, run `npm run build` (see README), and
+# the next click swaps the running server for one on the new build.
 # Roster.app runs this file where it is, so it finds the project from here.
 
 APP_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 PORT=3210
 URL="http://localhost:$PORT"
 LOG=/tmp/xiaopai.log
+BUILD="$APP_DIR/.next/BUILD_ID"
+# The build the running server loaded, noted when it starts
+SERVED=/tmp/xiaopai.build
 
 # An alert rather than nothing, so the icon never seems to do nothing
 fail() {
@@ -17,6 +21,17 @@ fail() {
 
 # Anything answering at all. The icon, not a page, as pages read the database
 up() { curl -s -o /dev/null --max-time 1 "$URL/icon.png"; }
+listening() { lsof -ti "tcp:$PORT" -sTCP:LISTEN; }
+
+# Built again since it started, so it's serving old code: stop it, and it
+# starts again below. One started some other way has no note, so goes too.
+if up && [ -f "$BUILD" ] && ! cmp -s "$BUILD" "$SERVED"; then
+  kill $(listening) 2>/dev/null
+  for _ in $(seq 1 20); do # wait up to 5s for the port to free
+    listening >/dev/null || break
+    sleep 0.25
+  done
+fi
 
 if ! up; then
   cd "$APP_DIR" || fail "Roster didn’t start" "It couldn’t open $APP_DIR."
@@ -26,6 +41,7 @@ if ! up; then
   # The real thing, so the project's own xiaopai.db whatever a terminal has
   # exported, and only this machine can reach it: there's no login
   unset XIAOPAI_DB
+  cp "$BUILD" "$SERVED" 2>/dev/null
   PORT=$PORT nohup npm start -- -H 127.0.0.1 >"$LOG" 2>&1 &
   server=$!
   answered=

@@ -55,11 +55,8 @@ the project folder moves, which may ask again.
 **After changing code**, run `npm run db:migrate` if there's a new migration,
 then `npm run build`. The icon never builds, as that would put a 30-second
 wait on every open. A server that's already running keeps serving the old
-build, so stop it too, and the next click starts the new one:
-
-```bash
-kill $(lsof -ti tcp:3210 -sTCP:LISTEN)
-```
+build until the next click, which stops it and starts one on the new build.
+A window already open shows the new build once you reload it.
 
 Closing the window leaves the server running until you log out. The icon
 always uses the project's own `xiaopai.db`, even if `XIAOPAI_DB` is exported.

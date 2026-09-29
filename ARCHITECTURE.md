@@ -516,7 +516,9 @@ Next time you click the Dock icon it simply starts again.
 
 `npm start` serves the last build, so a code change needs `npm run build`
 before it shows up. The launcher deliberately doesn't build — that would put a
-30-second wait on every open.
+30-second wait on every open. It does notice a new build, though: it notes the
+`.next/BUILD_ID` a server started on, and a click after that's changed stops
+the old server and starts a new one.
 
 ### The database file
 
