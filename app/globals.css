@@ -1,18 +1,17 @@
 @import 'tailwindcss';
 
-/* The mockup's tokens (mockup/roster-editor.html), as Tailwind theme
-   variables: bg-surface, border-line, text-accent and so on. Always
-   light, whatever the system setting. */
+/* Warm paper, as Tailwind theme variables: bg-surface, border-line,
+   text-accent and so on. Always light, whatever the system setting. */
 @theme {
-  --color-canvas: #f1f3f1;
-  --color-surface: #fff;
-  --color-surface-2: #e7eae7;
-  --color-surface-3: #f7f8f7;
-  --color-line: #d3d8d3;
-  --color-line-strong: #b9c0b9;
-  --color-ink: #1a201d;
-  --color-ink-2: #5b665f;
-  --color-ink-3: #8b958e;
+  --color-canvas: #f4efe6;
+  --color-surface: #fcfaf5;
+  --color-surface-2: #ece5d8;
+  --color-surface-3: #f8f5ee;
+  --color-line: #e0d8c9;
+  --color-line-strong: #c9bfad;
+  --color-ink: #1e2420;
+  --color-ink-2: #6b665d;
+  --color-ink-3: #958e82;
   --color-accent: #146356;
   --color-accent-2: #1d8271;
   --color-accent-ink: #fff;
@@ -22,9 +21,9 @@
   --color-crit: #9d2b21;
   --color-crit-bg: #fbe8e5;
   --color-crit-line: #eab3ac;
-  --color-off: #9aa39c;
-  --color-unavail: #e9ece9;
-  --color-scrim: rgb(12 18 15 / 0.42);
+  --color-off: #a39c90;
+  --color-unavail: #efe8dc;
+  --color-scrim: rgb(30 26 20 / 0.42);
 
   --shadow-dialog: 0 18px 48px rgb(0 0 0 / 0.28);
   --shadow-popover: 0 12px 32px rgb(0 0 0 / 0.18);

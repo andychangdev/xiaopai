@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-AU" className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
-        <header className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-surface-2 px-4 py-2 text-xs text-ink-2">
+        <header className="flex flex-wrap items-center justify-between gap-2.5 border-b border-line bg-surface px-4 py-2 text-xs text-ink-2">
           <strong className="font-semibold text-ink">{businessName()}</strong>
           <TabBar />
         </header>
