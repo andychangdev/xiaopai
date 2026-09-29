@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 
-/* Warm paper, as Tailwind theme variables: bg-surface, border-line,
-   text-accent and so on. Always light, whatever the system setting. */
+/* Warm paper and jade, as Tailwind theme variables: bg-surface,
+   border-line, text-accent and so on. Primary is the deep jade of the
+   main buttons. Always light, whatever the system setting. */
 @theme {
   --color-canvas: #f4efe6;
   --color-surface: #fcfaf5;
@@ -15,6 +16,9 @@
   --color-accent: #146356;
   --color-accent-2: #1d8271;
   --color-accent-ink: #fff;
+  --color-primary: #007a4d;
+  --color-primary-2: #006842;
+  --color-primary-ink: #fff;
   --color-warn: #8a5300;
   --color-warn-bg: #fcf1dd;
   --color-warn-line: #e8cb96;
@@ -66,7 +70,7 @@
     @apply inline-block rounded-control border border-line bg-surface px-3.25 py-1.75 text-[13px] font-medium hover:border-line-strong;
   }
   .btn-primary {
-    @apply border-accent bg-accent font-semibold text-accent-ink hover:border-accent-2 hover:bg-accent-2;
+    @apply border-primary bg-primary font-semibold text-primary-ink hover:border-primary-2 hover:bg-primary-2;
   }
   .btn-danger {
     @apply text-crit hover:border-crit-line hover:bg-crit-bg;
