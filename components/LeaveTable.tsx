@@ -95,7 +95,7 @@ export function LeaveTable({
         </table>
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit">
+        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
           {error}
         </p>
       )}
@@ -118,7 +118,7 @@ function LeaveRow({ leave: l, past, onCancel }: { leave: LeaveListRow; past: boo
       <td className={`${td} font-mono text-[12.5px] tabular-nums`}>{leaveDays(l)}</td>
       <td className={td}>{l.note ?? none}</td>
       <td className={`${td} text-right`}>
-        <button className="text-link text-crit" aria-label={`Cancel ${l.name}'s leave, ${leaveSpan(l)}`} onClick={onCancel}>
+        <button className="text-link text-crit-deep" aria-label={`Cancel ${l.name}'s leave, ${leaveSpan(l)}`} onClick={onCancel}>
           Cancel
         </button>
       </td>

@@ -58,7 +58,7 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
         </table>
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit">
+        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
           {error}
         </p>
       )}
@@ -158,7 +158,7 @@ function StaffRow({
             ↓
           </OrderButton>
         </span>
-        <button className="text-link text-crit" onClick={remove}>
+        <button className="text-link text-crit-deep" onClick={remove}>
           Remove
         </button>
       </td>

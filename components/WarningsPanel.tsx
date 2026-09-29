@@ -12,7 +12,7 @@ export function WarningsPanel({ warnings }: { warnings: Warning[] }) {
         <>
           Warnings
           {warnings.length > 0 && (
-            <span className="rounded-full border border-crit-line bg-crit-bg px-1.5 font-mono text-[10.5px] tracking-normal text-crit">
+            <span className="rounded-full border border-crit-line bg-crit-bg px-1.5 font-mono text-[10.5px] tracking-normal text-crit-deep">
               {warnings.length}
             </span>
           )}

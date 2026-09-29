@@ -148,7 +148,7 @@ export function ShiftPopover({
       <p
         id="shift-popover-note"
         role={error ? 'alert' : undefined}
-        className={`mt-1.75 text-[11px] ${error ? 'leading-snug text-crit' : 'font-mono text-ink-3'}`}
+        className={`mt-1.75 text-[11px] ${error ? 'leading-snug text-crit-deep' : 'font-mono text-ink-3'}`}
       >
         {error ?? '10-18 or 10-6 → 10:00–18:00'}
       </p>

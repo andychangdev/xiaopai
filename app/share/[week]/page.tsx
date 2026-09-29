@@ -40,11 +40,11 @@ export default async function ShareRosterPage({ params }: Props) {
       {state.status === 'published' && state.changed && (
         <p
           role="note"
-          className="mb-4 rounded-card border border-warn-line bg-warn-bg px-3.5 py-2.5 text-[12.5px] text-warn"
+          className="mb-4 rounded-card border border-warn-line bg-warn-bg px-3.5 py-2.5 text-[12.5px] text-warn-deep"
         >
           This is v{state.version} as published. The week has changed since, and the changes aren&apos;t in this
           text until you{' '}
-          <Link href={`/roster/${week}`} className="text-link text-warn">
+          <Link href={`/roster/${week}`} className="text-link text-warn-deep">
             publish the update
           </Link>
           .

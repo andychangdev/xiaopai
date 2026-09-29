@@ -360,7 +360,7 @@ function ClosedCell() {
   )
 }
 
-const hoursColour = { over: 'font-semibold text-crit', under: 'font-semibold text-warn' }
+const hoursColour = { over: 'font-semibold text-crit-deep', under: 'font-semibold text-warn-deep' }
 
 /** A person's row: their name and hours this week, then a cell for each day. */
 function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; children: React.ReactNode }) {
@@ -530,7 +530,7 @@ function Cell({
               <button
                 aria-label={`Remove ${person.name}'s ${times} on ${dayLabel(date)}`}
                 title="Remove"
-                className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit focus-visible:opacity-100"
+                className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit-deep focus-visible:opacity-100"
                 onClick={(e) => onRemove(s, e.currentTarget)}
               >
                 ×
@@ -603,7 +603,7 @@ function CopyBar({ copying, error, onDone }: { copying: Copying; error?: string;
           Copying {firstName(person.name)}&apos;s {dayName(shift.date)}{' '}
           <span className="font-mono font-medium tracking-[-0.02em]">{formatRange(shift.start, shift.end)}</span>
         </div>
-        <div className={`mt-0.5 max-w-[52ch] text-[11.5px] leading-snug ${error ? 'text-crit' : 'text-ink-3'}`}>
+        <div className={`mt-0.5 max-w-[52ch] text-[11.5px] leading-snug ${error ? 'text-crit-deep' : 'text-ink-3'}`}>
           {error ?? "Click cells to paste it in. Esc when you're done."}
         </div>
       </div>

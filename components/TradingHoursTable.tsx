@@ -51,7 +51,7 @@ export function TradingHoursTable({ week }: { week: TradingDay[] }) {
         </table>
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit">
+        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
           {error}
         </p>
       )}

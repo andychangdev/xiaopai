@@ -2,9 +2,9 @@
 
 /* Warm paper and jade, as Tailwind theme variables: bg-surface,
    border-line, text-accent and so on. Primary is the deep jade of the
-   main buttons. Accent is bright, for fills and lines; accent-deep is
-   the same hue dark enough to read as text. Always light, whatever the
-   system setting. */
+   main buttons. Accent, warn and crit are bright, for fills and lines;
+   each -deep is the same hue dark enough to read as text. Always light,
+   whatever the system setting. */
 @theme {
   --color-canvas: #f4efe6;
   --color-surface: #fcfaf5;
@@ -21,12 +21,14 @@
   --color-primary: #007a4d;
   --color-primary-2: #006842;
   --color-primary-ink: #fff;
-  --color-warn: #8a5300;
-  --color-warn-bg: #fcf1dd;
-  --color-warn-line: #e8cb96;
-  --color-crit: #9d2b21;
-  --color-crit-bg: #fbe8e5;
-  --color-crit-line: #eab3ac;
+  --color-warn: #e88a00;
+  --color-warn-deep: #9c5700;
+  --color-warn-bg: #fdefcf;
+  --color-warn-line: #f5c46a;
+  --color-crit: #e5484d;
+  --color-crit-deep: #c0262d;
+  --color-crit-bg: #fde4e1;
+  --color-crit-line: #f4aaa2;
   --color-off: #a39c90;
   --color-unavail: #efe8dc;
   --color-scrim: rgb(30 26 20 / 0.42);
@@ -75,7 +77,7 @@
     @apply border-primary bg-primary font-semibold text-primary-ink hover:border-primary-2 hover:bg-primary-2;
   }
   .btn-danger {
-    @apply text-crit hover:border-crit-line hover:bg-crit-bg;
+    @apply text-crit-deep hover:border-crit-line hover:bg-crit-bg;
   }
   .field {
     @apply w-full rounded-chip border border-line bg-surface-3 px-2 py-1.25 text-[13px] text-inherit;
