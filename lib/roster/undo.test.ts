@@ -122,6 +122,18 @@ describe('describeAction', () => {
     )
   })
 
+  it('names where a moved shift went: another day, someone else, or both', () => {
+    expect(describeAction({ kind: 'move', name, shift: times, to: { date: TUE } })).toBe(
+      "moving John Reyes's Mon 10:00–18:00 to Tue",
+    )
+    expect(describeAction({ kind: 'move', name, shift: times, to: { date: MON, name: 'Lisa Chen' } })).toBe(
+      "moving John Reyes's Mon 10:00–18:00 to Lisa Chen",
+    )
+    expect(describeAction({ kind: 'move', name, shift: times, to: { date: TUE, name: 'Lisa Chen' } })).toBe(
+      "moving John Reyes's Mon 10:00–18:00 to Lisa Chen on Tue",
+    )
+  })
+
   it('names the week copied from', () => {
     expect(describeAction({ kind: 'copy', from: '2026-09-28' })).toBe('copying 28 Sep – 4 Oct into this week')
   })

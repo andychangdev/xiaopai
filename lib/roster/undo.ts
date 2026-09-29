@@ -74,6 +74,8 @@ type Times = { start: Minutes; end: Minutes }
 export type GridAction =
   | { kind: 'add' | 'remove'; name: string; shift: Times & { date: IsoDate } }
   | { kind: 'change'; name: string; shift: Times & { date: IsoDate }; to: Times }
+  /** `to.name` only when it moves to someone else */
+  | { kind: 'move'; name: string; shift: Times & { date: IsoDate }; to: { date: IsoDate; name?: string } }
   | { kind: 'clear' }
   | { kind: 'copy'; from: IsoDate }
   | { kind: 'close' | 'reopen'; date: IsoDate }
@@ -93,6 +95,12 @@ export function describeAction(action: GridAction): string {
       const { name, shift, to } = action
       const [from, day] = [formatRange(shift.start, shift.end), dayName(shift.date)]
       return `changing ${name}'s ${day} ${from} to ${formatRange(to.start, to.end)}`
+    }
+    case 'move': {
+      const { name, shift, to } = action
+      const [times, day, toDay] = [formatRange(shift.start, shift.end), dayName(shift.date), dayName(to.date)]
+      const where = !to.name ? toDay : to.date === shift.date ? to.name : `${to.name} on ${toDay}`
+      return `moving ${name}'s ${day} ${times} to ${where}`
     }
     case 'clear':
       return 'clearing the week'

@@ -124,7 +124,14 @@ export function closedDaysOf(week: IsoDate): boolean[] {
 /** A shift, the week it's filed under and whose it is, while it's still there. */
 export function shiftById(id: number) {
   return getDb()
-    .select({ week: shifts.weekStart, date: shifts.date, start: shifts.start, end: shifts.end, name: staff.name })
+    .select({
+      week: shifts.weekStart,
+      staffId: shifts.staffId,
+      date: shifts.date,
+      start: shifts.start,
+      end: shifts.end,
+      name: staff.name,
+    })
     .from(shifts)
     .innerJoin(staff, eq(staff.id, shifts.staffId))
     .where(eq(shifts.id, id))

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { addShift, clearWeek, removeShift, setDayClosed } from '@/app/actions'
+import { addShift, clearWeek, moveShift, removeShift, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
@@ -126,6 +126,30 @@ export function RosterGrid({
     )
   }
 
+  const [dragging, setDragging] = useState<Shift | null>(null)
+  // The cell a drop would land in, so it can show it
+  const [over, setOver] = useState<string | null>(null)
+  const dragFrame = useRef(0)
+
+  function startDrag(shift: Shift) {
+    setOpen(null) // it's about the cell the shift is leaving
+    // A frame later, once the browser has its picture of the chip, which would otherwise be the dimmed one
+    dragFrame.current = requestAnimationFrame(() => setDragging(shift))
+  }
+
+  function endDrag() {
+    cancelAnimationFrame(dragFrame.current)
+    setDragging(null)
+    setOver(null)
+  }
+
+  // One action rather than a remove and an add, so Undo takes it back in one go
+  async function move(shift: Shift, to: { staffId: number; date: IsoDate }) {
+    endDrag()
+    const error = await actionError(() => moveShift(shift.id, to))
+    if (error) await ask({ title: "Couldn't move the shift", body: error, ok: 'OK', cancel: null })
+  }
+
   async function remove(shift: Shift, button: HTMLElement) {
     // The × goes with the chip, so focus moves to the cell's add button, as after the popover's Remove
     const addButton = button.closest('[data-cell]')?.querySelector<HTMLElement>('[data-add]')
@@ -199,10 +223,13 @@ export function RosterGrid({
               <Row key={person.id} person={person} hours={hoursFor(person.id, shifts)}>
                 {days.map((date, i) => {
                   if (closedDays[i]) return <ClosedCell key={date} />
-                  const inCell = cells.get(cellKey(person.id, date)) ?? []
+                  const key = cellKey(person.id, date)
+                  const inCell = cells.get(key) ?? []
                   const away = leaveOn(leave, person.id, date)
                   // Leave takes no shift, so there's nothing to paste into it, and no N/A to show
                   const copy = copying && !away && copyShift(copying.shift, { staffId: person.id, date }, inCell)
+                  // A drag lands where a paste would: not on leave, nor where those times already are, its own cell included
+                  const canDrop = dragging && !away && copyShift(dragging, { staffId: person.id, date }, inCell)
                   const na = away ? null : naReason(person, date, naNotes)
                   return (
                     <Cell
@@ -226,6 +253,11 @@ export function RosterGrid({
                         setOpen((o) => (o?.anchor === anchor ? null : { person, date, shift, na, leave: away, anchor }))
                       }}
                       onRemove={remove}
+                      dragged={dragging?.id}
+                      drop={canDrop ? (over === key ? 'over' : 'open') : undefined}
+                      onDrag={(shift) => (shift ? startDrag(shift) : endDrag())}
+                      onDropHover={(on) => setOver((o) => (on ? key : o === key ? null : o))}
+                      onDrop={() => dragging && move(dragging, { staffId: person.id, date })}
                     />
                   )
                 })}
@@ -359,6 +391,10 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  * A chip's ×, there on hover, removes its shift without the popover. Undo
  * takes it back, so it doesn't ask first.
  *
+ * A chip drags to another cell to move its shift there, times and all. While
+ * one's being dragged, a cell that could take it outlines itself under the
+ * pointer; one that couldn't, like a leave day, refuses the drop.
+ *
  * While a shift is being copied, a click anywhere in the cell pastes it
  * alongside what's there, unless the cell already holds those times.
  *
@@ -384,6 +420,11 @@ function Cell({
   copying,
   onClick,
   onRemove,
+  dragged,
+  drop,
+  onDrag,
+  onDropHover,
+  onDrop,
 }: {
   person: Person
   date: IsoDate
@@ -399,6 +440,14 @@ function Cell({
   onClick: (e: React.MouseEvent<HTMLElement>, shift?: Shift) => void
   /** From a chip's ×, the button itself so focus has somewhere to go after */
   onRemove: (shift: Shift, button: HTMLElement) => void
+  /** The id of the shift being dragged, wherever it is */
+  dragged?: number
+  /** Whether the shift being dragged could land here, and if the pointer's here now */
+  drop?: 'open' | 'over'
+  /** A chip picked up, or null once it's put down, wherever that is */
+  onDrag: (shift: Shift | null) => void
+  onDropHover: (over: boolean) => void
+  onDrop: () => void
 }) {
   const filled = shifts.length > 0
   const where = `${person.name} on ${dayLabel(date)}`
@@ -424,23 +473,53 @@ function Cell({
     <div
       data-cell
       title={leave ?? na}
-      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-[5px]' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle}`}
+      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-[5px]' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''}`}
       // The padding and the gaps between chips paste too
       onClick={mode === 'paste' ? (e) => e.target === e.currentTarget && onClick(e) : undefined}
+      // Only a cell that could take the shift accepts it; anywhere else the drop is refused
+      onDragOver={
+        drop &&
+        ((e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          onDropHover(true)
+        })
+      }
+      onDragLeave={
+        // Into one of its own chips is still over the cell
+        drop && ((e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && onDropHover(false))
+      }
+      onDrop={
+        drop &&
+        ((e) => {
+          e.preventDefault()
+          onDrop()
+        })
+      }
     >
       {shifts.map((s) => {
         const times = formatRange(s.start, s.end)
         const picked = s.id === copying?.id
         const overlaps = overlapping.has(s.id)
         const action = picked ? 'Being copied' : chipAction
+        // Dragging is for the pointer, so only the tooltip mentions it
+        const tip = mode === 'edit' ? `${action}, or drag it to another cell` : action
         return (
           // The × sits over the chip rather than in it, as a button can't hold another
-          <div key={s.id} className="group/chip relative">
+          <div key={s.id} className={`group/chip relative ${s.id === dragged ? 'opacity-40' : ''}`}>
             <button
               aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}. ${action}`}
-              title={overlaps ? `Overlaps another shift. ${action}` : action}
+              title={overlaps ? `Overlaps another shift. ${tip}` : tip}
               className={`flex w-full items-center rounded-chip border border-l-[3px] py-1 pl-1.5 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
               onClick={(e) => onClick(e, s)}
+              // Not while copying, when a press on the chip is a paste
+              draggable={mode === 'edit'}
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = 'move'
+                e.dataTransfer.setData('text/plain', `${person.name}, ${dayLabel(date)}, ${times}`)
+                onDrag(s)
+              }}
+              onDragEnd={() => onDrag(null)}
             >
               <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] whitespace-nowrap tabular-nums">
                 {times}

@@ -154,6 +154,9 @@ Speed matters more than anything else here:
   24-hour `HH:MM`.
 - **Templates one keystroke away** — pick Full day, get 10:00–18:00.
 - **Copy** a shift to another day or another employee.
+- **Drag** a shift to another cell to move it there, times and all. It lands
+  only where a new shift could go: not on a closed day, a leave day, or a cell
+  that already has those times.
 - **Copy previous week** — the single most-used action. It asks before
   overwriting a week that already has shifts, then copies what it can and
   reports what it didn't: shifts for staff no longer active, shifts landing on

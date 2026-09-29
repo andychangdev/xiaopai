@@ -302,6 +302,37 @@ export async function updateShift(id: number, times: { start: number; end: numbe
   return shift ? {} : { error: 'That shift has already been removed.' }
 }
 
+/**
+ * Moves a shift to another cell of its week, times and all: another day,
+ * another person, or both. It lands only where addShift would put a new one:
+ * a day that's open, for someone with a row who isn't on leave then.
+ */
+export async function moveShift(id: number, to: { staffId: number; date: string }): Promise<ActionResult> {
+  checkId(id)
+  const { staffId, date } = to ?? {}
+  checkId(staffId)
+  const shift = shiftById(id)
+  if (!shift) {
+    gridChanged()
+    return { error: 'That shift has already been removed.' }
+  }
+  const { week } = shift
+  checkDate(week, date)
+  if (shift.staffId === staffId && shift.date === date) return {}
+  if (isClosed(closedDaysOf(week), date)) return { error: dayClosedError(date) }
+
+  const row = gridRow(week, staffId)
+  if ('error' in row) return row
+  const away = leaveOn(leaveDuring(week), staffId, date)
+  if (away) return { error: onLeaveError(row.name, away) }
+  const toSomeoneElse = staffId === shift.staffId ? {} : { name: row.name }
+  undoable(week, describeAction({ kind: 'move', name: shift.name, shift, to: { date, ...toSomeoneElse } }), (tx) =>
+    tx.update(shifts).set({ staffId, date }).where(eq(shifts.id, id)).run(),
+  )
+  gridChanged()
+  return {}
+}
+
 export async function removeShift(id: number): Promise<ActionResult> {
   checkId(id)
   const shift = shiftById(id)
