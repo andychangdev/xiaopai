@@ -137,7 +137,7 @@ export function ShiftPopover({
           placeholder="10-18"
           defaultValue={shift ? formatRange(shift.start, shift.end) : ''}
           onChange={() => setError(undefined)}
-          className="field min-w-0 flex-1 border-line-strong py-1.5 font-mono focus:border-accent"
+          className="field min-w-0 flex-1 border-line-strong py-1.5 font-mono hover:border-accent focus:border-accent"
         />
         <button type="submit" className="btn">
           {shift ? 'Save' : 'Add'}
