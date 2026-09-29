@@ -91,7 +91,7 @@ function State({ row: { state } }: { row: HistoryRow }) {
   return (
     <span className="inline-flex flex-wrap items-center gap-x-2">
       <span
-        className={`rounded-full border px-2 py-0.5 text-[10.5px] font-semibold tracking-[0.07em] whitespace-nowrap uppercase ${live ? 'border-accent text-accent' : 'border-warn-line bg-warn-bg text-warn'}`}
+        className={`rounded-full border px-2 py-0.5 text-[10.5px] font-semibold tracking-[0.07em] whitespace-nowrap uppercase ${live ? 'border-accent text-accent-deep' : 'border-warn-line bg-warn-bg text-warn'}`}
       >
         {historyBadge(state)}
       </span>

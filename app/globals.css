@@ -2,7 +2,9 @@
 
 /* Warm paper and jade, as Tailwind theme variables: bg-surface,
    border-line, text-accent and so on. Primary is the deep jade of the
-   main buttons. Always light, whatever the system setting. */
+   main buttons. Accent is bright, for fills and lines; accent-deep is
+   the same hue dark enough to read as text. Always light, whatever the
+   system setting. */
 @theme {
   --color-canvas: #f4efe6;
   --color-surface: #fcfaf5;
@@ -13,9 +15,9 @@
   --color-ink: #1e2420;
   --color-ink-2: #6b665d;
   --color-ink-3: #958e82;
-  --color-accent: #146356;
-  --color-accent-2: #1d8271;
-  --color-accent-ink: #fff;
+  --color-accent: #12a26a;
+  --color-accent-deep: #007a4d;
+  --color-accent-ink: #0b2618;
   --color-primary: #007a4d;
   --color-primary-2: #006842;
   --color-primary-ink: #fff;
@@ -82,7 +84,7 @@
     @apply border-accent outline-2 -outline-offset-1 outline-accent;
   }
   .text-link {
-    @apply text-[12.5px] text-accent underline underline-offset-2;
+    @apply text-[12.5px] text-accent-deep underline underline-offset-2;
   }
 }
 

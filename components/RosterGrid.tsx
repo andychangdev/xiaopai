@@ -327,7 +327,7 @@ function DayHeading({
   onClick: () => void
 }) {
   const action = `${closed ? 'Reopen' : 'Close'} ${dayName(date)}`
-  const colour = closed ? 'text-ink-3' : today ? 'text-accent' : 'text-ink-2 hover:text-ink'
+  const colour = closed ? 'text-ink-3' : today ? 'text-accent-deep' : 'text-ink-2 hover:text-ink'
   return (
     <button
       aria-label={`${dayLabel(date)}${today ? ', today' : ''}${closed ? ', closed' : ''}. ${action}`}

@@ -55,7 +55,7 @@ export function CopyText({ text, back }: { text: string; /** The week's grid */ 
         <Link href={back} className="btn">
           Back to roster
         </Link>
-        <span role="status" className="text-[12.5px] font-medium text-accent">
+        <span role="status" className="text-[12.5px] font-medium text-accent-deep">
           {message && <span key={message.n}>{message.words}</span>}
         </span>
       </div>

@@ -39,7 +39,7 @@ export function PublishBadge({ week, state }: { week: IsoDate; state: PublishSta
   return (
     <>
       <span
-        className={`inline-flex items-center rounded-full border px-2.25 py-1 text-[11px] font-semibold tracking-[0.07em] uppercase ${live ? 'border-accent text-accent' : 'border-warn-line bg-warn-bg text-warn'}`}
+        className={`inline-flex items-center rounded-full border px-2.25 py-1 text-[11px] font-semibold tracking-[0.07em] uppercase ${live ? 'border-accent text-accent-deep' : 'border-warn-line bg-warn-bg text-warn'}`}
       >
         {publishBadge(state)}
         {edited && (

@@ -49,7 +49,7 @@ export default async function RosterPage({ params }: Props) {
             <div className="flex flex-wrap items-baseline gap-x-2">
               <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{weekTitle(week)}</h1>
               {onThisWeek && (
-                <span className="text-[11px] font-semibold tracking-[0.09em] whitespace-nowrap text-accent uppercase">
+                <span className="text-[11px] font-semibold tracking-[0.09em] whitespace-nowrap text-accent-deep uppercase">
                   This week
                 </span>
               )}
