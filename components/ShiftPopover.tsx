@@ -112,14 +112,14 @@ export function ShiftPopover({
       onClose={onClose}
     >
       {templates.length > 0 && (
-        <div className="mb-2.5 grid grid-cols-2 gap-[5px]">
+        <div className="mb-2.5 grid grid-cols-2 gap-1.25">
           {templates.map((t) => {
             const times = formatRange(t.start, t.end)
             return (
               <button
                 key={t.id}
                 aria-label={`${shift ? 'Change to' : 'Add'} ${t.name}, ${times}`}
-                className="min-w-0 rounded-chip border border-line bg-surface-3 px-[7px] py-1.5 text-left hover:border-accent hover:bg-surface-2"
+                className="min-w-0 rounded-chip border border-line bg-surface-3 px-1.75 py-1.5 text-left hover:border-accent hover:bg-surface-2"
                 onClick={() => saveTimes(t)}
               >
                 <span className="block text-[12px] font-semibold wrap-break-word">{t.name}</span>
@@ -129,7 +129,7 @@ export function ShiftPopover({
           })}
         </div>
       )}
-      <form className="flex gap-[5px]" onSubmit={submit}>
+      <form className="flex gap-1.25" onSubmit={submit}>
         <input
           ref={input}
           aria-label="Shift times"
@@ -148,19 +148,19 @@ export function ShiftPopover({
       <p
         id="shift-popover-note"
         role={error ? 'alert' : undefined}
-        className={`mt-[7px] text-[11px] ${error ? 'leading-snug text-crit' : 'font-mono text-ink-3'}`}
+        className={`mt-1.75 text-[11px] ${error ? 'leading-snug text-crit' : 'font-mono text-ink-3'}`}
       >
         {error ?? '10-18 or 10-6 → 10:00–18:00'}
       </p>
       {alreadyNa && (
         <p
           id="shift-popover-na"
-          className="mt-[7px] border-t border-line pt-[7px] text-[11.5px] leading-[1.45] text-ink-3"
+          className="mt-1.75 border-t border-line pt-1.75 text-[11.5px] leading-[1.45] text-ink-3"
         >
           {alreadyNaNote(person.name, date)}
         </p>
       )}
-      <div className="mt-[9px] flex gap-1.5 border-t border-line pt-[9px] [&>.btn]:flex-1 [&>.btn]:p-[5px] [&>.btn]:text-center [&>.btn]:text-[12px]">
+      <div className="mt-2.25 flex gap-1.5 border-t border-line pt-2.25 [&>.btn]:flex-1 [&>.btn]:p-1.25 [&>.btn]:text-center [&>.btn]:text-[12px]">
         {shift && (
           <button
             className="btn btn-danger"

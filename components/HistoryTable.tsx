@@ -29,7 +29,7 @@ export function HistoryTable({ rows }: { rows: HistoryRow[] }) {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] border-collapse">
+        <table className="w-full min-w-180 border-collapse">
           <thead>
             <tr>
               <th className={th}>Week</th>

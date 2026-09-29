@@ -42,8 +42,8 @@ export function TabBar() {
             aria-current={current ? 'page' : undefined}
             className={
               current
-                ? 'rounded-chip bg-accent px-3 py-[5px] font-semibold text-accent-ink'
-                : 'rounded-chip px-3 py-[5px] font-medium text-ink-2 hover:text-ink'
+                ? 'rounded-chip bg-accent px-3 py-1.25 font-semibold text-accent-ink'
+                : 'rounded-chip px-3 py-1.25 font-medium text-ink-2 hover:text-ink'
             }
           >
             {tab.label}

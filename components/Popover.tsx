@@ -84,7 +84,7 @@ export function Popover({
       ref={ref}
       role="dialog"
       aria-label={label}
-      className="fixed z-50 max-h-[calc(100vh-16px)] w-[250px] overflow-y-auto rounded-card border border-line-strong bg-surface p-[11px] shadow-popover"
+      className="fixed z-50 max-h-[calc(100vh-16px)] w-62.5 overflow-y-auto rounded-card border border-line-strong bg-surface p-2.75 shadow-popover"
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
         close()
@@ -97,7 +97,7 @@ export function Popover({
         if (to && !e.currentTarget.contains(to) && !anchor.contains(to)) close()
       }}
     >
-      <h3 className="mb-[7px] text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
+      <h3 className="mb-1.75 text-[11px] font-semibold tracking-[0.09em] text-ink-3 uppercase">
         {firstName(person.name)} · {dayLabel(date)}
       </h3>
       {children}

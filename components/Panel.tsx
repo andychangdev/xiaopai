@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 export function Panel({ title, children }: { title: ReactNode; children: ReactNode }) {
   return (
     <section className="overflow-hidden rounded-card border border-line bg-surface">
-      <h2 className="flex items-center gap-[7px] border-b border-line bg-surface-3 px-3 py-2.5 text-[11px] font-semibold tracking-[0.1em] text-ink-2 uppercase">
+      <h2 className="flex items-center gap-1.75 border-b border-line bg-surface-3 px-3 py-2.5 text-[11px] font-semibold tracking-widest text-ink-2 uppercase">
         {title}
       </h2>
       {children}

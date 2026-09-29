@@ -24,7 +24,7 @@ export default async function HistoryPage({ searchParams }: Props) {
   if (week !== param) redirect(`/history?week=${week}`)
 
   return (
-    <div className="max-w-[840px]">
+    <div className="max-w-210">
       <PageHead title="History">
         Every week that has shifts or has been published, newest first. Open one to look at it, or copy it over
         the week you have open,{' '}

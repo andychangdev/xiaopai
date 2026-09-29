@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Staff' }
 export default function StaffPage() {
   const staff = staffList()
   return (
-    <div className="max-w-[840px]">
+    <div className="max-w-210">
       <PageHead title="Staff">
         Rows appear on the roster in this order, so use ↑↓ to arrange them the way you think about your staff.
         Everyone active appears on every week&apos;s roster. Available is the weekdays someone can normally

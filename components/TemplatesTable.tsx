@@ -40,7 +40,7 @@ export function TemplatesTable({ templates }: { templates: Template[] }) {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse">
+        <table className="w-full min-w-160 border-collapse">
           <thead>
             <tr>
               <th className={th}>Name</th>

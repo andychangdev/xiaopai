@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'Settings' }
 
 export default function SettingsPage() {
   return (
-    <div className="max-w-[840px]">
+    <div className="max-w-210">
       <PageHead title="Settings">
         The business&apos;s name, trading hours and shift templates: the things that hold from week to week.
         Anything about one week in particular is done on the roster itself.

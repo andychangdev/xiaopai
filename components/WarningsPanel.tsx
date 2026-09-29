@@ -24,9 +24,9 @@ export function WarningsPanel({ warnings }: { warnings: Warning[] }) {
           {warnings.map((w, i) => (
             <li
               key={i}
-              className="flex gap-[9px] border-b border-line px-3 py-[9px] text-[12.5px] leading-[1.4] last:border-b-0"
+              className="flex gap-2.25 border-b border-line px-3 py-2.25 text-[12.5px] leading-[1.4] last:border-b-0"
             >
-              <span aria-hidden className={`w-[3px] flex-none rounded-[2px] ${w.level === 'high' ? 'bg-crit' : 'bg-warn'}`} />
+              <span aria-hidden className={`w-0.75 flex-none rounded-xs ${w.level === 'high' ? 'bg-crit' : 'bg-warn'}`} />
               <span>
                 <span className="block font-semibold">
                   <span className="sr-only">{severity[w.level]}: </span>
@@ -38,7 +38,7 @@ export function WarningsPanel({ warnings }: { warnings: Warning[] }) {
           ))}
         </ul>
       ) : (
-        <p className="px-3 py-[18px] text-[12.5px] text-ink-3">Nothing to flag on this week.</p>
+        <p className="px-3 py-4.5 text-[12.5px] text-ink-3">Nothing to flag on this week.</p>
       )}
     </Panel>
   )

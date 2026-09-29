@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <strong className="font-semibold text-ink">{businessName()}</strong>
           <TabBar />
         </header>
-        <main className="mx-auto max-w-[1240px] px-4 pt-[18px] pb-10">{children}</main>
+        <main className="mx-auto max-w-310 px-4 pt-4.5 pb-10">{children}</main>
       </body>
     </html>
   )

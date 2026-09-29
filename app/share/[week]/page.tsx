@@ -31,7 +31,7 @@ export default async function ShareRosterPage({ params }: Props) {
       : rosterText({ businessName: name, weekStart: week, days })
 
   return (
-    <div className="max-w-[840px]">
+    <div className="max-w-210">
       <PageHead title="Share roster">
         Plain text, sized for the group chat. Only people on shift appear: no N/A, no leave, no one sitting the
         week out. Until the week is published it ends with DRAFT, so a half-built week can&apos;t be taken for

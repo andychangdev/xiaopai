@@ -31,7 +31,7 @@ export function TimeSelect({
           await onSave(t)
         })
       }}
-      className="field w-auto min-w-[92px] font-mono text-[12.5px] tabular-nums"
+      className="field w-auto min-w-23 font-mono text-[12.5px] tabular-nums"
     >
       {timeOptions(value).map((t) => (
         <option key={t} value={t}>

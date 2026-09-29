@@ -11,7 +11,7 @@ import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk, type AskOptions } from './useAsk'
 
-const hoursField = 'field w-[74px] font-mono tabular-nums'
+const hoursField = 'field w-18.5 font-mono tabular-nums'
 
 /** Returns the refusal, if there was one, so a box can put its old value back. */
 type Report = (result: ActionResult) => string | undefined
@@ -29,7 +29,7 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[760px] border-collapse">
+        <table className="w-full min-w-190 border-collapse">
           <thead>
             <tr>
               <th className={th}>Name</th>
@@ -175,7 +175,7 @@ function AvailableDays({ id, available, report }: { id: number; available: boole
   const [, startTransition] = useTransition()
 
   return (
-    <span role="group" aria-label="Usually available" className="inline-flex gap-[3px]">
+    <span role="group" aria-label="Usually available" className="inline-flex gap-0.75">
       {DAY_NAMES.map((day, weekday) => {
         const on = days[weekday]
         return (
@@ -184,7 +184,7 @@ function AvailableDays({ id, available, report }: { id: number; available: boole
             aria-label={day}
             aria-pressed={on}
             title={`${on ? 'Usually available' : 'Not usually available'} on ${day}`}
-            className={`size-[23px] rounded-chip border text-[11px] leading-none font-semibold ${on ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface-3 text-ink-3 hover:border-line-strong'}`}
+            className={`size-5.75 rounded-chip border text-[11px] leading-none font-semibold ${on ? 'border-accent bg-accent text-accent-ink' : 'border-line bg-surface-3 text-ink-3 hover:border-line-strong'}`}
             onClick={() =>
               startTransition(async () => {
                 setDay({ weekday, on: !on })

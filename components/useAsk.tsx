@@ -86,16 +86,16 @@ function AskDialog({
   return (
     <dialog
       ref={ref}
-      className="m-auto w-[calc(100%-32px)] max-w-[390px] rounded-[12px] border border-line-strong bg-surface text-ink shadow-dialog backdrop:bg-scrim"
+      className="m-auto w-[calc(100%-32px)] max-w-97.5 rounded-xl border border-line-strong bg-surface text-ink shadow-dialog backdrop:bg-scrim"
       onCancel={(e) => {
         e.preventDefault()
         done('cancel')
       }}
       onClick={(e) => e.target === e.currentTarget && done('cancel')}
     >
-      <div className="p-[18px]">
+      <div className="p-4.5">
         <h3 className="mb-1.5 text-[15px] font-semibold tracking-[-0.01em]">{title}</h3>
-        <p className="mb-[15px] text-[13px] leading-[1.55] text-ink-2">{body}</p>
+        <p className="mb-3.75 text-[13px] leading-[1.55] text-ink-2">{body}</p>
         <div className="flex flex-wrap justify-end gap-2">
           {cancel && (
             <button className="btn" onClick={() => done('cancel')}>

@@ -35,10 +35,10 @@ export function LeavePopover({
       <p className="rounded-chip border border-line bg-surface-3 px-2.5 py-2 text-[12.5px] leading-[1.45] text-ink-2">
         {onLeaveSummary(leave)}
       </p>
-      <p className="mt-[7px] text-[11.5px] leading-[1.45] text-ink-3">
+      <p className="mt-1.75 text-[11.5px] leading-[1.45] text-ink-3">
         Shifts can&apos;t go on a leave day. Leave is booked on the Staff page.
       </p>
-      <div className="mt-[9px] flex gap-1.5 border-t border-line pt-[9px] [&>.btn]:flex-1 [&>.btn]:p-[5px] [&>.btn]:text-center [&>.btn]:text-[12px]">
+      <div className="mt-2.25 flex gap-1.5 border-t border-line pt-2.25 [&>.btn]:flex-1 [&>.btn]:p-1.25 [&>.btn]:text-center [&>.btn]:text-[12px]">
         <Link href="/staff#leave" className="btn">
           Manage leave
         </Link>

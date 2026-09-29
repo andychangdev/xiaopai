@@ -39,17 +39,17 @@ export function PublishBadge({ week, state }: { week: IsoDate; state: PublishSta
   return (
     <>
       <span
-        className={`inline-flex items-center rounded-full border px-[9px] py-1 text-[11px] font-semibold tracking-[0.07em] uppercase ${live ? 'border-accent text-accent' : 'border-warn-line bg-warn-bg text-warn'}`}
+        className={`inline-flex items-center rounded-full border px-2.25 py-1 text-[11px] font-semibold tracking-[0.07em] uppercase ${live ? 'border-accent text-accent' : 'border-warn-line bg-warn-bg text-warn'}`}
       >
         {publishBadge(state)}
         {edited && (
           <>
-            <span aria-hidden className="mx-[7px] h-3 w-px bg-warn-line" />
+            <span aria-hidden className="mx-1.75 h-3 w-px bg-warn-line" />
             <button
               aria-label={`Revert to v${edited.version}, as published`}
               title={`Revert to v${edited.version}, as published ${fullDate(edited.publishedAt)}`}
               // Out to the badge's edge, so it's more than the icon to hit
-              className="-my-1 -mr-[5px] grid place-items-center self-stretch rounded-full px-[5px] hover:text-ink"
+              className="-my-1 -mr-1.25 grid place-items-center self-stretch rounded-full px-1.25 hover:text-ink"
               onClick={revert}
             >
               <UndoIcon />

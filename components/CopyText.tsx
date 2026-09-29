@@ -44,7 +44,7 @@ export function CopyText({ text, back }: { text: string; /** The week's grid */ 
       {/* All of it, never scrolled inside a box, so the DRAFT at the foot is always in sight */}
       <pre
         ref={pre}
-        className="m-0 px-[18px] py-4 font-mono text-[13px] leading-[1.7] wrap-break-word whitespace-pre-wrap select-text selection:bg-accent selection:text-accent-ink"
+        className="m-0 px-4.5 py-4 font-mono text-[13px] leading-[1.7] wrap-break-word whitespace-pre-wrap select-text selection:bg-accent selection:text-accent-ink"
       >
         {text}
       </pre>

@@ -60,7 +60,7 @@ type Props = {
 }
 
 const headCell =
-  'border-b border-line-strong bg-surface-3 px-2 py-[9px] text-[11px] font-semibold tracking-[0.1em] uppercase'
+  'border-b border-line-strong bg-surface-3 px-2 py-2.25 text-[11px] font-semibold tracking-widest uppercase'
 
 export function RosterGrid({
   week,
@@ -343,7 +343,7 @@ function DayHeading({
       </span>
       <span
         aria-hidden
-        className="absolute top-1.5 right-[5px] text-[10px] font-normal tracking-normal normal-case opacity-0 group-hover:opacity-75 group-focus-visible:opacity-75"
+        className="absolute top-1.5 right-1.25 text-[10px] font-normal tracking-normal normal-case opacity-0 group-hover:opacity-75 group-focus-visible:opacity-75"
       >
         {closed ? '↺' : '✕'}
       </span>
@@ -367,7 +367,7 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
   const mark = againstExpected(hours, person.expectedHours)
   return (
     <>
-      <div className="border-r border-b border-line bg-surface-3 px-2.5 py-[9px]">
+      <div className="border-r border-b border-line bg-surface-3 px-2.5 py-2.25">
         <div className="text-[13.5px] font-semibold tracking-[-0.005em]">{person.name}</div>
         <div
           title={mark ? AGAINST_EXPECTED[mark] : undefined}
@@ -473,7 +473,7 @@ function Cell({
     <div
       data-cell
       title={leave ?? na}
-      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-[5px]' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''}`}
+      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-1.25' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''}`}
       // The padding and the gaps between chips paste too
       onClick={mode === 'paste' ? (e) => e.target === e.currentTarget && onClick(e) : undefined}
       // Only a cell that could take the shift accepts it; anywhere else the drop is refused
@@ -544,7 +544,7 @@ function Cell({
         aria-label={na ? `${add}. ${na}` : add}
         // While copying, what a click would paste matters more than why the day is N/A
         title={mode !== 'edit' ? add : (leave ?? (filled ? 'Add another shift' : (na ?? add)))}
-        className={`group grid flex-1 place-items-center ${inert ? '' : hover} ${filled ? 'min-h-[18px] rounded-chip' : ''}`}
+        className={`group grid flex-1 place-items-center ${inert ? '' : hover} ${filled ? 'min-h-4.5 rounded-chip' : ''}`}
         onClick={(e) => onClick(e)}
       >
         {/* A chip leaves no room for it, so a filled cell keeps just the tint */}

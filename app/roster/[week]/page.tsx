@@ -126,12 +126,12 @@ function NoRows({ everyoneInactive }: { everyoneInactive: boolean }) {
 }
 
 // The week buttons, as tall as each other
-const weekButton = 'grid h-[30px] place-items-center rounded-control border border-line bg-surface text-ink-2'
+const weekButton = 'grid h-7.5 place-items-center rounded-control border border-line bg-surface text-ink-2'
 const weekLink = `${weekButton} hover:border-line-strong hover:text-ink`
 
 function WeekArrow({ href, label, children }: { href: string; label: string; children: string }) {
   return (
-    <Link href={href} title={label} aria-label={label} className={`${weekLink} w-[30px] text-[15px]`}>
+    <Link href={href} title={label} aria-label={label} className={`${weekLink} w-7.5 text-[15px]`}>
       {children}
     </Link>
   )

@@ -89,7 +89,7 @@
 /* The few controls every page shares, from the mockup's .btn, .f and .link */
 @layer components {
   .btn {
-    @apply inline-block rounded-control border border-line bg-surface px-[13px] py-[7px] text-[13px] font-medium hover:border-line-strong;
+    @apply inline-block rounded-control border border-line bg-surface px-3.25 py-1.75 text-[13px] font-medium hover:border-line-strong;
   }
   .btn-primary {
     @apply border-accent bg-accent font-semibold text-accent-ink hover:border-accent-2 hover:bg-accent-2;
@@ -98,7 +98,7 @@
     @apply text-crit hover:border-crit-line hover:bg-crit-bg;
   }
   .field {
-    @apply w-full rounded-chip border border-line bg-surface-3 px-2 py-[5px] text-[13px] text-inherit;
+    @apply w-full rounded-chip border border-line bg-surface-3 px-2 py-1.25 text-[13px] text-inherit;
   }
   .field:focus {
     @apply border-accent outline-2 -outline-offset-1 outline-accent;
