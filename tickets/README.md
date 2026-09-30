@@ -31,19 +31,18 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 - **Deactivating someone** (02, 03): never deletes their shifts, and any week where they have shifts keeps their row. The mockup deletes them from the open week.
 - **Copy previous week with every shift skipped** (07): changes nothing and says why, rather than emptying this week for nothing. The mockup replaces the week anyway.
 - **The schema** (01): lands whole in ticket 01, so parallel tickets don't collide on migration files. This is the one piece that isn't a vertical slice.
-- **Roster buttons** (20): drops Manage staff and Trading hours, since the tabs already cover them, and puts Copy previous week in the grid footer. Roster text leaves the tab bar, is renamed Share roster, and sits next to Publish roster, taking the place of SPEC §2's View sheet. The mockup and ARCHITECTURE §4 have the old layout.
+- **Roster buttons** (20): drops Manage staff and Trading hours, since the tabs already cover them, and puts Copy previous week in the grid footer. Roster text leaves the tab bar, is renamed Share roster, and sits next to Publish roster, taking the place of SPEC §2's View sheet. The mockup has the old layout.
 - **History's list** (16): a published week stays listed after it's been emptied, since staff still hold what went out. SPEC lists only weeks with shifts on them. The open week travels in the URL (`/history?week=`), so History only knows it when you come from that week's grid or Share roster; from Staff or Settings it's the week the Roster tab would open.
-- **Dock launcher** (19): differs from ARCHITECTURE §8b's script and build steps in several ways:
+- **Dock launcher** (19): ARCHITECTURE §8b describes how it works. The reasons behind it:
   - The bundle is an AppleScript applet (`osacompile`) that runs `scripts/launcher/run` from the project, instead of a bundle whose executable is the script. macOS 26 treats a script bundle as `/bin/bash`, and refuses it the Documents folder without asking. The applet is asked about once. Launcher changes need no rebuild.
   - The server listens on 127.0.0.1 only, and always uses the project's own `xiaopai.db`.
   - Chrome opens with `open -n`, because without it the `--app` flag is dropped when Chrome is already open.
   - The server check fetches `/icon.png`, which never touches the database.
   - If the server doesn't start, an alert names the log, so the icon never seems to do nothing.
-- **Undo and JSON export** (17, 18): SPEC includes them, and ARCHITECTURE §9 says "later". Both are kept, at the end.
 - **Undo** (17): goes back one action at a time, up to 50 per week, rather than only the last. ⌘Z does the same unless you're typing. Each week's history lives in the server's memory, not the database, so it's gone once the server stops. Undo is only offered while the week is as its last action left it: anything that changes the week from outside the grid turns it off for that week, such as leave booked or cancelled during it, or shifts removed by a booking. Deactivating someone or changing their availability doesn't, and Undo can bring back a shift or N/A note the grid would now refuse, just as the week had it.
-- **JSON export** (18): the file comes from a route, `/settings/backup`, because a Server Action can't hand the browser a download. It's the one route that isn't a page; ARCHITECTURE §1 has none. The route reads the schema to find every table, so a table added later is exported too. Lists of plain values, like the seven weekday flags, stay on one line so the file is easier to read.
+- **JSON export** (18): the file comes from a route, `/settings/backup`, because a Server Action can't hand the browser a download. It's the one route that isn't a page. The route reads the schema to find every table, so a table added later is exported too. Lists of plain values, like the seven weekday flags, stay on one line so the file is easier to read.
 
 ## Not ticketed
 
-- Idle shutdown of the server (ARCHITECTURE §8b, "Stopping it"), which is optional.
+- Idle shutdown of the server (ARCHITECTURE §9), which is optional.
 - Everything in SPEC §5, "Out of scope".

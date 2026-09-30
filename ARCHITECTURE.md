@@ -596,7 +596,9 @@ closed days, shifts, N/A notes, and the leave during it. Undo writes the
 "before" back, ids and all, but only while the week still matches the
 "after". If something changed it from elsewhere, like leave booked on the
 Staff page, the history starts again rather than overwrite it. The button
-names what it would undo, in words from `describeAction`.
+names what it would undo, in words from `describeAction`. ⌘Z (or Ctrl+Z)
+does the same, except while you're typing in a field or a dialog is open,
+and holding the keys down is one undo, not one per repeat.
 
 The history lives in the server's memory, per week, up to 50 steps, and goes
 when the server stops. It's for taking back a slip, not for version history —
