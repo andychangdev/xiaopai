@@ -14,7 +14,7 @@ import { formatRange, type Minutes } from './time'
 /** Everything a grid action can change on one week, and the leave during it. */
 export type WeekState = {
   closedDays: boolean[]
-  shifts: (Shift & { note: string | null })[]
+  shifts: Shift[]
   naNotes: { id: number; staffId: number; date: IsoDate }[]
   /** Never put back, as only the Staff page books it, but a change to it means the week has moved on */
   leave: Pick<Leave, 'id' | 'staffId' | 'fromDate' | 'toDate'>[]
@@ -33,7 +33,7 @@ function weekKey({ closedDays, shifts, naNotes, leave }: WeekState): string {
   const byId = <T extends { id: number }>(rows: T[]) => [...rows].sort((a, b) => a.id - b.id)
   return JSON.stringify([
     closedDays.map(Boolean),
-    byId(shifts).map((s) => [s.id, s.staffId, s.date, s.start, s.end, s.note]),
+    byId(shifts).map((s) => [s.id, s.staffId, s.date, s.start, s.end]),
     byId(naNotes).map((n) => [n.id, n.staffId, n.date]),
     byId(leave).map((l) => [l.id, l.staffId, l.fromDate, l.toDate]),
   ])

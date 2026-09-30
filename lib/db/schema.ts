@@ -41,7 +41,6 @@ export const rosters = sqliteTable('rosters', {
   status: text({ enum: ['draft', 'published'] }).notNull().default('draft'),
   version: integer().notNull().default(0),
   publishedAt: text(),
-  weekNote: text(),
   closedDays: text({ mode: 'json' }).$type<boolean[]>().notNull().default(ALL_OPEN), // owned by the week
   snapshot: text({ mode: 'json' }).$type<Snapshot>(),
 })
@@ -55,7 +54,6 @@ export const shifts = sqliteTable(
     date: text().notNull(),
     start: integer().notNull(),
     end: integer().notNull(),
-    note: text(),
   },
   (t) => [index('shifts_week_start_idx').on(t.weekStart)],
 )

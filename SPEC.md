@@ -85,7 +85,7 @@ Availability is the habit, *not available* is this week's exception, leave is a
 booked absence. Only the last one stops you.
 
 **Roster** — `id`, `week_start`, `status` (`draft` | `published`), `version`,
-`published_at?`, `week_note?`, `closed_days[7]`
+`published_at?`, `closed_days[7]`
 One row per week, keyed by the Monday. **`closed_days` belongs entirely to the
 week.** A new week starts with every day open; you close one by clicking its
 heading on the grid. Nothing in Settings can reach back and change a week you've
@@ -96,7 +96,7 @@ source week's closed days with it. That's one click in the workflow you already
 use, and it beats a global default that would have to be overridden every time
 the shop opens on a normally-closed day.
 
-**Shift** — `id`, `roster_id`, `employee_id`, `date`, `start`, `end`, `note?`
+**Shift** — `id`, `roster_id`, `employee_id`, `date`, `start`, `end`
 
 ### Publishing and history
 

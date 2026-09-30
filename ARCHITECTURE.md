@@ -184,9 +184,9 @@ npm run db:generate   # reads lib/db/schema.ts, writes a .sql migration
 npm run db:migrate    # applies it to xiaopai.db
 ```
 
-The migrations are plain SQL in `drizzle/`: `0000_init.sql` creates every
-table, `0001_settings.sql` adds `settings`. Read them — it's the clearest way
-to see what the TypeScript actually meant.
+The migrations are plain SQL in `drizzle/`, numbered in the order they
+apply. Read them — it's the clearest way to see what the TypeScript actually
+meant.
 
 ### Four things that will bite
 
@@ -247,7 +247,6 @@ rosters = sqliteTable('rosters', {
   status:      text({ enum: ['draft', 'published'] }).notNull().default('draft'),
   version:     integer().notNull().default(0),
   publishedAt: text(),
-  weekNote:    text(),               // nothing writes it yet
   closedDays:  text({ mode: 'json' }).$type<boolean[]>().notNull().default(ALL_OPEN),
   snapshot:    text({ mode: 'json' }).$type<Snapshot>(),             // §6
 })
@@ -259,7 +258,6 @@ shifts = sqliteTable('shifts', {
   date:      text().notNull(),       // '2026-10-08'
   start:     integer().notNull(),
   end:       integer().notNull(),
-  note:      text(),                 // nothing writes it yet
 })
 
 naNotes = sqliteTable('na_notes', {          // "can't do Friday this week"

@@ -45,6 +45,5 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 
 ## Not ticketed
 
-- Week notes and shift notes. They're in the schema, but no screen uses them.
 - Idle shutdown of the server (ARCHITECTURE §8b, "Stopping it"), which is optional.
 - Everything in SPEC §5, "Out of scope".

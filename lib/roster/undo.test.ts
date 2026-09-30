@@ -12,7 +12,6 @@ const shift = (id: number, staffId: number, date: string, start: number, end: nu
   date,
   start,
   end,
-  note: null,
 })
 
 const EMPTY: WeekState = { closedDays: ALL_OPEN, shifts: [], naNotes: [], leave: [] }

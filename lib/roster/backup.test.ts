@@ -4,7 +4,7 @@ import { backupFile } from './backup'
 const TABLES = {
   staff: [{ id: 1, name: 'John Reyes', active: true, available: [true, true, false, true, true, true, true] }],
   settings: [{ id: 1, businessName: 'Xiao Pai' }],
-  shifts: [{ id: 7, weekStart: '2026-10-05', staffId: 1, date: '2026-10-08', start: 600, end: 1260, note: null }],
+  shifts: [{ id: 7, weekStart: '2026-10-05', staffId: 1, date: '2026-10-08', start: 600, end: 1260 }],
   leave: [],
 }
 
