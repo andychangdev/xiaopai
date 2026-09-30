@@ -110,11 +110,11 @@ export function buildWarnings({
   if (published) {
     warnings.push(...shortDays({ staff, shifts, weekStart, closedDays }))
     const total = weekTotal(shifts)
-    if (total <= MIN_WEEK_TOTAL) {
+    if (total < MIN_WEEK_TOTAL) {
       warnings.push({
         level: 'low',
         who: 'Week total',
-        text: `${formatHours(total)} rostered — needs more than ${formatHours(MIN_WEEK_TOTAL)}.`,
+        text: `${formatHours(total)} rostered — needs at least ${formatHours(MIN_WEEK_TOTAL)}.`,
       })
     }
   }

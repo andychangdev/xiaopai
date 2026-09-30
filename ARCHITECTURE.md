@@ -408,7 +408,7 @@ weekTotal(shifts)                         // 6540, 109h
 buildWarnings({ staff, shifts, naNotes, leave, weekStart, closedDays, published })
 // → [{ level: 'high', who: 'John Reyes', text: 'Rostered on Sun — not usually available.' },
 //    { level: 'low',  who: 'Mon 5 Oct',  text: 'Only John Reyes rostered — needs at least two.' },
-//    { level: 'low',  who: 'Week total', text: '91h rostered — needs more than 98h.' }]
+//    { level: 'low',  who: 'Week total', text: '91h rostered — needs at least 98h.' }]
 
 planCopy({ from, closedDays, to, staff, leave })
 // → { shifts: [...], closedDays: [...], skipped: { inactive: 0, onLeave: 2, closed: 0 } }
@@ -432,7 +432,7 @@ from here, so the rule and the sentence explaining it sit side by side.
 
 **This is the only code with tests.** Every rule in the spec is a test: the
 38-hour week, the 10-hour rest gap, overlapping shifts, two people a day,
-more than 98 hours a week, N/A versus leave, what copying drops, when a
+at least 98 hours a week, N/A versus leave, what copying drops, when a
 published week counts as changed, when Undo still applies. Vitest only looks in `lib/roster/**/*.test.ts`, and runs in
 `Australia/Sydney` so a local-versus-UTC mistake actually fails. The UI and
 the database layer have none — if the core is right, the grid is just a view

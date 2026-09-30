@@ -355,7 +355,7 @@ describe('buildWarnings', () => {
         { level: 'low', who: 'John Reyes', text: 'Only 8h between Mon close and Tue start.' },
         { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.' },
         { level: 'low', who: 'Tue 6 Oct', text: 'Only John Reyes rostered — needs at least two.' },
-        { level: 'low', who: 'Week total', text: '19h rostered — needs more than 98h.' },
+        { level: 'low', who: 'Week total', text: '19h rostered — needs at least 98h.' },
       ])
     })
   })
@@ -381,14 +381,16 @@ describe('buildWarnings', () => {
       expect(total([], false)).toEqual([])
     })
 
-    it('flags 98 hours or fewer, as a caution', () => {
-      expect(total(fullWeek)).toEqual([
-        { level: 'low', who: 'Week total', text: '98h rostered — needs more than 98h.' },
+    it('flags fewer than 98 hours, as a caution', () => {
+      const anHourShort = [shift(7, MON, h(10), h(16)), ...fullWeek.slice(1)]
+      expect(total(anHourShort)).toEqual([
+        { level: 'low', who: 'Week total', text: '97h rostered — needs at least 98h.' },
       ])
-      expect(total([]).map((w) => w.text)).toEqual(['0h rostered — needs more than 98h.'])
+      expect(total([]).map((w) => w.text)).toEqual(['0h rostered — needs at least 98h.'])
     })
 
-    it("doesn't flag more than 98 hours", () => {
+    it("doesn't flag 98 hours or more", () => {
+      expect(total(fullWeek)).toEqual([])
       expect(total([...fullWeek, shift(8, MON, h(18), h(18.5))])).toEqual([])
     })
   })

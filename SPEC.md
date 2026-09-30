@@ -20,7 +20,7 @@ for a single restaurant. Runs locally. Employees never log in.
 | Staff on the grid | All active staff, always, in a manual order you set |
 | Roles | None. Staff are just people with hours |
 | Trading hours | 10:00–18:00, and 10:00–21:00 Thursday (shopping night) |
-| Staffing warnings | Fewer than two people on an open day, or 98 hours or fewer in the week. Only once the week is published |
+| Staffing warnings | Fewer than two people on an open day, or fewer than 98 hours in the week. Only once the week is published |
 | Days off | Not stored. An empty cell means off, and prints as `OFF` |
 | Availability | Weekdays a person can normally work. A warning, never a block |
 | Leave | Dated periods, booked on the Staff page only. **Blocks** rostering |
@@ -199,14 +199,14 @@ in place because the panel can't point at which two.
 - Someone rostered on a weekday they're not usually available
 - Someone rostered on a day flagged not available this week
 - Fewer than two people on an open day, however long their shifts
-- 98 hours or fewer rostered across the whole week
+- Fewer than 98 hours rostered across the whole week
 
 **Staffing warnings wait for publishing.** The last two only appear once the
 week has been published, at any version, so a week still being built isn't
 flagged for gaps it hasn't filled yet. They name the day, or the week, rather
 than a person. The day's counts people, not hours: two on at different times
-is enough. The week's needs more than 98 hours in total, so exactly 98 still
-warns.
+is enough. The week's needs at least 98 hours in total, so exactly 98 is
+fine.
 
 ### Staff, Templates, Settings
 
