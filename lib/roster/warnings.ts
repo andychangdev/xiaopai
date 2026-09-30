@@ -1,8 +1,11 @@
 // The whole warnings list for a week: everything unusual about it, naming the
-// person each time. Warnings only ever advise. Nothing here stops a shift
-// being saved or the week being published.
+// person each time, or the day when it's about the day. Warnings only ever
+// advise. Nothing here stops a shift being saved or the week being published.
+// Staffing warnings wait until the week has been published, so a week still
+// being built isn't flagged for the gaps it hasn't filled yet.
 
-import { addDays, dayName, weekDates, type IsoDate } from './dates'
+import { isClosed } from './closed'
+import { addDays, dayLabel, dayName, weekDates, type IsoDate } from './dates'
 import { againstExpected, hoursFor, percentOff } from './hours'
 import { leaveOn, type Leave } from './leave'
 import { naReason, type NaNote, type NaReason } from './notAvailable'
@@ -16,6 +19,7 @@ type Person = { id: number; name: string; expectedHours: number | null; availabl
 
 const MAX_WEEK: Minutes = 38 * 60
 const MIN_REST: Minutes = 10 * 60
+const MIN_ON_DAY = 2
 
 const rank = { high: 0, low: 1 }
 
@@ -42,13 +46,18 @@ export function overlappingShifts(shifts: Shift[]): Set<number> {
   return flagged
 }
 
-/** Every warning for the week, the serious ones first, then each in row order. */
+/**
+ * Every warning for the week, the serious ones first, then each in row order,
+ * with those about a day after those about a person.
+ */
 export function buildWarnings({
   staff,
   shifts,
   naNotes,
   leave,
   weekStart,
+  closedDays,
+  published,
 }: {
   staff: Person[]
   shifts: Shift[]
@@ -56,6 +65,9 @@ export function buildWarnings({
   /** Leave booked during the week */
   leave: Pick<Leave, 'staffId' | 'fromDate' | 'toDate'>[]
   weekStart: IsoDate
+  closedDays: boolean[]
+  /** Published at any version, edited since or not */
+  published: boolean
 }): Warning[] {
   const overlapping = overlappingShifts(shifts)
   const warnings = staff.flatMap((person) => {
@@ -94,6 +106,30 @@ export function buildWarnings({
     }
     return out
   })
+  if (published) warnings.push(...shortDays({ staff, shifts, weekStart, closedDays }))
   // Stable, so row order holds within each level
   return warnings.sort((a, b) => rank[a.level] - rank[b.level])
+}
+
+/** Each open day with fewer than two people on, however long their shifts. */
+function shortDays({
+  staff,
+  shifts,
+  weekStart,
+  closedDays,
+}: {
+  staff: Person[]
+  shifts: Shift[]
+  weekStart: IsoDate
+  closedDays: boolean[]
+}): Warning[] {
+  return weekDates(weekStart).flatMap((date) => {
+    if (isClosed(closedDays, date)) return []
+    const on = new Set(shifts.filter((s) => s.date === date).map((s) => s.staffId))
+    if (on.size >= MIN_ON_DAY) return []
+    const [only] = on
+    const who = staff.find((p) => p.id === only)?.name
+    const text = who ? `Only ${who} rostered — needs at least two.` : 'No one rostered — needs at least two.'
+    return [{ level: 'low' as const, who: dayLabel(date), text }]
+  })
 }

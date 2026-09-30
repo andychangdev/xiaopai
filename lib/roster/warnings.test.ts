@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { ALL_OPEN } from './closed'
 import type { Leave } from './leave'
 import type { NaNote } from './notAvailable'
 import { EVERY_DAY } from './staff'
@@ -27,7 +28,7 @@ const warnings = (
   shifts: ReturnType<typeof shift>[],
   naNotes: NaNote[] = [],
   leave: Leave[] = [],
-) => buildWarnings({ staff, shifts, naNotes, leave, weekStart: WEEK })
+) => buildWarnings({ staff, shifts, naNotes, leave, weekStart: WEEK, closedDays: ALL_OPEN, published: false })
 
 const texts = (...args: Parameters<typeof warnings>) => warnings(...args).map((w) => w.text)
 
@@ -297,6 +298,64 @@ describe('buildWarnings', () => {
     it('is only a caution', () => {
       const [w] = warnings([LISA], [shift(8, MON, h(10), h(14))])
       expect(w.level).toBe('low')
+    })
+  })
+
+  describe('fewer than two on a day', () => {
+    // Both of them on every day but Monday, so only Monday can fall short
+    const restOfWeek = [TUE, WED, THU, FRI, SAT, SUN].flatMap((d) => [
+      shift(7, d, h(10), h(14)),
+      shift(8, d, h(10), h(14)),
+    ])
+    const published = (shifts: ReturnType<typeof shift>[], closedDays = ALL_OPEN) =>
+      buildWarnings({
+        staff: [JOHN, LISA],
+        shifts,
+        naNotes: [],
+        leave: [],
+        weekStart: WEEK,
+        closedDays,
+        published: true,
+      })
+    const short = (...args: Parameters<typeof published>) =>
+      published(...args).filter((w) => w.text.endsWith('needs at least two.'))
+
+    it('waits until the week is published', () => {
+      expect(warnings([JOHN, LISA], [...restOfWeek, shift(7, MON, h(10), h(18))])).toEqual([])
+    })
+
+    it('flags an open day with one person on, naming them, as a caution', () => {
+      expect(short([...restOfWeek, shift(7, MON, h(10), h(18))])).toEqual([
+        { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.' },
+      ])
+    })
+
+    it('counts a split shift as one person', () => {
+      const shifts = [...restOfWeek, shift(7, MON, h(10), h(14)), shift(7, MON, h(17), h(21))]
+      expect(short(shifts).map((w) => w.text)).toEqual(['Only John Reyes rostered — needs at least two.'])
+    })
+
+    it('flags an open day with no one on', () => {
+      expect(short(restOfWeek)).toEqual([
+        { level: 'low', who: 'Mon 5 Oct', text: 'No one rostered — needs at least two.' },
+      ])
+    })
+
+    it("doesn't mind when or how long the two are on", () => {
+      expect(short([...restOfWeek, shift(7, MON, h(10), h(11)), shift(8, MON, h(20), h(21))])).toEqual([])
+    })
+
+    it('skips a closed day', () => {
+      expect(short(restOfWeek, [true, false, false, false, false, false, false])).toEqual([])
+    })
+
+    it('goes in day order, after the warnings about people', () => {
+      const monTueOpen = [false, false, true, true, true, true, true]
+      expect(published([shift(7, MON, h(12), h(23)), shift(7, TUE, h(7), h(15))], monTueOpen)).toEqual([
+        { level: 'low', who: 'John Reyes', text: 'Only 8h between Mon close and Tue start.' },
+        { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.' },
+        { level: 'low', who: 'Tue 6 Oct', text: 'Only John Reyes rostered — needs at least two.' },
+      ])
     })
   })
 

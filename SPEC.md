@@ -20,7 +20,7 @@ for a single restaurant. Runs locally. Employees never log in.
 | Staff on the grid | All active staff, always, in a manual order you set |
 | Roles | None. Staff are just people with hours |
 | Trading hours | 10:00–18:00, and 10:00–21:00 Thursday (shopping night) |
-| Staffing warnings | None. Cut as too fiddly for the payoff |
+| Staffing warnings | Fewer than two people on an open day. Only once the week is published |
 | Days off | Not stored. An empty cell means off, and prints as `OFF` |
 | Availability | Weekdays a person can normally work. A warning, never a block |
 | Leave | Dated periods, booked on the Staff page only. **Blocks** rostering |
@@ -198,12 +198,12 @@ in place because the panel can't point at which two.
   clean-up prompt when the leave was booked)
 - Someone rostered on a weekday they're not usually available
 - Someone rostered on a day flagged not available this week
+- Fewer than two people on an open day, however long their shifts
 
-**On staffing levels:** deliberately out. Two models were tried — minimum on
-the floor, and a second person until a per-weekday time — and both cost more
-to configure and understand than they returned. With five staff and one screen
-you can see a thin day. Revisit only if the roster grows past what fits on a
-screen.
+**Staffing warnings wait for publishing.** The last one only appears once the
+week has been published, at any version, so a week still being built isn't
+flagged for gaps it hasn't filled yet. It names the day rather than a person,
+and counts people, not hours: two on at different times is enough.
 
 ### Staff, Templates, Settings
 
@@ -294,5 +294,4 @@ employee-submitted availability or leave requests ·
 shift swaps · messaging · payroll · timesheets ·
 automatic scheduling.
 
-Deliberately deferred: staffing-level warnings, labour cost estimates, public
-holidays, mobile editing.
+Deliberately deferred: labour cost estimates, public holidays, mobile editing.

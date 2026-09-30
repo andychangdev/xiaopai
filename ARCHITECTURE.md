@@ -405,8 +405,9 @@ formatTime(1260)          // '21:00'
 hoursFor(staffId, shifts)                 // 1440 — minutes, so 24h
 weekTotal(shifts)                         // 6540, 109h
 
-buildWarnings({ staff, shifts, naNotes, leave, weekStart })
-// → [{ level: 'high', who: 'John Reyes', text: 'Rostered on Sun — not usually available.' }]
+buildWarnings({ staff, shifts, naNotes, leave, weekStart, closedDays, published })
+// → [{ level: 'high', who: 'John Reyes', text: 'Rostered on Sun — not usually available.' },
+//    { level: 'low',  who: 'Mon 5 Oct',  text: 'Only John Reyes rostered — needs at least two.' }]
 
 planCopy({ from, closedDays, to, staff, leave })
 // → { shifts: [...], closedDays: [...], skipped: { inactive: 0, onLeave: 2, closed: 0 } }
@@ -419,14 +420,19 @@ copyReport(plan, from, closedBefore)
 say what was left behind, so nothing disappears silently. `planRevert` works
 the same way for putting a published week back (§6).
 
+Staffing warnings only count once the week is published, which is why
+`buildWarnings` takes `published`: a week still being built isn't flagged for
+gaps it hasn't filled yet. The page works it out for the Publish dialog's
+count and the grid for its panel, from the same function.
+
 The modules also own the words. Error messages, warning text, dialog
 questions and badges (`publishBadge`, `publishQuestion`, `copyReport`) come
 from here, so the rule and the sentence explaining it sit side by side.
 
 **This is the only code with tests.** Every rule in the spec is a test: the
-38-hour week, the 10-hour rest gap, overlapping shifts, N/A versus leave, what
-copying drops, when a published week counts as changed, when Undo still
-applies. Vitest only looks in `lib/roster/**/*.test.ts`, and runs in
+38-hour week, the 10-hour rest gap, overlapping shifts, two people a day, N/A
+versus leave, what copying drops, when a published week counts as changed,
+when Undo still applies. Vitest only looks in `lib/roster/**/*.test.ts`, and runs in
 `Australia/Sydney` so a local-versus-UTC mistake actually fails. The UI and
 the database layer have none — if the core is right, the grid is just a view
 of it.

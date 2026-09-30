@@ -29,6 +29,7 @@ export default async function RosterPage({ params }: Props) {
   if (week !== param) redirect(`/roster/${week}`)
 
   const { staff, shifts, naNotes, leave, closedDays, publish: state } = rosterWeek(week)
+  const published = state.status === 'published'
   // Read once, so the header and the grid agree on what day it is
   const now = today()
   const thisWeek = mondayOf(now)
@@ -70,7 +71,7 @@ export default async function RosterPage({ params }: Props) {
             state={state}
             shifts={shifts.length}
             minutes={weekTotal(shifts)}
-            warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week }).length}
+            warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published }).length}
           />
         </div>
       </div>
@@ -87,6 +88,7 @@ export default async function RosterPage({ params }: Props) {
           templates={templateList()}
           tradingHours={tradingSummary(tradingHoursWeek())}
           closedDays={closedDays}
+          published={published}
           previousShifts={shiftCount(addDays(week, -7))}
           lastAction={undoLabel(week)}
           today={now}

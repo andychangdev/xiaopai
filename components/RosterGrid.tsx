@@ -51,6 +51,8 @@ type Props = {
   tradingHours: string
   /** Monday first */
   closedDays: boolean[]
+  /** Published at any version, which brings in the staffing warnings */
+  published: boolean
   /** How many shifts the week before has, for Copy previous week */
   previousShifts: number
   /** What Undo would take back, or null when there's nothing to */
@@ -71,6 +73,7 @@ export function RosterGrid({
   templates,
   tradingHours,
   closedDays,
+  published,
   previousShifts,
   lastAction,
   today,
@@ -281,7 +284,9 @@ export function RosterGrid({
       </div>
       {/* Below the grid rather than beside it, so the roster keeps the full width */}
       <div className="mt-4 grid items-start gap-4 min-[820px]:grid-cols-[minmax(0,1fr)_330px]">
-        <WarningsPanel warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week })} />
+        <WarningsPanel
+          warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })}
+        />
         <HoursThisWeek staff={staff} shifts={shifts} />
       </div>
       {open &&
