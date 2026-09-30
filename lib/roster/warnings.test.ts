@@ -349,13 +349,47 @@ describe('buildWarnings', () => {
       expect(short(restOfWeek, [true, false, false, false, false, false, false])).toEqual([])
     })
 
-    it('goes in day order, after the warnings about people', () => {
+    it('goes in day order, after the warnings about people and before the week', () => {
       const monTueOpen = [false, false, true, true, true, true, true]
       expect(published([shift(7, MON, h(12), h(23)), shift(7, TUE, h(7), h(15))], monTueOpen)).toEqual([
         { level: 'low', who: 'John Reyes', text: 'Only 8h between Mon close and Tue start.' },
         { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.' },
         { level: 'low', who: 'Tue 6 Oct', text: 'Only John Reyes rostered — needs at least two.' },
+        { level: 'low', who: 'Week total', text: '19h rostered — needs more than 98h.' },
       ])
+    })
+  })
+
+  describe('week total', () => {
+    // Both of them 10:00–17:00 every day: 98h exactly
+    const fullWeek = [MON, TUE, WED, THU, FRI, SAT, SUN].flatMap((d) => [
+      shift(7, d, h(10), h(17)),
+      shift(8, d, h(10), h(17)),
+    ])
+    const total = (shifts: ReturnType<typeof shift>[], published = true) =>
+      buildWarnings({
+        staff: [JOHN, LISA],
+        shifts,
+        naNotes: [],
+        leave: [],
+        weekStart: WEEK,
+        closedDays: ALL_OPEN,
+        published,
+      }).filter((w) => w.who === 'Week total')
+
+    it('waits until the week is published', () => {
+      expect(total([], false)).toEqual([])
+    })
+
+    it('flags 98 hours or fewer, as a caution', () => {
+      expect(total(fullWeek)).toEqual([
+        { level: 'low', who: 'Week total', text: '98h rostered — needs more than 98h.' },
+      ])
+      expect(total([]).map((w) => w.text)).toEqual(['0h rostered — needs more than 98h.'])
+    })
+
+    it("doesn't flag more than 98 hours", () => {
+      expect(total([...fullWeek, shift(8, MON, h(18), h(18.5))])).toEqual([])
     })
   })
 

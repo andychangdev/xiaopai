@@ -1,12 +1,12 @@
 // The whole warnings list for a week: everything unusual about it, naming the
-// person each time, or the day when it's about the day. Warnings only ever
+// person each time, or the day or week when it's about that. Warnings only ever
 // advise. Nothing here stops a shift being saved or the week being published.
 // Staffing warnings wait until the week has been published, so a week still
 // being built isn't flagged for the gaps it hasn't filled yet.
 
 import { isClosed } from './closed'
 import { addDays, dayLabel, dayName, weekDates, type IsoDate } from './dates'
-import { againstExpected, hoursFor, percentOff } from './hours'
+import { againstExpected, hoursFor, percentOff, weekTotal } from './hours'
 import { leaveOn, type Leave } from './leave'
 import { naReason, type NaNote, type NaReason } from './notAvailable'
 import { shiftsByCell, type Shift } from './shifts'
@@ -20,6 +20,7 @@ type Person = { id: number; name: string; expectedHours: number | null; availabl
 const MAX_WEEK: Minutes = 38 * 60
 const MIN_REST: Minutes = 10 * 60
 const MIN_ON_DAY = 2
+const MIN_WEEK_TOTAL: Minutes = 98 * 60
 
 const rank = { high: 0, low: 1 }
 
@@ -48,7 +49,7 @@ export function overlappingShifts(shifts: Shift[]): Set<number> {
 
 /**
  * Every warning for the week, the serious ones first, then each in row order,
- * with those about a day after those about a person.
+ * with those about a person first, then each day, then the whole week.
  */
 export function buildWarnings({
   staff,
@@ -106,7 +107,17 @@ export function buildWarnings({
     }
     return out
   })
-  if (published) warnings.push(...shortDays({ staff, shifts, weekStart, closedDays }))
+  if (published) {
+    warnings.push(...shortDays({ staff, shifts, weekStart, closedDays }))
+    const total = weekTotal(shifts)
+    if (total <= MIN_WEEK_TOTAL) {
+      warnings.push({
+        level: 'low',
+        who: 'Week total',
+        text: `${formatHours(total)} rostered — needs more than ${formatHours(MIN_WEEK_TOTAL)}.`,
+      })
+    }
+  }
   // Stable, so row order holds within each level
   return warnings.sort((a, b) => rank[a.level] - rank[b.level])
 }
