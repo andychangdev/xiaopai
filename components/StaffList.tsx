@@ -2,9 +2,10 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type ReactNode } from 'react'
 import { moveStaff } from '@/app/actions'
-import type { StaffListRow } from '@/lib/db/queries'
+import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
 import { formatRate } from '@/lib/roster/cost'
-import { DAY_NAMES } from '@/lib/roster/dates'
+import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
+import { awayLabel } from '@/lib/roster/leave'
 import { initialOf, moveInOrder, placeAmong } from '@/lib/roster/staff'
 import { GripIcon } from './Icons'
 import { StaffPanel } from './StaffPanel'
@@ -26,9 +27,21 @@ export function AddPersonButton() {
  * away at the foot. Active people drag by the handle at the start of their
  * line, and with the handle focused the arrow keys move them a place at a
  * time. Clicking someone opens their panel beside the list, or over it on a
- * narrow screen. What goes under the list, like leave, comes in as children.
+ * narrow screen, with their leave. Each line shows the next leave coming up.
+ * What goes under the list comes in as children.
  */
-export function StaffList({ staff, children }: { staff: StaffListRow[]; children?: ReactNode }) {
+export function StaffList({
+  staff,
+  leave,
+  today,
+  children,
+}: {
+  staff: StaffListRow[]
+  /** Everyone's bookings, soonest first */
+  leave: LeaveListRow[]
+  today: IsoDate
+  children?: ReactNode
+}) {
   const [selected, select] = usePersonParam()
   const [error, setError] = useState<string>()
   // A line moves the moment it's dropped, rather than when the server answers
@@ -39,6 +52,7 @@ export function StaffList({ staff, children }: { staff: StaffListRow[]; children
   const active = rows.filter((p) => p.active)
   const inactive = rows.filter((p) => !p.active)
   const person = typeof selected === 'number' ? rows.find((p) => p.id === selected) : undefined
+  const leaveOf = (id: number) => leave.filter((l) => l.staffId === id)
   // Open while the person in the panel is in it, and after that as you leave it
   const [showInactive, setShowInactive] = useState(person?.active === false)
   const inPanelInactive = person?.active === false
@@ -106,6 +120,7 @@ export function StaffList({ staff, children }: { staff: StaffListRow[]; children
               <Line
                 key={p.id}
                 person={p}
+                away={awayLabel(leaveOf(p.id), today)}
                 selected={p.id === selected}
                 onOpen={() => select(p.id)}
                 drag={{
@@ -141,7 +156,13 @@ export function StaffList({ staff, children }: { staff: StaffListRow[]; children
               </summary>
               <ul className="border-t border-line bg-surface">
                 {inactive.map((p) => (
-                  <Line key={p.id} person={p} selected={p.id === selected} onOpen={() => select(p.id)} />
+                  <Line
+                    key={p.id}
+                    person={p}
+                    away={awayLabel(leaveOf(p.id), today)}
+                    selected={p.id === selected}
+                    onOpen={() => select(p.id)}
+                  />
                 ))}
               </ul>
             </details>
@@ -159,6 +180,8 @@ export function StaffList({ staff, children }: { staff: StaffListRow[]; children
         <StaffPanel
           key={person?.id ?? 'new'}
           person={person ?? 'new'}
+          leave={person ? leaveOf(person.id) : []}
+          today={today}
           onClose={close}
           onAdded={(id) => select(id)}
         />
@@ -177,11 +200,14 @@ export function StaffList({ staff, children }: { staff: StaffListRow[]; children
  */
 function Line({
   person,
+  away,
   selected,
   onOpen,
   drag,
 }: {
   person: StaffListRow
+  /** Their next leave, for the chip after their name */
+  away: string | null
   selected: boolean
   onOpen: () => void
   drag?: {
@@ -255,7 +281,14 @@ function Line({
           {initialOf(person.name)}
         </span>
         <span className="min-w-0">
-          <span className="block truncate font-semibold">{person.name}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate font-semibold">{person.name}</span>
+            {away && (
+              <span className="flex-none rounded-full border border-warn-line bg-warn-bg px-1.75 text-[10.5px] font-semibold whitespace-nowrap text-warn-deep">
+                {away}
+              </span>
+            )}
+          </span>
           {person.notes && <span className="block truncate text-[11.5px] text-ink-3">{person.notes}</span>}
         </span>
         <span title={`Usually available ${usually}`} className="hidden items-center gap-0.75 sm:flex">

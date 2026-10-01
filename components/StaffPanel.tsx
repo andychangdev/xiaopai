@@ -2,15 +2,18 @@
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type ReactNode } from 'react'
 import { addStaff, removeStaff, setAvailable, updateStaff, type ActionResult } from '@/app/actions'
-import type { StaffListRow } from '@/lib/db/queries'
+import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { formatRate } from '@/lib/roster/cost'
-import { DAY_NAMES } from '@/lib/roster/dates'
+import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
+import { isPast, leaveDays, leaveSpan } from '@/lib/roster/leave'
 import { whyNotRemovable } from '@/lib/roster/staff'
+import { BookLeaveForm } from './BookLeaveForm'
 import { CrossIcon } from './Icons'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
+import { useLeave } from './useLeave'
 
 const label = 'grid gap-1 text-[11.5px] font-semibold text-ink-2'
 const numberField = 'field font-mono tabular-nums'
@@ -25,11 +28,16 @@ type Report = (result: ActionResult) => string | undefined
  */
 export function StaffPanel({
   person,
+  leave,
+  today,
   onClose,
   onAdded,
 }: {
   /** Who it's for, or 'new' while adding someone */
   person: StaffListRow | 'new'
+  /** Their bookings, soonest first */
+  leave: LeaveListRow[]
+  today: IsoDate
   onClose: () => void
   /** Someone new is on the list, so their own panel can open */
   onAdded: (id: number) => void
@@ -68,7 +76,7 @@ export function StaffPanel({
         {person === 'new' ? (
           <NewPerson report={report} onClose={onClose} onAdded={onAdded} />
         ) : (
-          <Person person={person} report={report} onClose={onClose} />
+          <Person person={person} leave={leave} today={today} report={report} onClose={onClose} />
         )}
         {error && (
           <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
@@ -97,7 +105,19 @@ function Head({ title, onClose, children }: { title: string; onClose: () => void
   )
 }
 
-function Person({ person, report, onClose }: { person: StaffListRow; report: Report; onClose: () => void }) {
+function Person({
+  person,
+  leave,
+  today,
+  report,
+  onClose,
+}: {
+  person: StaffListRow
+  leave: LeaveListRow[]
+  today: IsoDate
+  report: Report
+  onClose: () => void
+}) {
   const [dialog, ask] = useAsk()
   // The switch flips the moment you press it, rather than when the server answers
   const [active, setActive] = useOptimistic(person.active)
@@ -190,6 +210,7 @@ function Person({ person, report, onClose }: { person: StaffListRow; report: Rep
           Rostering them on a day they aren&apos;t usually available warns, but is never blocked. Switching Active off
           takes them off new weeks and leaves any week they already have shifts on.
         </p>
+        <PersonLeave person={person} leave={leave} today={today} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line px-3.5 py-2.5">
         <button className="text-link text-crit-deep" onClick={remove}>
@@ -199,6 +220,69 @@ function Person({ person, report, onClose }: { person: StaffListRow; report: Rep
       </div>
       {dialog}
     </>
+  )
+}
+
+/**
+ * Their leave still to come or under way, soonest first, each one
+ * cancellable, and a form to book more for them. Leave blocks rostering, so
+ * the question about shifts already there comes up as it does anywhere.
+ */
+function PersonLeave({ person, leave, today }: { person: StaffListRow; leave: LeaveListRow[]; today: IsoDate }) {
+  const [error, setError] = useState<string>()
+  const [dialog, book, cancel] = useLeave(setError)
+  const [booking, setBooking] = useState(false)
+  const ahead = leave.filter((l) => !isPast(l, today))
+
+  return (
+    <div className="grid gap-2 border-t border-line pt-3.5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-[11.5px] font-semibold text-ink-2">Leave</h3>
+        {person.active && !booking && (
+          <button className="btn px-2.5 py-1 text-[12px]" onClick={() => setBooking(true)}>
+            Book leave
+          </button>
+        )}
+      </div>
+      {ahead.length > 0 && (
+        <ul className="rounded-control border border-line">
+          {ahead.map((l) => {
+            const days = leaveDays(l)
+            return (
+              <li key={l.id} className="flex items-center justify-between gap-3 border-b border-line px-2.5 py-1.75 last:border-b-0">
+                <span className="min-w-0">
+                  <span className="block text-[12.5px] font-medium">{leaveSpan(l)}</span>
+                  <span className="block truncate text-[11.5px] text-ink-3">
+                    {[l.note, `${days} ${days === 1 ? 'day' : 'days'}`].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+                <button
+                  className="text-link text-ink-3 hover:text-crit-deep focus-visible:text-crit-deep"
+                  aria-label={`Cancel ${person.name}'s leave, ${leaveSpan(l)}`}
+                  onClick={() => cancel(l)}
+                >
+                  Cancel
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {!ahead.length && !booking && <p className="text-[12px] text-ink-3">No leave booked.</p>}
+      {booking && (
+        <BookLeaveForm
+          onBook={(b) => book({ ...b, staffId: person.id }, person.name)}
+          onDone={() => setBooking(false)}
+        />
+      )}
+      {!person.active && <p className="text-[11.5px] text-ink-3">Switch Active on to book leave for them.</p>}
+      {error && (
+        <p role="alert" className="text-[12.5px] text-crit-deep">
+          {error}
+        </p>
+      )}
+      {dialog}
+    </div>
   )
 }
 

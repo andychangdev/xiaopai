@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  awayLabel,
   describeLeave,
   isPast,
   leaveDays,
@@ -179,5 +180,37 @@ describe('isPast', () => {
   it('is not past on its last day, or before', () => {
     expect(isPast(FAMILY, '2026-10-09')).toBe(false)
     expect(isPast(FAMILY, '2026-10-01')).toBe(false)
+  })
+})
+
+describe('awayLabel', () => {
+  const today = '2026-10-02'
+  const span = (fromDate: string, toDate: string) => ({ fromDate, toDate })
+
+  it('is nothing with no leave to come', () => {
+    expect(awayLabel([], today)).toBeNull()
+    expect(awayLabel([span('2026-09-20', '2026-09-25')], today)).toBeNull()
+  })
+
+  it('gives one day by its date', () => {
+    expect(awayLabel([span('2026-10-05', '2026-10-05')], today)).toBe('Away 5 Oct')
+  })
+
+  it('gives days in one month once', () => {
+    expect(awayLabel([span('2026-10-11', '2026-10-13')], today)).toBe('Away 11–13 Oct')
+  })
+
+  it('gives both months for leave across two', () => {
+    expect(awayLabel([span('2026-10-23', '2026-11-09')], today)).toBe('Away 23 Oct – 9 Nov')
+  })
+
+  it('counts leave already started as the next, and says when it ends', () => {
+    expect(awayLabel([span('2026-09-28', '2026-10-06')], today)).toBe('Away until 6 Oct')
+    expect(awayLabel([span('2026-10-02', '2026-10-02')], today)).toBe('Away today')
+  })
+
+  it('names the soonest booking, and how many more come after it', () => {
+    const leave = [span('2026-10-23', '2026-11-09'), span('2026-09-01', '2026-09-03'), span('2026-10-11', '2026-10-13')]
+    expect(awayLabel(leave, today)).toBe('Away 11–13 Oct +1')
   })
 })

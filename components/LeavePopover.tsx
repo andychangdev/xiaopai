@@ -9,7 +9,7 @@ import { Popover, type PopoverTarget } from './Popover'
 /**
  * What opens on a leave day: who's away and until when. Leave is the one
  * thing that blocks, so there's no shift to add and no N/A to mark, only the
- * way to the Staff page, where leave is booked.
+ * way to their panel on the Staff page, where leave is booked.
  */
 export function LeavePopover({
   target,
@@ -39,7 +39,7 @@ export function LeavePopover({
         Shifts can&apos;t go on a leave day. Leave is booked on the Staff page.
       </p>
       <div className="mt-2.25 flex gap-1.5 border-t border-line pt-2.25 [&>.btn]:flex-1 [&>.btn]:p-1.25 [&>.btn]:text-center [&>.btn]:text-[12px]">
-        <Link href="/staff#leave" className="btn">
+        <Link href={`/staff?person=${person.id}`} className="btn">
           Manage leave
         </Link>
         <button

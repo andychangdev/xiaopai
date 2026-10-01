@@ -3,7 +3,7 @@
 // inside it takes no shift. Days are compared as 'YYYY-MM-DD' strings, which
 // sort the same way the calendar does.
 
-import { dayLabel, daysBetween, parseIsoDate, type IsoDate } from './dates'
+import { dayLabel, daysBetween, parseIsoDate, shortDate, type IsoDate } from './dates'
 import { firstName } from './staff'
 
 export type Leave = { id: number; staffId: number; fromDate: IsoDate; toDate: IsoDate; note: string | null }
@@ -84,4 +84,26 @@ export function overlapError(name: string, booking: Span, theirs: Span[]): strin
 /** Over, so the Staff page greys it. */
 export function isPast(l: Span, today: IsoDate): boolean {
   return l.toDate < today
+}
+
+/**
+ * The chip on someone's line on the Staff page: their next leave, counting
+ * any they're on now, and how many more bookings follow it. 'Away 11–13 Oct
+ * +1', 'Away until 6 Oct'. Null with nothing to come.
+ */
+export function awayLabel(leave: Span[], today: IsoDate): string | null {
+  const ahead = leave.filter((l) => !isPast(l, today)).sort((a, b) => a.fromDate.localeCompare(b.fromDate))
+  const next = ahead[0]
+  if (!next) return null
+  const more = ahead.length > 1 ? ` +${ahead.length - 1}` : ''
+  return `Away ${awayWhen(next, today)}${more}`
+}
+
+function awayWhen({ fromDate, toDate }: Span, today: IsoDate): string {
+  if (fromDate <= today) return toDate === today ? 'today' : `until ${shortDate(toDate)}`
+  if (fromDate === toDate) return shortDate(fromDate)
+  const [from, to] = [shortDate(fromDate), shortDate(toDate)]
+  // Within a month the month goes once: '11–13 Oct'
+  if (fromDate.slice(0, 7) === toDate.slice(0, 7)) return `${from.split(' ')[0]}–${to}`
+  return `${from} – ${to}`
 }
