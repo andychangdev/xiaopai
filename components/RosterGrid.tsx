@@ -617,7 +617,7 @@ function CopyBar({ copying, error, onDone }: { copying: Copying; error?: string;
   return (
     <div
       role="status"
-      className="fixed bottom-4 left-1/2 z-40 flex w-max max-w-[calc(100%-32px)] -translate-x-1/2 items-center gap-3.5 rounded-card border border-line-strong bg-surface px-3.5 py-2.5 shadow-popover"
+      className="fixed bottom-[calc(var(--bottom-bar)+16px)] left-1/2 z-40 flex w-max max-w-[calc(100%-32px)] -translate-x-1/2 items-center gap-3.5 rounded-card border border-line-strong bg-surface px-3.5 py-2.5 shadow-popover"
     >
       <div className="min-w-0">
         <div className="text-[13px] font-semibold">

@@ -15,8 +15,8 @@ type Props = { searchParams: Promise<{ week?: string | string[] }> }
 
 /**
  * `?week=` names the week you have open, as History is a page of its own and
- * the tab bar carries it here. Without one, it's the week the Roster tab
- * would open.
+ * the sidebar carries it here. Without one, it's the week Roster would
+ * open.
  */
 export default async function HistoryPage({ searchParams }: Props) {
   const { week: param } = await searchParams

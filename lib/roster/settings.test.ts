@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_TRADING_HOURS, tradingHoursError, tradingSummary, tradingWeek, type TradingDay } from './settings'
+import {
+  DEFAULT_TRADING_HOURS,
+  businessInitial,
+  tradingHoursError,
+  tradingSummary,
+  tradingWeek,
+  type TradingDay,
+} from './settings'
 
 const day = (open: number, close: number): TradingDay => ({ open, close })
 const everyDay = (open: number, close: number) => Array.from({ length: 7 }, () => day(open, close))
@@ -100,5 +107,26 @@ describe('tradingHoursError', () => {
     expect(tradingHoursError(Number.NaN, 1080)).not.toBeNull()
     expect(tradingHoursError(600.5, 1080)).not.toBeNull()
     expect(tradingHoursError(-30, 1080)).not.toBeNull()
+  })
+})
+
+describe('businessInitial', () => {
+  it("is the name's first letter, capitalised", () => {
+    expect(businessInitial('jade Kitchen')).toBe('J')
+  })
+
+  it('skips leading spaces and punctuation to reach a letter or digit', () => {
+    expect(businessInitial('  "The Oak"')).toBe('T')
+    expect(businessInitial('7 Seas')).toBe('7')
+  })
+
+  it('keeps a character outside the alphabet whole', () => {
+    expect(businessInitial('小排')).toBe('小')
+    expect(businessInitial('Émile')).toBe('É')
+  })
+
+  it("falls back to the name's first character when it has no letters", () => {
+    expect(businessInitial('🍜 House')).toBe('H')
+    expect(businessInitial('🍜')).toBe('🍜')
   })
 })

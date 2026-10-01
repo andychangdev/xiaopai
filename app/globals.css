@@ -120,24 +120,36 @@
   min-width: 960px;
 }
 
+/* What a page leaves clear at its foot for the phone's bottom bar. Beside
+   the sidebar, nothing. The breakpoint is Tailwind's sm. */
+:root {
+  --bottom-bar: 0px;
+}
+@media (width < 40rem) {
+  :root {
+    --bottom-bar: calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
 /* The roster page: the grid with Warnings under it and the Week summary
    beside both, once there's room without squeezing the grid below its
    960px. Narrower, the summary drops below the grid beside Warnings, and
-   on a phone under them. */
+   on a phone under them. Each width counts the 72px sidebar. */
 .roster-layout {
   display: grid;
   grid-template-areas: 'grid' 'warnings' 'summary';
   align-items: start;
   gap: 16px;
 }
-@media (min-width: 820px) {
+@media (min-width: 892px) {
   .roster-layout {
     grid-template-columns: minmax(0, 1fr) 300px;
     grid-template-areas: 'grid grid' 'warnings summary';
   }
 }
-/* 960px of grid and its border, the gap, the summary and the page's padding */
-@media (min-width: 1310px) {
+/* The sidebar, 960px of grid and its border, the gap, the summary and the
+   page's padding */
+@media (min-width: 1382px) {
   .roster-layout {
     grid-template-areas: 'grid summary' 'warnings summary';
   }

@@ -311,7 +311,7 @@ N/A notes go with it.
 
 ```
 app/
-  layout.tsx                 header with the business name, tab bar
+  layout.tsx                 the sidebar (a bottom bar on a phone), then the page
   page.tsx                   redirects to the week that needs work
   roster/page.tsx            redirects to /
   roster/[week]/page.tsx     the grid — the whole app, really
@@ -390,15 +390,21 @@ It redirects rather than rendering the grid at `/` so the URL always names a
 week: bookmarkable, back button works, one route renders the grid instead of
 two. `/roster` and `/share` on their own land the same way.
 
-Navigation is the tab bar — Roster, Staff, Settings, History. No home tab,
-because the roster *is* home. Share roster isn't a tab: it opens from the
-foot of the Week summary, next to Publish, and counts as the Roster tab while
-it's open.
+Navigation is a sidebar down the left of every page: the business's initial
+and name at its head, then Roster, History and Staff, with Settings at its
+foot. On a phone (under Tailwind's `sm`) it becomes a bar fixed along the
+bottom with the same four, and pages leave `--bottom-bar` clear at their
+foot. No home page, because the roster *is* home. Share roster isn't in the
+sidebar: it opens from the foot of the Week summary, next to Publish, and
+counts as Roster while it's open.
+
+The sidebar is 72px, so the Week summary sits beside the grid only from
+1382px wide, where the grid still gets its full 960px.
 
 History is a page of its own, so the week you have open travels with it as
-`/history?week=2026-10-05`: the tab bar adds it when you leave a grid or
-Share roster, and the Roster tab takes you back to that week rather than to
-`/`. History's Copy into open week copies into that week.
+`/history?week=2026-10-05`: the sidebar adds it when you leave a grid or
+Share roster, and Roster takes you back to that week rather than to `/`.
+History's Copy into open week copies into that week.
 
 ---
 

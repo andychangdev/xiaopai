@@ -71,7 +71,7 @@ const gridChanged = () => {
   revalidatePath('/history')
 }
 
-// Settings reach every page (the header's name, the grid's footer, the
+// Settings reach every page (the sidebar's name, the grid's footer, the
 // popover's templates) as well as the Settings page itself
 const settingsChanged = () => revalidatePath('/', 'layout')
 
@@ -571,7 +571,7 @@ export async function undo(week: string): Promise<ActionResult> {
   return result
 }
 
-/** What the header, the tab title and the roster text call the business. */
+/** What the sidebar, the tab title and the roster text call the business. */
 export async function setBusinessName(name: string): Promise<ActionResult> {
   const businessName = parseName(text(name))
   if (!businessName) return { error: NAME_REQUIRED }
