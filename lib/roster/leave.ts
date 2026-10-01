@@ -3,7 +3,7 @@
 // inside it takes no shift. Days are compared as 'YYYY-MM-DD' strings, which
 // sort the same way the calendar does.
 
-import { dayLabel, daysBetween, parseIsoDate, shortDate, type IsoDate } from './dates'
+import { addDays, dayLabel, daysBetween, mondayOf, parseIsoDate, shortDate, type IsoDate } from './dates'
 import { firstName } from './staff'
 
 export type Leave = { id: number; staffId: number; fromDate: IsoDate; toDate: IsoDate; note: string | null }
@@ -99,11 +99,53 @@ export function awayLabel(leave: Span[], today: IsoDate): string | null {
   return `Away ${awayWhen(next, today)}${more}`
 }
 
-function awayWhen({ fromDate, toDate }: Span, today: IsoDate): string {
-  if (fromDate <= today) return toDate === today ? 'today' : `until ${shortDate(toDate)}`
+function awayWhen(l: Span, today: IsoDate): string {
+  if (l.fromDate <= today) return l.toDate === today ? 'today' : `until ${shortDate(l.toDate)}`
+  return shortSpan(l)
+}
+
+/** '5 Oct', '11–13 Oct', or '23 Oct – 9 Nov': within a month, the month goes once. */
+export function shortSpan({ fromDate, toDate }: Span): string {
   if (fromDate === toDate) return shortDate(fromDate)
   const [from, to] = [shortDate(fromDate), shortDate(toDate)]
-  // Within a month the month goes once: '11–13 Oct'
   if (fromDate.slice(0, 7) === toDate.slice(0, 7)) return `${from.split(' ')[0]}–${to}`
   return `${from} – ${to}`
+}
+
+/** How many weeks the Staff page's leave timeline shows, this one first. */
+export const TIMELINE_WEEKS = 7
+
+/**
+ * The Staff page's leave timeline: seven weeks from this week's Monday, with
+ * a row for each person with leave in them, in roster order, and a bar per
+ * booking from its first day to its last, cut at the edges where it runs
+ * past them. Days count from the timeline's first. Alongside, the leave
+ * that's over, newest first, and leave beyond the seven weeks, soonest first.
+ */
+export function leaveTimeline<T extends Span & { staffId: number }>(leave: T[], order: number[], today: IsoDate) {
+  const start = mondayOf(today)
+  const days = TIMELINE_WEEKS * 7
+  const end = addDays(start, days - 1)
+  const bar = (l: T) => {
+    const [first, last] = [l.fromDate < start ? start : l.fromDate, l.toDate > end ? end : l.toDate]
+    return {
+      leave: l,
+      from: daysBetween(start, first),
+      length: daysBetween(first, last) + 1,
+      cutStart: first !== l.fromDate,
+      cutEnd: last !== l.toDate,
+    }
+  }
+  const soonest = (a: T, b: T) => a.fromDate.localeCompare(b.fromDate) || a.toDate.localeCompare(b.toDate)
+  const inView = leave.filter((l) => l.fromDate <= end && start <= l.toDate).sort(soonest)
+  return {
+    weeks: Array.from({ length: TIMELINE_WEEKS }, (_, i) => addDays(start, i * 7)),
+    days,
+    today: daysBetween(start, today),
+    rows: order
+      .map((staffId) => ({ staffId, bars: inView.filter((l) => l.staffId === staffId).map(bar) }))
+      .filter((row) => row.bars.length),
+    past: leave.filter((l) => isPast(l, today)).sort((a, b) => soonest(b, a)),
+    later: leave.filter((l) => l.fromDate > end).sort(soonest),
+  }
 }

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   awayLabel,
   describeLeave,
+  leaveTimeline,
+  shortSpan,
   isPast,
   leaveDays,
   leaveOn,
@@ -212,5 +214,60 @@ describe('awayLabel', () => {
   it('names the soonest booking, and how many more come after it', () => {
     const leave = [span('2026-10-23', '2026-11-09'), span('2026-09-01', '2026-09-03'), span('2026-10-11', '2026-10-13')]
     expect(awayLabel(leave, today)).toBe('Away 11–13 Oct +1')
+  })
+})
+
+describe('shortSpan', () => {
+  it('gives the month once when it can', () => {
+    expect(shortSpan({ fromDate: '2026-10-05', toDate: '2026-10-05' })).toBe('5 Oct')
+    expect(shortSpan({ fromDate: '2026-10-11', toDate: '2026-10-13' })).toBe('11–13 Oct')
+    expect(shortSpan({ fromDate: '2026-10-23', toDate: '2026-11-09' })).toBe('23 Oct – 9 Nov')
+  })
+})
+
+describe('leaveTimeline', () => {
+  // Thursday, so the timeline starts on Monday 28 Sep and its seventh week ends Sunday 15 Nov
+  const today = '2026-10-01'
+  const at = (staffId: number, fromDate: string, toDate: string) => booking(staffId, fromDate, toDate)
+
+  it("runs seven weeks from this week's Monday, with today's place in it", () => {
+    const t = leaveTimeline([], [], today)
+    expect(t.weeks).toEqual(['2026-09-28', '2026-10-05', '2026-10-12', '2026-10-19', '2026-10-26', '2026-11-02', '2026-11-09'])
+    expect([t.days, t.today]).toEqual([49, 3])
+  })
+
+  it('gives a row to each person with leave in it, in roster order', () => {
+    const t = leaveTimeline([at(1, '2026-10-11', '2026-10-13'), at(2, '2026-10-05', '2026-10-05'), at(3, '2027-01-04', '2027-01-08')], [2, 3, 1], today)
+    expect(t.rows.map((r) => r.staffId)).toEqual([2, 1])
+  })
+
+  it('places a bar from its first day to its last', () => {
+    const [row] = leaveTimeline([at(1, '2026-10-11', '2026-10-13')], [1], today).rows
+    expect(row.bars[0]).toMatchObject({ from: 13, length: 3, cutStart: false, cutEnd: false })
+  })
+
+  it('cuts leave that started before this week at the start', () => {
+    const [row] = leaveTimeline([at(1, '2026-09-20', '2026-09-30')], [1], today).rows
+    expect(row.bars[0]).toMatchObject({ from: 0, length: 3, cutStart: true, cutEnd: false })
+  })
+
+  it('cuts leave that ends after the last week at the end', () => {
+    const [row] = leaveTimeline([at(1, '2026-11-10', '2026-12-01')], [1], today).rows
+    expect(row.bars[0]).toMatchObject({ from: 43, length: 6, cutStart: false, cutEnd: true })
+  })
+
+  it("keeps a single day, even on the timeline's last day", () => {
+    const [row] = leaveTimeline([at(1, '2026-10-05', '2026-10-05'), at(1, '2026-11-15', '2026-11-15')], [1], today).rows
+    expect(row.bars.map((b) => [b.from, b.length])).toEqual([
+      [7, 1],
+      [48, 1],
+    ])
+  })
+
+  it('lists leave over, newest first, and leave beyond the seven weeks, soonest first', () => {
+    const leave = [at(1, '2026-08-01', '2026-08-02'), at(1, '2026-09-10', '2026-09-12'), at(1, '2026-12-01', '2026-12-02'), at(1, '2026-11-16', '2026-11-16')]
+    const t = leaveTimeline(leave, [1], today)
+    expect(t.past.map((l) => l.fromDate)).toEqual(['2026-09-10', '2026-08-01'])
+    expect(t.later.map((l) => l.fromDate)).toEqual(['2026-11-16', '2026-12-01'])
   })
 })

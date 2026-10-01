@@ -242,9 +242,12 @@ Plain admin screens. Nothing clever. The staff screen is a list, one line per
 person in roster order, showing availability, expected hours and hourly rate, with
 inactive people folded away at its foot. Clicking someone opens a panel beside it
 (a sheet on a phone) for their name, availability, expected hours, hourly rate,
-notes and the active flag, and for removing them. Below the list is a
-**Booked leave** table: who, from, to, days, note. Multi-day periods are
-booked there; the roster's own cell action is just the one-day shortcut. Settings holds the business
+notes and the active flag, their leave, and for removing them. Each line shows
+the person's next leave. Below the list, **Upcoming leave** draws the next seven
+weeks: a row per person away and a bar per booking, a line at today, and the
+leave that's over or further ahead behind links, each cancellable. On a phone
+it's a list, soonest first. Leave is booked there or in the person's panel, and
+the roster can't book any. Settings holds the business
 name, trading hours per weekday — opens, closes — the shift templates, the weekend and public holiday
 rates, and the public holidays: date and an optional name, past ones greyed. Nothing week-specific.
 
