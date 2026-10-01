@@ -102,6 +102,7 @@ export function LeaveTimeline({
                 {bars.map(({ leave: l, from, length, cutStart, cutEnd }) => (
                   <button
                     key={l.id}
+                    data-keeps-panel
                     aria-label={`${l.name} away ${describeLeave(l)}`}
                     title={`${describeLeave(l)}. Open ${l.name}`}
                     className={`absolute inset-y-2 flex items-center overflow-hidden border border-warn-line bg-warn-bg px-1.5 text-[10.5px] font-semibold whitespace-nowrap text-warn-deep hover:border-warn ${cutStart ? 'rounded-l-none border-l-0' : 'rounded-l-chip'} ${cutEnd ? 'rounded-r-none border-r-0' : 'rounded-r-chip'}`}

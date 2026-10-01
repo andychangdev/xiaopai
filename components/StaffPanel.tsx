@@ -24,13 +24,14 @@ type Report = (result: ActionResult) => string | undefined
 /**
  * Everything about one person, beside the Staff page's list or, on a narrow
  * screen, as a sheet over it. Each box saves as you leave it and each toggle
- * as you press it, as the old table did. Esc or × closes it.
+ * as you press it, as the old table did. Esc, × or a click outside closes it.
  */
 export function StaffPanel({
   person,
   leave,
   today,
   onClose,
+  onDismiss,
   onAdded,
 }: {
   /** Who it's for, or 'new' while adding someone */
@@ -38,7 +39,10 @@ export function StaffPanel({
   /** Their bookings, soonest first */
   leave: LeaveListRow[]
   today: IsoDate
+  /** Closed with Esc or × */
   onClose: () => void
+  /** Closed by a click somewhere else, which keeps the focus it gives */
+  onDismiss: () => void
   /** Someone new is on the list, so their own panel can open */
   onAdded: (id: number) => void
 }) {
@@ -50,6 +54,21 @@ export function StaffPanel({
     return result.error
   }
 
+  // A click anywhere else closes it, though not one that opens someone (their
+  // line, a leave bar, Add person), which moves it on to them instead. A box
+  // being typed in is left first, so what's in it saves.
+  useEffect(() => {
+    const away = (e: PointerEvent) => {
+      const target = e.target as Element
+      if (ref.current?.contains(target) || target.closest?.('[data-keeps-panel]')) return
+      const typing = document.activeElement
+      if (typing instanceof HTMLElement && ref.current?.contains(typing)) typing.blur()
+      onDismiss()
+    }
+    document.addEventListener('pointerdown', away)
+    return () => document.removeEventListener('pointerdown', away)
+  }, [onDismiss])
+
   // Coming in, focus comes too, unless a box in it has already taken it
   useEffect(() => {
     const box = ref.current
@@ -58,8 +77,8 @@ export function StaffPanel({
 
   return (
     <>
-      {/* The sheet's backdrop; beside the list there's none */}
-      <div aria-hidden className="fixed inset-0 z-50 bg-scrim lg:hidden" onClick={onClose} />
+      {/* The sheet's backdrop, which a click closes like anywhere else; beside the list there's none */}
+      <div aria-hidden className="fixed inset-0 z-50 bg-scrim lg:hidden" />
       <section
         ref={ref}
         tabIndex={-1}

@@ -93,11 +93,11 @@ export function StaffList({
     move(active[from].id, shownGap)
   }
 
-  function close() {
+  /** Closing with Esc or ×, focus goes back to their line, so the keyboard carries on from there. */
+  function close(refocus = true) {
     const id = selected
     select(null)
-    // Back to their line, so the keyboard carries on from where it was
-    if (typeof id === 'number') document.querySelector<HTMLElement>(`[data-person="${id}"]`)?.focus()
+    if (refocus && typeof id === 'number') document.querySelector<HTMLElement>(`[data-person="${id}"]`)?.focus()
   }
 
   return (
@@ -109,7 +109,7 @@ export function StaffList({
             title="People"
             note="In roster order. Drag the handle to rearrange, and click someone to change their details."
             action={
-              <button className="btn" onClick={() => select('new')}>
+              <button data-keeps-panel className="btn" onClick={() => select('new')}>
                 + Add person
               </button>
             }
@@ -196,7 +196,8 @@ export function StaffList({
           person={person ?? 'new'}
           leave={person ? leaveOf(person.id) : []}
           today={today}
-          onClose={close}
+          onClose={() => close()}
+          onDismiss={() => close(false)}
           onAdded={(id) => select(id)}
         />
       ) : (
@@ -259,6 +260,7 @@ function Line({
         <button
           draggable
           data-handle={person.id}
+          data-keeps-panel
           aria-label={`Move ${person.name} up or down, with the arrow keys`}
           title="Drag to reorder, or use the arrow keys"
           className="grid h-10 w-6 flex-none cursor-grab place-items-center text-ink-3 hover:text-ink"
@@ -286,6 +288,7 @@ function Line({
       )}
       <button
         data-person={person.id}
+        data-keeps-panel
         aria-expanded={selected}
         className="grid min-w-0 flex-1 grid-cols-[30px_minmax(0,1fr)_auto] items-center gap-3 py-2.5 pr-2 pl-1 text-left sm:grid-cols-[30px_minmax(0,1fr)_76px_52px_68px]"
         onClick={onOpen}
