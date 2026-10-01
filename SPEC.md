@@ -43,7 +43,7 @@ and is the row order on every roster. Not alphabetical: you think of your staff
 in a particular order, and rows must never move around while you're editing.
 `available` is one flag per weekday — the recurring pattern of when someone can
 work. A dated absence is a **Leave** row instead. `hourly_rate` is whole cents
-and only feeds the cost estimate below the grid.
+and only feeds the cost estimate in the Week summary.
 
 **ShiftTemplate** — `id`, `name`, `start`, `end`
 Used to prefill a shift. Times stay editable afterwards. The three real ones:
@@ -143,7 +143,7 @@ The three states, shown as a badge next to the button:
 
 ### Roster editor — the main screen
 
-Employees as rows, Mon–Sun as columns, full width. One week at a time, with
+Employees as rows, Mon–Sun as columns. One week at a time, with
 arrows to move between weeks.
 
 Every active employee is a row — there is no adding people to a week. Hiding
@@ -178,8 +178,11 @@ Speed matters more than anything else here:
   closed days — none of them are shifts.
 - **Undo** the last grid action, Clear week included.
 
-**Warnings** and **Week summary** sit in two panels *below* the grid, not
-beside it, so the roster gets the full width of the screen. Week summary
+**Week summary** sits in a narrow panel beside the grid, and **Warnings** in a
+panel below it, so the hours and cost stay in view while rostering. On a
+screen too narrow for the grid and the summary side by side, the summary
+drops below the grid next to Warnings, so the grid never has to scroll for
+it. Week summary
 is a small table of each person's hours against their expected weekly hours,
 plus the week total; anyone more than 20% above or below is highlighted, and
 anyone with no hours that week is dimmed.

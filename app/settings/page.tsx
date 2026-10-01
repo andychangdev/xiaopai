@@ -41,7 +41,7 @@ export default function SettingsPage() {
       </Card>
       <Card title="Pay rates">
         <p className="px-3.5 pt-3.5 text-[12.5px] text-ink-2">
-          For the estimated cost under the roster. Each is a percentage of the person&apos;s hourly rate on the
+          For the estimated cost on the roster. Each is a percentage of the person&apos;s hourly rate on the
           Staff page: 125% is time and a quarter, and 100% is nothing extra. The weekend is Saturday and Sunday, and
           a public holiday at the weekend takes whichever rate is higher.
         </p>

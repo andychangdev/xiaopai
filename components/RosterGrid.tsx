@@ -212,86 +212,91 @@ export function RosterGrid({
 
   return (
     <>
-      <div className="overflow-hidden rounded-card border border-line bg-surface">
-        <div className="overflow-x-auto">
-          <div className="roster-grid">
-            <div className={`${headCell} border-r border-r-line text-ink-2`}>Staff</div>
-            {days.map((date, i) => (
-              <DayHeading
-                key={date}
-                date={date}
-                closed={closedDays[i]}
-                today={date === today}
-                onClick={() => setClosed(date, !closedDays[i])}
-              />
-            ))}
+      <div className="roster-layout">
+        <div className="overflow-hidden rounded-card border border-line bg-surface [grid-area:grid]">
+          <div className="overflow-x-auto">
+            <div className="roster-grid">
+              <div className={`${headCell} border-r border-r-line text-ink-2`}>Staff</div>
+              {days.map((date, i) => (
+                <DayHeading
+                  key={date}
+                  date={date}
+                  closed={closedDays[i]}
+                  today={date === today}
+                  onClick={() => setClosed(date, !closedDays[i])}
+                />
+              ))}
 
-            {staff.map((person) => (
-              <Row key={person.id} person={person} hours={hoursFor(person.id, shifts)}>
-                {days.map((date, i) => {
-                  if (closedDays[i]) return <ClosedCell key={date} />
-                  const key = cellKey(person.id, date)
-                  const inCell = cells.get(key) ?? []
-                  const away = leaveOn(leave, person.id, date)
-                  // Leave takes no shift, so there's nothing to paste into it, and no N/A to show
-                  const copy = copying && !away && copyShift(copying.shift, { staffId: person.id, date }, inCell)
-                  // A drag lands where a paste would: not on leave, nor where those times already are, its own cell included
-                  const canDrop = dragging && !away && copyShift(dragging, { staffId: person.id, date }, inCell)
-                  const na = away ? null : naReason(person, date, naNotes)
-                  return (
-                    <Cell
-                      key={date}
-                      person={person}
-                      date={date}
-                      shifts={inCell}
-                      overlapping={overlapping}
-                      na={na ? naNote(na, person.name, date) : undefined}
-                      leave={away && onLeaveNote(person.name, away)}
-                      mode={!copying ? 'edit' : copy ? 'paste' : away ? 'away' : 'holds'}
-                      copying={copying?.shift}
-                      onClick={(e, shift) => {
-                        if (copying) {
-                          // A double click is one paste, not two
-                          if (copy && e.detail < 2) paste(copy, person, copying)
-                          return
-                        }
-                        // Clicking what opened the popover again closes it
-                        const anchor = e.currentTarget
-                        setOpen((o) => (o?.anchor === anchor ? null : { person, date, shift, na, leave: away, anchor }))
-                      }}
-                      onRemove={remove}
-                      dragged={dragging?.id}
-                      drop={canDrop ? (over === key ? 'over' : 'open') : undefined}
-                      onDrag={(shift) => (shift ? startDrag(shift) : endDrag())}
-                      onDropHover={(on) => setOver((o) => (on ? key : o === key ? null : o))}
-                      onDrop={() => dragging && move(dragging, { staffId: person.id, date })}
-                    />
-                  )
-                })}
-              </Row>
-            ))}
+              {staff.map((person) => (
+                <Row key={person.id} person={person} hours={hoursFor(person.id, shifts)}>
+                  {days.map((date, i) => {
+                    if (closedDays[i]) return <ClosedCell key={date} />
+                    const key = cellKey(person.id, date)
+                    const inCell = cells.get(key) ?? []
+                    const away = leaveOn(leave, person.id, date)
+                    // Leave takes no shift, so there's nothing to paste into it, and no N/A to show
+                    const copy = copying && !away && copyShift(copying.shift, { staffId: person.id, date }, inCell)
+                    // A drag lands where a paste would: not on leave, nor where those times already are, its own cell included
+                    const canDrop = dragging && !away && copyShift(dragging, { staffId: person.id, date }, inCell)
+                    const na = away ? null : naReason(person, date, naNotes)
+                    return (
+                      <Cell
+                        key={date}
+                        person={person}
+                        date={date}
+                        shifts={inCell}
+                        overlapping={overlapping}
+                        na={na ? naNote(na, person.name, date) : undefined}
+                        leave={away && onLeaveNote(person.name, away)}
+                        mode={!copying ? 'edit' : copy ? 'paste' : away ? 'away' : 'holds'}
+                        copying={copying?.shift}
+                        onClick={(e, shift) => {
+                          if (copying) {
+                            // A double click is one paste, not two
+                            if (copy && e.detail < 2) paste(copy, person, copying)
+                            return
+                          }
+                          // Clicking what opened the popover again closes it
+                          const anchor = e.currentTarget
+                          setOpen((o) =>
+                            o?.anchor === anchor ? null : { person, date, shift, na, leave: away, anchor },
+                          )
+                        }}
+                        onRemove={remove}
+                        dragged={dragging?.id}
+                        drop={canDrop ? (over === key ? 'over' : 'open') : undefined}
+                        onDrag={(shift) => (shift ? startDrag(shift) : endDrag())}
+                        onDropHover={(on) => setOver((o) => (on ? key : o === key ? null : o))}
+                        onDrop={() => dragging && move(dragging, { staffId: person.id, date })}
+                      />
+                    )
+                  })}
+                </Row>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
+            <UndoButton week={week} last={lastAction} />
+            <CopyPreviousWeek week={week} previousShifts={previousShifts} />
+            <button className="btn btn-danger" onClick={clear}>
+              Clear week
+            </button>
+            <span className="ml-auto self-center font-mono text-[12.5px] text-ink-2 tabular-nums">
+              Total rostered <b className="font-semibold text-ink">{formatHours(weekTotal(shifts))}</b>
+            </span>
+            <span className="order-last basis-full self-center text-[11.5px] text-ink-3">
+              {[tradingHours, closedThisWeek(closedDays)].filter(Boolean).join(' · ')}
+            </span>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
-          <UndoButton week={week} last={lastAction} />
-          <CopyPreviousWeek week={week} previousShifts={previousShifts} />
-          <button className="btn btn-danger" onClick={clear}>
-            Clear week
-          </button>
-          <span className="ml-auto self-center font-mono text-[12.5px] text-ink-2 tabular-nums">
-            Total rostered <b className="font-semibold text-ink">{formatHours(weekTotal(shifts))}</b>
-          </span>
-          <span className="order-last basis-full self-center text-[11.5px] text-ink-3">
-            {[tradingHours, closedThisWeek(closedDays)].filter(Boolean).join(' · ')}
-          </span>
+        <div className="[grid-area:warnings]">
+          <WarningsPanel
+            warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })}
+          />
         </div>
-      </div>
-      {/* Below the grid rather than beside it, so the roster keeps the full width */}
-      <div className="mt-4 grid items-start gap-4 min-[820px]:grid-cols-[minmax(0,1fr)_330px]">
-        <WarningsPanel
-          warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })}
-        />
-        <WeekSummary staff={staff} shifts={shifts} rates={payRates} />
+        <div className="[grid-area:summary]">
+          <WeekSummary staff={staff} shifts={shifts} rates={payRates} />
+        </div>
       </div>
       {open &&
         // A leave day's own popover, unless a shift kept on it was clicked

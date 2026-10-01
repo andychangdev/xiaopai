@@ -17,7 +17,7 @@ export default function StaffPage() {
         Rows appear on the roster in this order, so drag them by the handle at the end to arrange them the way you think about your staff.
         Everyone active appears on every week&apos;s roster. Available is the weekdays someone can normally
         work: rostering them on another day raises a warning, but is never blocked. Hourly rate is optional, and
-        only estimates the week&apos;s cost under the roster; weekend and holiday rates are in Settings.
+        only estimates the week&apos;s cost on the roster; weekend and holiday rates are in Settings.
         Unticking Active takes someone off new weeks, but leaves them on any week where they already have
         shifts.
       </PageHead>
