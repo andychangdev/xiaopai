@@ -37,9 +37,20 @@ source of truth. To edit it from another Claude session, give that session the
 URL and have it **read the artifact first**; publishing without the URL creates
 a second, unrelated artifact.
 
+## The redesign
+
+`redesign.html` is the October 2026 redesign of the navigation, Staff and
+Settings pages, which tickets 21–30 build. Published at
+<https://claude.ai/artifact/5ACrxVNqgove3qLMrKF1ce> (private to the owner).
+
+Unlike `roster-editor.html` it's a set of pictures, not working logic: each
+screen is static HTML in the app's palette, drawn at a fixed width and scaled
+to fit. The staff, rates, templates and business name are examples. Where it
+and the tickets disagree, the tickets win.
+
 ## Opening it locally
 
-The file carries a `<meta charset="utf-8">` and nothing else by way of
+Each file carries a `<meta charset="utf-8">` and nothing else by way of
 boilerplate — no `<!doctype>`, `<html>` or `<body>`. That's deliberate: the
 artifact runtime wraps it in those, and adding your own would nest them on
 republish. Browsers fill them in for a local file anyway, so double-clicking it

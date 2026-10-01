@@ -1,0 +1,702 @@
+<meta charset="utf-8">
+<title>Xiaopai Combined Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a short brief, then one full screen per page at 1160px, then phones.
+   The screens are fixed-light pictures of the app; the document around them follows the viewer's theme. */
+:root {
+  --bg: #fbf9f5;
+  --panel: #f3efe7;
+  --ink: #1e2420;
+  --muted: #69655c;
+  --rule: #e3dccf;
+  --accent: #007a4d;
+  --accent-soft: #e0f4e8;
+  --accent-line: #94d8b3;
+  --shadow: 0 1px 0 rgb(30 36 32 / 0.04), 0 10px 30px -12px rgb(30 36 32 / 0.18);
+
+  --display: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --body: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #131714; --panel: #1b201c; --ink: #e9e5dc; --muted: #a39d91; --rule: #2d342e;
+    --accent: #5fd3a2; --accent-soft: #173326; --accent-line: #2f6a4f;
+    --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 34px -14px rgb(0 0 0 / 0.7);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #131714; --panel: #1b201c; --ink: #e9e5dc; --muted: #a39d91; --rule: #2d342e;
+  --accent: #5fd3a2; --accent-soft: #173326; --accent-line: #2f6a4f;
+  --shadow: 0 1px 0 rgb(0 0 0 / 0.3), 0 14px 34px -14px rgb(0 0 0 / 0.7);
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); -webkit-font-smoothing: antialiased; padding-inline: 20px; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-block: 48px 96px; }
+h1, h2, h3, h4 { margin: 0; text-wrap: balance; font-family: var(--display); }
+p { margin: 0; }
+ul { margin: 0; padding-left: 1.1em; }
+li + li { margin-top: 4px; }
+code { font-family: var(--mono); font-size: 0.88em; background: var(--panel); padding: 1px 5px; border-radius: 4px; }
+
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; }
+.top { display: grid; gap: 14px; }
+.top h1 { font-size: clamp(28px, 4.4vw, 40px); line-height: 1.08; font-weight: 640; font-stretch: 112%; letter-spacing: -0.015em; max-width: 22ch; }
+.lede { color: var(--muted); font-size: 16px; max-width: 68ch; }
+
+.brief { margin-top: 10px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.brief > div { background: var(--bg); padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.brief .area { font: 500 11px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.brief b { font-family: var(--display); font-stretch: 106%; font-size: 15px; }
+.brief span:not(.area) { font-size: 13.5px; color: var(--muted); }
+@media (max-width: 760px) { .brief { grid-template-columns: 1fr; } }
+
+.hl-legend { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 28px; align-items: center; padding: 16px 18px; background: var(--panel); border-radius: 12px; }
+.hl-legend p { font-size: 14px; max-width: 60ch; }
+.hl-legend p b { font-family: var(--display); }
+.hl-samples { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; border-radius: 10px; background: #fcfaf5; border: 1px solid #e0d8c9; color-scheme: light; }
+@media (max-width: 760px) { .hl-legend { grid-template-columns: 1fr; } }
+
+section.screen-block { margin-top: 64px; display: grid; gap: 16px; }
+.sb-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.sb-head h2 { font-size: 26px; font-weight: 640; font-stretch: 112%; letter-spacing: -0.01em; }
+.sb-head .from { font: 500 12px/1 var(--mono); color: var(--muted); }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 32px; font-size: 14px; }
+.notes li { max-width: 60ch; }
+
+.build { display: grid; gap: 8px; font-size: 14.5px; }
+.build li { max-width: 80ch; }
+
+/* ---------- Mockup frames ---------- */
+.shot { width: fit-content; max-width: 100%; overflow-x: auto; border-radius: 12px; box-shadow: var(--shadow); }
+.screen, .hl-samples {
+  /* The app's palette, fixed light: these are pictures of the app */
+  --c: #f4efe6; --s: #fcfaf5; --s2: #ece5d8; --s3: #f8f5ee; --l: #e0d8c9; --ls: #c9bfad;
+  --i: #1e2420; --i2: #6b665d; --i3: #958e82; --off: #a39c90; --unavail: #efe8dc;
+  --ac: #12a26a; --acd: #007a4d; --acb: #e0f4e8; --acl: #94d8b3; --pr: #109663;
+  --w: #e88a00; --wd: #9c5700; --wb: #fdefcf; --wl: #f5c46a; --cd: #c0262d;
+  color: var(--i);
+}
+.screen {
+  color-scheme: light;
+  width: 1160px;
+  background: var(--c);
+  font: 13px/1.45 var(--body);
+  border: 1px solid #d8cfbf; border-radius: 12px; overflow: hidden;
+  position: relative;
+}
+.screen .u { font: 11px/1 var(--mono); color: var(--i3); background: var(--s2); padding: 7px 12px; border-bottom: 1px solid var(--l); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.screen h5 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+.screen h6 { margin: 0; font-size: 13.5px; font-weight: 600; }
+.screen svg { display: block; }
+.btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--l); background: var(--s); border-radius: 7px; padding: 6px 12px; font-size: 12.5px; font-weight: 500; white-space: nowrap; color: var(--i); }
+.btn.pri { background: var(--pr); border-color: var(--pr); color: #fff; font-weight: 600; }
+.btn.danger { color: var(--cd); }
+.btn.dim { color: var(--i3); }
+.btn.sm { padding: 4px 9px; font-size: 11.5px; }
+.fld { border: 1px solid var(--l); background: var(--s3); border-radius: 5px; padding: 5px 8px; font-size: 12.5px; min-height: 28px; display: flex; align-items: center; color: var(--i); }
+.fld.sel { justify-content: space-between; gap: 8px; font-family: var(--mono); }
+.fld.sel::after { content: ''; flex: none; width: 6px; height: 6px; border-right: 1.5px solid var(--i2); border-bottom: 1.5px solid var(--i2); transform: translateY(-2px) rotate(45deg); }
+.fld.focus { border-color: var(--ac); box-shadow: 0 0 0 1px var(--ac); background: var(--s); }
+.mark { width: 30px; height: 30px; border-radius: 8px; background: var(--pr); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.sect { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--i3); }
+.link { color: var(--acd); font-weight: 600; }
+.muted { color: var(--i3); }
+
+/* The highlight: light green tint, green border, deep green text. Everything current or selected. */
+.hl { background: var(--acb); box-shadow: inset 0 0 0 1px var(--acl); color: var(--acd); }
+.pill { display: inline-flex; align-items: center; border-radius: 99px; padding: 2px 8px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap; }
+.pill.warn { background: var(--wb); box-shadow: inset 0 0 0 1px var(--wl); color: var(--wd); }
+.pill.plain { color: var(--i3); box-shadow: inset 0 0 0 1px var(--l); }
+.chip { display: block; font: 500 11.5px/1 var(--mono); letter-spacing: -0.02em; border-radius: 5px; padding: 6px 7px; text-align: left; white-space: nowrap; }
+
+/* App frame: rail then page */
+.app { display: grid; grid-template-columns: 72px minmax(0, 1fr); }
+.rail { background: var(--s); border-right: 1px solid var(--l); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 0 12px; }
+.brand { display: grid; justify-items: center; gap: 5px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--l); width: 52px; }
+.brand span:last-child { font-size: 10.5px; font-weight: 650; text-align: center; line-height: 1.2; }
+.it { width: 58px; display: grid; justify-items: center; gap: 3px; padding: 8px 0 7px; border-radius: 8px; font-size: 10.5px; font-weight: 500; color: var(--i2); }
+.it.hl { font-weight: 600; color: var(--acd); }
+.rail .sp { flex: 1; }
+.pg { padding: 16px 20px 22px; min-width: 0; }
+
+/* ---------- Roster ---------- */
+.wkbar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; position: relative; }
+.arrow { width: 30px; height: 30px; border: 1px solid var(--l); border-radius: 7px; background: var(--s); display: grid; place-items: center; color: var(--i2); font-size: 15px; }
+.wkpick { display: flex; align-items: center; gap: 6px; }
+.wk-dd { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--l); background: var(--s); }
+.wk-dd b { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.wk-dd .chev { width: 7px; height: 7px; border-right: 1.6px solid var(--i2); border-bottom: 1.6px solid var(--i2); transform: translateY(-2px) rotate(45deg); }
+.wk-dd.open { border-color: var(--ac); box-shadow: 0 0 0 1px var(--ac); }
+.wk-sub { font-size: 11px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--i3); font-weight: 500; }
+.menu { position: absolute; top: 40px; left: 106px; width: 330px; background: var(--s); border: 1px solid var(--l); border-radius: 10px; box-shadow: 0 12px 32px rgb(0 0 0 / 0.18); padding: 6px; z-index: 3; }
+.mi { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; font-size: 13px; }
+.mi small { display: block; font-size: 11px; color: var(--i3); }
+.mi.hl small { color: var(--acd); }
+.menu hr { border: 0; border-top: 1px solid var(--l); margin: 5px 4px; }
+.mi.all { grid-template-columns: 1fr auto; }
+
+.rg-card { border: 1px solid var(--l); border-radius: 10px; background: var(--s); overflow: hidden; }
+.rg { display: grid; grid-template-columns: 150px repeat(7, minmax(0, 1fr)); }
+.rg > div { border-right: 1px solid var(--l); border-bottom: 1px solid var(--l); padding: 6px; min-height: 56px; }
+.rg > div:nth-child(8n) { border-right: 0; }
+.rg .h { min-height: 0; padding: 8px 6px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--i2); text-align: center; background: var(--s3); }
+.rg .h:first-child { text-align: left; padding-left: 10px; }
+.rg .h small { display: block; font: 400 11px/1.3 var(--mono); letter-spacing: 0; text-transform: none; color: var(--i3); }
+.rg .h.today { color: var(--acd); box-shadow: inset 0 -2px 0 var(--ac); }
+.rg .h.today small { color: var(--acd); }
+.rg .n { background: var(--s3); padding: 8px 10px; }
+.rg .n b { display: block; font-size: 13.5px; font-weight: 600; }
+.rg .n small { display: block; margin-top: 3px; font: 12px var(--mono); color: var(--i2); }
+.rg .n small.under { color: var(--wd); font-weight: 600; }
+.rg .na { background: var(--unavail); display: grid; place-items: center; font: 500 10.5px var(--mono); letter-spacing: 0.12em; color: var(--i3); }
+.rg .lv { display: grid; place-items: center; font: 500 11px var(--mono); letter-spacing: 0.14em; color: var(--off); }
+.rg-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; background: var(--s3); border-top: 1px solid var(--l); }
+.rg-foot .tot { margin-left: auto; font: 12.5px var(--mono); color: var(--i2); }
+.rg-foot .tot b { color: var(--i); }
+.rg-foot .open { flex-basis: 100%; font-size: 11.5px; color: var(--i3); }
+.rlay { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.rlay-main { display: grid; gap: 16px; min-width: 0; }
+.pnl { border: 1px solid var(--l); border-radius: 10px; background: var(--s); overflow: hidden; }
+.pnl-h { margin: 0; padding: 10px 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--i2); background: var(--s3); border-bottom: 1px solid var(--l); }
+.pnl-empty { padding: 12px; font-size: 12.5px; color: var(--i3); }
+.ws table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.ws th { font-size: 10.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--i3); padding: 8px 12px; border-bottom: 1px solid var(--l); text-align: right; white-space: nowrap; }
+.ws th:first-child { text-align: left; }
+.ws td { padding: 5px 12px; }
+.ws tbody tr:first-child td { padding-top: 10px; }
+.ws tbody tr:last-child td { padding-bottom: 10px; }
+.ws .c { border-left: 1px solid var(--l); text-align: right; font: 12px var(--mono); color: var(--i2); white-space: nowrap; }
+.ws .hrs { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.ws .meter { width: 48px; height: 5px; border-radius: 99px; background: var(--s2); overflow: hidden; flex: none; }
+.ws .meter i { display: block; height: 100%; border-radius: 99px; background: var(--ac); }
+.ws .meter i.under { background: var(--w); }
+.ws .fig { font: 12px var(--mono); min-width: 48px; text-align: right; color: var(--i2); white-space: nowrap; }
+.ws .fig.flag { font-weight: 600; color: var(--i); }
+.ws .fig small { font-size: inherit; color: var(--i3); font-weight: 400; }
+.ws tfoot td { border-top: 1px solid var(--l); font-weight: 600; padding: 8px 12px; }
+.ws tfoot .fig, .ws tfoot .c { color: var(--i); font-weight: 600; }
+.ws-foot { display: grid; gap: 10px; padding: 10px 12px; background: var(--s3); border-top: 1px solid var(--l); }
+.ws-status { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.ws-status i { width: 7px; height: 7px; border-radius: 50%; background: var(--w); }
+.ws-status span { color: var(--i3); font-weight: 400; }
+.ws-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ws-btns .btn { justify-content: center; padding-block: 8px; }
+
+/* ---------- Staff ---------- */
+.ph { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 14px; }
+.ph p { color: var(--i2); font-size: 12.5px; margin-top: 3px; }
+.card { background: var(--s); border: 1px solid var(--l); border-radius: 10px; overflow: hidden; }
+.sb { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+.list .row { display: grid; grid-template-columns: 14px 30px minmax(0, 1fr) 76px 60px 74px; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--l); }
+.list .row:last-child { border-bottom: 0; }
+.list .row.hl { color: var(--i); }
+.grip { color: var(--i3); font-size: 11px; letter-spacing: -2px; }
+.av { width: 30px; height: 30px; border-radius: 50%; background: var(--s2); display: grid; place-items: center; font-weight: 600; font-size: 12px; color: var(--i2); }
+.row.hl .av { background: #c8ebd6; color: var(--acd); }
+.who b { display: block; font-weight: 600; white-space: nowrap; }
+.who small { display: block; font-size: 11.5px; color: var(--i3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.away { display: inline-block; margin-left: 6px; vertical-align: 1px; font-size: 10.5px; font-weight: 600; color: var(--wd); background: var(--wb); box-shadow: inset 0 0 0 1px var(--wl); border-radius: 99px; padding: 1px 7px; }
+.dots { display: inline-flex; gap: 3px; align-items: center; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--l); }
+.dots i.y { background: var(--ac); }
+.num { text-align: right; font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+.num small { display: block; font: 10px var(--body); color: var(--i3); }
+.inactive { padding: 9px 12px; background: var(--s3); font-size: 11.5px; color: var(--i2); display: flex; justify-content: space-between; border-top: 1px solid var(--l); }
+.days { display: inline-flex; gap: 3px; }
+.days i { font-style: normal; width: 22px; height: 22px; border-radius: 5px; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; box-shadow: inset 0 0 0 1px var(--l); background: var(--s3); color: var(--i3); }
+.days i.hl { background: var(--acb); box-shadow: inset 0 0 0 1px var(--acl); color: var(--acd); }
+.panel { background: var(--s); border: 1px solid var(--l); border-radius: 10px; box-shadow: 0 12px 32px rgb(0 0 0 / 0.1); }
+.p-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--l); }
+.p-head b { font-size: 15px; font-weight: 600; }
+.p-body { padding: 12px 14px; display: grid; gap: 12px; }
+.lab { display: grid; gap: 4px; font-size: 11px; font-weight: 600; color: var(--i2); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sw { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--i2); }
+.sw i { width: 28px; height: 16px; border-radius: 99px; background: var(--ac); position: relative; }
+.sw i::after { content: ''; position: absolute; top: 2px; right: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+.lvlist { border: 1px solid var(--l); border-radius: 8px; }
+.lvlist .li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 10px; font-size: 12px; border-bottom: 1px solid var(--l); }
+.lvlist .li:last-child { border-bottom: 0; }
+.lvlist .li span { color: var(--i3); }
+.p-foot { padding: 10px 14px; border-top: 1px solid var(--l); display: flex; justify-content: space-between; align-items: center; }
+.p-foot .rm { font-size: 12px; color: var(--cd); font-weight: 500; }
+.p-foot small { font-size: 11px; color: var(--i3); }
+
+.sb-left { display: grid; gap: 18px; min-width: 0; }
+.tl-wrap .ph { margin-bottom: 10px; }
+.tl { background: var(--s); border: 1px solid var(--l); border-radius: 10px; overflow: hidden; }
+.tl-head, .tl-row { display: grid; grid-template-columns: 90px minmax(0, 1fr); }
+.tl-head { background: var(--s3); border-bottom: 1px solid var(--l); }
+.tl-head .wks { display: grid; grid-template-columns: repeat(7, 1fr); }
+.tl-head .wks span { font: 10.5px var(--mono); color: var(--i3); padding: 7px 6px; border-left: 1px solid var(--l); }
+.tl-head .wks span.this { color: var(--acd); font-weight: 500; }
+.tl-head .lab2 { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--i3); padding: 8px 12px; }
+.tl-row { border-bottom: 1px solid var(--l); }
+.tl-row:last-child { border-bottom: 0; }
+.tl-row .nm { padding: 10px 12px; font-weight: 600; font-size: 12.5px; }
+.tl-row.sel .nm { background: var(--acb); color: var(--acd); }
+.track { position: relative; min-height: 38px; background-image: repeating-linear-gradient(90deg, var(--l) 0 1px, transparent 1px calc(100% / 7)); }
+.bar { position: absolute; top: 8px; bottom: 8px; border-radius: 5px; background: var(--wb); box-shadow: inset 0 0 0 1px var(--wl); color: var(--wd); font-size: 10.5px; font-weight: 600; padding: 0 6px; display: flex; align-items: center; white-space: nowrap; overflow: hidden; }
+.bar.short { font: 500 10px var(--mono); padding: 0 2px; justify-content: center; }
+.todayline { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--ac); }
+.tl-foot { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: var(--s3); border-top: 1px solid var(--l); font-size: 11.5px; color: var(--i2); }
+.tl-foot i { display: inline-block; width: 10px; height: 2px; background: var(--ac); vertical-align: middle; margin-right: 6px; }
+
+/* ---------- Settings ---------- */
+.sta { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 22px; align-items: start; }
+.idx { display: grid; gap: 3px; }
+.idx span { padding: 7px 10px; border-radius: 7px; font-size: 12.5px; color: var(--i2); }
+.idx span.hl { font-weight: 600; color: var(--acd); }
+.sec { display: grid; grid-template-columns: 186px minmax(0, 1fr); gap: 22px; padding: 18px 20px; border-bottom: 1px solid var(--l); }
+.sec:last-child { border-bottom: 0; }
+.sec p { font-size: 11.5px; color: var(--i2); margin-top: 3px; line-height: 1.45; }
+.strip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; }
+.day { border-radius: 8px; padding: 8px 7px; display: grid; gap: 6px; background: var(--s3); box-shadow: inset 0 0 0 1px var(--l); }
+.day .d { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--i2); display: flex; justify-content: space-between; }
+.day .d span { font: 500 10.5px var(--mono); letter-spacing: 0; color: var(--i3); text-transform: none; }
+.day.hl { background: var(--acb); box-shadow: inset 0 0 0 1px var(--acl); }
+.day.hl .d, .day.hl .d span { color: var(--acd); }
+.day .fld.sel { background: var(--s); font-size: 12px; padding: 4px 6px; }
+.strip-foot { margin-top: 8px; font-size: 11.5px; color: var(--i2); }
+.strip-foot b { font-family: var(--mono); font-weight: 500; color: var(--i); }
+.tb-ticks, .tb { display: grid; grid-template-columns: 112px minmax(0, 1fr) 46px 18px; gap: 12px; align-items: center; }
+.tb-ticks .scale { position: relative; height: 16px; font: 10px var(--mono); color: var(--i3); }
+.tb-ticks .scale span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.tb-ticks .scale span:first-child { transform: none; }
+.tb-ticks .scale span:last-child { transform: translateX(-100%); }
+.tb { padding: 7px 0; border-top: 1px solid var(--l); }
+.tb b { font-weight: 600; font-size: 12.5px; }
+.tb b small { display: block; font: 400 10.5px var(--mono); color: var(--i3); margin-top: 1px; }
+.axis { position: relative; height: 24px; border-radius: 5px; background: var(--s3); box-shadow: inset 0 0 0 1px var(--l); overflow: hidden; }
+.axis .late { position: absolute; top: 0; bottom: 0; left: 72.73%; right: 0; background: repeating-linear-gradient(135deg, transparent 0 4px, var(--s2) 4px 8px); }
+.axis .fill { position: absolute; top: 4px; bottom: 4px; left: 0; border-radius: 4px; }
+.tb .hrs { font: 12px var(--mono); color: var(--i2); text-align: right; }
+.tb .x { color: var(--i3); text-align: right; }
+.tb-edit { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; padding: 10px; margin-top: 4px; border-radius: 8px; background: var(--s3); box-shadow: inset 0 0 0 1px var(--l); }
+.tb-edit .lab { min-width: 0; }
+.tb-legend { display: flex; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 11px; color: var(--i3); }
+.tb-legend i { display: inline-block; width: 18px; height: 10px; vertical-align: -1px; margin-right: 6px; border-radius: 2px; background: repeating-linear-gradient(135deg, var(--s3) 0 4px, var(--s2) 4px 8px); box-shadow: inset 0 0 0 1px var(--l); }
+.rates { display: flex; gap: 24px; flex-wrap: wrap; }
+.rates .lab { grid-template-columns: auto 74px; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 500; color: var(--i); }
+.rates .fld { font-family: var(--mono); }
+.hol { display: grid; grid-template-columns: 110px minmax(0, 1fr) 18px; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--l); font-size: 12.5px; }
+.hol .x { color: var(--i3); text-align: right; }
+.hol-add { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 10px; padding-top: 10px; }
+
+/* Phones */
+.phones { display: flex; flex-wrap: wrap; gap: 22px; padding: 22px; background: var(--panel); border-radius: 12px; justify-content: center; }
+figure.phone { margin: 0; width: 300px; max-width: 100%; }
+.phone .screen { width: 100%; border-radius: 24px; height: 560px; }
+.phone figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; text-align: center; }
+.p-top { display: flex; justify-content: space-between; align-items: center; padding: 14px 14px 10px; }
+.p-top b { font-size: 17px; font-weight: 600; }
+.p-week { display: flex; align-items: center; gap: 6px; padding: 12px 12px 8px; }
+.p-week .wk-dd { flex: 1; justify-content: space-between; height: 32px; padding: 0 10px; }
+.p-week .wk-dd b { font-size: 14px; }
+.p-week .arrow { width: 32px; height: 32px; }
+.p-sub { padding: 0 14px 10px; display: flex; align-items: center; gap: 8px; }
+.p-grid { margin: 0 12px; border: 1px solid var(--l); border-radius: 10px; overflow: hidden; background: var(--s); display: grid; grid-template-columns: 82px 1fr 1fr; }
+.p-grid > div { border-right: 1px solid var(--l); border-bottom: 1px solid var(--l); padding: 5px; min-height: 50px; }
+.p-grid > div:nth-child(3n) { border-right: 0; }
+.p-grid .h { min-height: 0; text-align: center; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: var(--i2); background: var(--s3); padding: 6px 4px; }
+.p-grid .h small { display: block; font: 400 10px var(--mono); letter-spacing: 0; color: var(--i3); }
+.p-grid .h.today { color: var(--acd); box-shadow: inset 0 -2px 0 var(--ac); }
+.p-grid .n { background: var(--s3); padding: 7px 8px; }
+.p-grid .n b { font-size: 12.5px; display: block; }
+.p-grid .n small { font: 11px var(--mono); color: var(--i2); }
+.p-grid .chip { font-size: 10.5px; padding: 5px 4px; text-align: center; }
+.p-grid .na { background: var(--unavail); display: grid; place-items: center; font: 500 10px var(--mono); letter-spacing: 0.1em; color: var(--i3); }
+.p-scroll { padding: 8px 14px; font-size: 11px; color: var(--i3); text-align: center; }
+.p-list .row { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 14px; border-top: 1px solid var(--l); background: var(--s); }
+.p-list .row:last-child { border-bottom: 1px solid var(--l); }
+.p-list .num { font-size: 11.5px; }
+.p-tabs { position: absolute; inset: auto 0 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--s); border-top: 1px solid var(--l); padding: 6px 8px 14px; }
+.p-tabs span { display: grid; justify-items: center; gap: 2px; padding: 5px 0; border-radius: 8px; font-size: 10px; color: var(--i2); font-weight: 500; }
+.p-tabs span.hl { font-weight: 600; color: var(--acd); }
+.sheet { position: absolute; inset: 64px 0 0 0; background: var(--s); border-radius: 18px 18px 0 0; box-shadow: 0 -10px 30px rgb(0 0 0 / 0.16); }
+.sheet .grab { width: 36px; height: 4px; border-radius: 99px; background: var(--ls); margin: 8px auto 0; }
+.scrim { position: absolute; inset: 0; background: rgb(30 26 20 / 0.42); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow">xiaopai · redesign mockup · 2 Oct 2026</p>
+  <h1>Roster, Staff and Settings with your picks</h1>
+  <p class="lede">Each screen below combines the options you chose. The staff and rates are examples.</p>
+  <div class="brief" role="list">
+    <div role="listitem"><span class="area">Navigation</span><b>Icon rail, plus the week dropdown</b><span>B's rail on every page. The roster's ‹ week › control comes from C, with recent weeks in the dropdown.</span></div>
+    <div role="listitem"><span class="area">Staff</span><b>List and panel, plus the timeline</b><span>B's list with an edit panel, and C's leave timeline underneath.</span></div>
+    <div role="listitem"><span class="area">Settings</span><b>Section index, with the week strip and bars</b><span>A's layout and sidebar, with B's trading hours strip and shift template bars.</span></div>
+  </div>
+  <div class="hl-legend">
+    <p><b>The green highlight is used everywhere.</b> Light green tint, green border, deep green text. It marks whatever is current or selected: the page in the rail, this week, the person you're editing, the section you're on, and the bars and chips that show time.</p>
+    <div class="hl-samples" aria-label="Examples of the highlight">
+      <span class="pill hl">This week</span>
+      <span class="pill hl">Published</span>
+      <span class="chip hl">10:00–18:00</span>
+      <span class="days"><i class="hl">M</i><i class="hl">T</i><i>W</i></span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= ROSTER ================= -->
+<section class="screen-block" id="roster">
+  <div class="sb-head"><h2>Roster</h2><span class="from">Nav B rail · C's week dropdown</span></div>
+  <div class="shot"><div class="screen" data-w="1440" style="width:1440px">
+    <div class="u">localhost:3000/roster/2026-09-28 · 1440px wide</div>
+    <div class="app">
+      <aside class="rail">
+        <div class="brand"><span class="mark">J</span><span>Jade Kitchen</span></div>
+        <span class="it hl"><svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>Roster</span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5"/><path d="M10 6.5V10l2.5 1.5"/></svg>History</span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><circle cx="7.5" cy="7" r="2.7"/><path d="M2.5 16c.6-2.7 2.6-4.2 5-4.2s4.4 1.5 5 4.2"/><circle cx="13.8" cy="7.6" r="2.1"/><path d="M13.5 11.9c2 .1 3.5 1.4 4 3.6"/></svg>Staff</span>
+        <span class="sp"></span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><circle cx="10" cy="10" r="6" stroke-width="2.8" stroke-dasharray="2.4 2.31"/></svg>Settings</span>
+      </aside>
+      <main class="pg">
+        <div class="wkbar">
+          <span class="btn">Today</span>
+          <div class="wkpick">
+            <span class="arrow" title="Previous week">‹</span>
+            <span class="wk-dd open"><b>28 Sep – 4 Oct 2026</b><span class="chev"></span></span>
+            <span class="arrow" title="Next week">›</span>
+          </div>
+          <span class="pill hl">This week</span>
+          <span class="wk-sub">Week 40 · Draft</span>
+          <div class="menu" role="listbox" aria-label="Weeks">
+            <div class="mi"><span>12 – 18 Oct<small>Week 42</small></span><span class="pill plain">Empty</span></div>
+            <div class="mi"><span>5 – 11 Oct<small>Next week</small></span><span class="pill plain">Empty</span></div>
+            <div class="mi hl"><span><b>28 Sep – 4 Oct</b><small>This week</small></span><span class="pill warn">Draft</span></div>
+            <div class="mi"><span>21 – 27 Sep<small>Last week</small></span><span class="pill hl">Published</span></div>
+            <div class="mi"><span>14 – 20 Sep<small>Edited since</small></span><span class="pill warn">Published</span></div>
+            <div class="mi"><span>7 – 13 Sep<small>Week 37</small></span><span class="pill hl">Published</span></div>
+            <hr>
+            <div class="mi all"><span class="link">All weeks in History</span><span class="link">→</span></div>
+          </div>
+        </div>
+        <div class="rlay">
+        <div class="rlay-main">
+        <div class="rg-card">
+          <div class="rg">
+            <div class="h">Staff</div><div class="h">Mon<small>28 Sep</small></div><div class="h">Tue<small>29 Sep</small></div><div class="h">Wed<small>30 Sep</small></div><div class="h today">Thu<small>1 Oct</small></div><div class="h">Fri<small>2 Oct</small></div><div class="h">Sat<small>3 Oct</small></div><div class="h">Sun<small>4 Oct</small></div>
+
+            <div class="n"><b>Mia</b><small>24h</small></div>
+            <div><span class="chip hl">10:00–18:00</span></div><div></div><div><span class="chip hl">10:00–18:00</span></div><div></div><div></div><div><span class="chip hl">10:00–18:00</span></div><div></div>
+
+            <div class="n"><b>Tom</b><small>32h of 32h</small></div>
+            <div><span class="chip hl">10:00–16:00</span></div><div><span class="chip hl">10:00–18:00</span></div><div></div><div><span class="chip hl">10:00–20:30</span></div><div><span class="chip hl">10:00–17:30</span></div><div></div><div></div>
+
+            <div class="n"><b>Priya</b><small>22h</small></div>
+            <div></div><div><span class="chip hl">10:00–18:00</span></div><div></div><div><span class="chip hl">10:00–16:00</span></div><div></div><div></div><div><span class="chip hl">10:00–18:00</span></div>
+
+            <div class="n"><b>Leo</b><small>6h of 6h</small></div>
+            <div class="na">N/A</div><div class="na">N/A</div><div class="na">N/A</div><div class="na">N/A</div><div class="na">N/A</div><div class="na">N/A</div><div><span class="chip hl">10:00–16:00</span></div>
+
+            <div class="n"><b>Sun</b><small class="under">5.5h of 6h</small></div>
+            <div class="na">N/A</div><div class="na">N/A</div><div></div><div></div><div></div><div><span class="chip hl">10:00–15:30</span></div><div></div>
+          </div>
+          <div class="rg-foot">
+            <span class="btn dim">Undo</span><span class="btn">Copy previous week</span><span class="btn danger">Clear week</span>
+            <span class="tot">Total rostered <b>89.5h</b></span>
+            <span class="open">Open 10:00–18:00 · 21:00 Thu</span>
+          </div>
+        </div>
+        <section class="pnl"><h4 class="pnl-h">Warnings</h4><p class="pnl-empty">Nothing to flag on this week.</p></section>
+        </div>
+        <section class="pnl ws">
+          <h4 class="pnl-h">Week summary</h4>
+          <table>
+            <thead><tr><th>Staff</th><th>Hours</th><th class="c" style="font:600 10.5px var(--body);letter-spacing:0.09em;color:var(--i3)">Est. cost</th></tr></thead>
+            <tbody>
+              <tr><td>Mia</td><td><span class="hrs"><span class="meter"><i style="width:80%"></i></span><span class="fig">24h</span></span></td><td class="c">$798</td></tr>
+              <tr><td>Tom</td><td><span class="hrs"><span class="meter"><i style="width:100%"></i></span><span class="fig">32h<small>/32</small></span></span></td><td class="c">$992</td></tr>
+              <tr><td>Priya</td><td><span class="hrs"><span class="meter"><i style="width:73.3%"></i></span><span class="fig">22h</span></span></td><td class="c">$741</td></tr>
+              <tr><td>Leo</td><td><span class="hrs"><span class="meter"><i style="width:20%"></i></span><span class="fig">6h<small>/6</small></span></span></td><td class="c">$257</td></tr>
+              <tr title="Under their usual hours"><td>Sun</td><td><span class="hrs"><span class="meter"><i class="under" style="width:18.3%"></i></span><span class="fig flag">5.5h<small>/6</small></span></span></td><td class="c">$235</td></tr>
+            </tbody>
+            <tfoot><tr><td>Total</td><td style="text-align:right"><span class="fig">89.5h</span></td><td class="c">$3,023</td></tr></tfoot>
+          </table>
+          <div class="ws-foot">
+            <div class="ws-status"><i></i>Draft<span>· not sent to staff yet</span></div>
+            <div class="ws-btns"><span class="btn">Share roster</span><span class="btn pri">Publish roster</span></div>
+          </div>
+        </section>
+        </div>
+      </main>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li>‹ and › step a week. The date opens the dropdown: two weeks ahead, this week and the last few, each with its state, then a link to History.</li>
+    <li>Shift chips take the green highlight in place of the grey chip with a green left edge. Overlapping shifts stay red.</li>
+    <li>Warnings and the Week summary are unchanged. With the rail, the summary sits beside the grid from about 1380px wide, as here at 1440px. On narrower screens it drops below the grid.</li>
+    <li>History stays in the rail for the full list, with copying a week into the one you have open.</li>
+  </ul>
+</section>
+
+<!-- ================= STAFF ================= -->
+<section class="screen-block" id="staff">
+  <div class="sb-head"><h2>Staff</h2><span class="from">Staff B list and panel · C leave timeline</span></div>
+  <div class="shot"><div class="screen" data-w="1160">
+    <div class="u">localhost:3000/staff?person=tom</div>
+    <div class="app">
+      <aside class="rail">
+        <div class="brand"><span class="mark">J</span><span>Jade Kitchen</span></div>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>Roster</span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5"/><path d="M10 6.5V10l2.5 1.5"/></svg>History</span>
+        <span class="it hl"><svg class="ic" viewBox="0 0 20 20"><circle cx="7.5" cy="7" r="2.7"/><path d="M2.5 16c.6-2.7 2.6-4.2 5-4.2s4.4 1.5 5 4.2"/><circle cx="13.8" cy="7.6" r="2.1"/><path d="M13.5 11.9c2 .1 3.5 1.4 4 3.6"/></svg>Staff</span>
+        <span class="sp"></span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><circle cx="10" cy="10" r="6" stroke-width="2.8" stroke-dasharray="2.4 2.31"/></svg>Settings</span>
+      </aside>
+      <main class="pg">
+        <div class="ph"><div><h5>Staff</h5><p>In roster order. Drag to rearrange, click someone to edit them.</p></div><span class="btn pri">+ Add person</span></div>
+        <div class="sb">
+          <div class="sb-left">
+          <div class="card list">
+            <div class="row"><span class="grip">⋮⋮</span><span class="av">M</span><span class="who"><b>Mia<span class="away">Away 11–13 Oct</span></b></span><span class="dots"><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span><span class="num">—<small>hrs / wk</small></span><span class="num">$28.50<small>per hour</small></span></div>
+            <div class="row hl"><span class="grip">⋮⋮</span><span class="av">T</span><span class="who"><b>Tom<span class="away">Away 11–13 Oct +1</span></b><small>Prefers early finishes</small></span><span class="dots"><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span><span class="num">32<small>hrs / wk</small></span><span class="num">$31.00<small>per hour</small></span></div>
+            <div class="row"><span class="grip">⋮⋮</span><span class="av">P</span><span class="who"><b>Priya<span class="away">Away 11–13 Oct +1</span></b></span><span class="dots"><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span><span class="num">—<small>hrs / wk</small></span><span class="num">$28.50<small>per hour</small></span></div>
+            <div class="row"><span class="grip">⋮⋮</span><span class="av">L</span><span class="who"><b>Leo</b><small>Sundays only, school term</small></span><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="y"></i></span><span class="num">6<small>hrs / wk</small></span><span class="num">$28.50<small>per hour</small></span></div>
+            <div class="row"><span class="grip">⋮⋮</span><span class="av">S</span><span class="who"><b>Sun<span class="away">Away 11–13 Oct</span></b></span><span class="dots"><i></i><i></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span><span class="num">6<small>hrs / wk</small></span><span class="num">$28.50<small>per hour</small></span></div>
+            <div class="inactive"><span><b style="color:var(--i)">Inactive · 1</b> &nbsp;Ava</span><span class="link">Show</span></div>
+          </div>
+        <div class="tl-wrap">
+          <div class="ph"><div><h6>Upcoming leave</h6><p>Leave blocks rostering on those days. Clear week never touches it.</p></div><span class="btn">+ Book leave</span></div>
+          <div class="tl">
+            <div class="tl-head"><span class="lab2">Who</span><div class="wks"><span class="this">28 Sep</span><span>5 Oct</span><span>12 Oct</span><span>19 Oct</span><span>26 Oct</span><span>2 Nov</span><span>9 Nov</span></div></div>
+            <div class="tl-row"><span class="nm">Mia</span><div class="track"><span class="todayline" style="left:7.14%"></span><span class="bar short" style="left:26.53%;width:6.12%" title="11–13 Oct, wedding">11–13</span></div></div>
+            <div class="tl-row sel"><span class="nm">Tom</span><div class="track"><span class="todayline" style="left:7.14%"></span><span class="bar short" style="left:26.53%;width:6.12%" title="11–13 Oct, wedding">11–13</span><span class="bar" style="left:51.02%;width:36.73%">Sydney · 23 Oct – 9 Nov</span></div></div>
+            <div class="tl-row"><span class="nm">Priya</span><div class="track"><span class="todayline" style="left:7.14%"></span><span class="bar short" style="left:26.53%;width:6.12%" title="11–13 Oct, wedding">11–13</span><span class="bar" style="left:34.69%;width:65.31%">Holiday · 15 Oct – 15 Nov</span></div></div>
+            <div class="tl-row"><span class="nm">Sun</span><div class="track"><span class="todayline" style="left:7.14%"></span><span class="bar short" style="left:26.53%;width:6.12%" title="11–13 Oct, wedding">11–13</span></div></div>
+            <div class="tl-foot"><span><i></i>Today, Thu 1 Oct</span><span class="link">Past leave</span></div>
+          </div>
+        </div>
+          </div>
+          <div class="panel">
+            <div class="p-head"><b>Tom</b><span class="sw"><i></i>Active</span></div>
+            <div class="p-body">
+              <div class="lab">Name<span class="fld">Tom</span></div>
+              <div class="two">
+                <div class="lab">Expected hours / week<span class="fld mono">32</span></div>
+                <div class="lab">Hourly rate<span class="fld mono">$31.00</span></div>
+              </div>
+              <div class="lab">Usually available<span class="days"><i class="hl">M</i><i class="hl">T</i><i class="hl">W</i><i class="hl">T</i><i class="hl">F</i><i class="hl">S</i><i class="hl">S</i></span></div>
+              <div class="lab">Notes<span class="fld">Prefers early finishes</span></div>
+              <div style="display:grid;gap:6px">
+                <div style="display:flex;justify-content:space-between;align-items:center"><span class="sect">Leave</span><span class="btn sm">Book leave</span></div>
+                <div class="lvlist">
+                  <div class="li"><b style="font-weight:500">Sun 11 – Tue 13 Oct</b><span>Wedding · 3 days</span></div>
+                  <div class="li"><b style="font-weight:500">Fri 23 Oct – Mon 9 Nov</b><span>Sydney · 18 days</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="p-foot"><span class="rm">Remove Tom</span><small>Only for someone with no shifts or leave</small></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li>The person you're editing gets the highlight in the list and in the timeline, so you can see their leave against everyone else's.</li>
+    <li>Leave stays amber in both places. It's the one thing that blocks rostering, so it shouldn't look like a selection.</li>
+    <li>Book leave works from both places. From the panel, the person is already filled in.</li>
+  </ul>
+</section>
+
+<!-- ================= SETTINGS ================= -->
+<section class="screen-block" id="settings">
+  <div class="sb-head"><h2>Settings</h2><span class="from">Settings A layout and sidebar · B trading hours and templates</span></div>
+  <div class="shot"><div class="screen" data-w="1160">
+    <div class="u">localhost:3000/settings#trading-hours</div>
+    <div class="app">
+      <aside class="rail">
+        <div class="brand"><span class="mark">J</span><span>Jade Kitchen</span></div>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>Roster</span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5"/><path d="M10 6.5V10l2.5 1.5"/></svg>History</span>
+        <span class="it"><svg class="ic" viewBox="0 0 20 20"><circle cx="7.5" cy="7" r="2.7"/><path d="M2.5 16c.6-2.7 2.6-4.2 5-4.2s4.4 1.5 5 4.2"/><circle cx="13.8" cy="7.6" r="2.1"/><path d="M13.5 11.9c2 .1 3.5 1.4 4 3.6"/></svg>Staff</span>
+        <span class="sp"></span>
+        <span class="it hl"><svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><circle cx="10" cy="10" r="6" stroke-width="2.8" stroke-dasharray="2.4 2.31"/></svg>Settings</span>
+      </aside>
+      <main class="pg">
+        <div class="ph"><div><h5>Settings</h5><p>Things that hold from week to week. Anything about one week is done on the roster.</p></div></div>
+        <div class="sta">
+          <nav class="idx"><span>Business</span><span class="hl">Trading hours</span><span>Shift templates</span><span>Pay rates</span><span>Public holidays</span><span>Backup</span></nav>
+          <div class="card">
+            <div class="sec"><div><h6>Business name</h6><p>Heads every page and the roster text you paste into the group chat.</p></div><div><span class="fld" style="max-width:300px">Jade Kitchen</span></div></div>
+
+            <div class="sec"><div><h6>Trading hours</h6><p>Shown under the roster. Shifts can still start or end outside them.</p></div>
+              <div>
+                <div class="strip">
+                  <div class="day"><div class="d">Mon<span>8h</span></div><span class="fld sel">10:00</span><span class="fld sel">18:00</span></div>
+                  <div class="day"><div class="d">Tue<span>8h</span></div><span class="fld sel">10:00</span><span class="fld sel">18:00</span></div>
+                  <div class="day"><div class="d">Wed<span>8h</span></div><span class="fld sel">10:00</span><span class="fld sel">18:00</span></div>
+                  <div class="day hl"><div class="d">Thu<span>11h</span></div><span class="fld sel">10:00</span><span class="fld sel">21:00</span></div>
+                  <div class="day"><div class="d">Fri<span>8h</span></div><span class="fld sel">10:00</span><span class="fld sel">18:00</span></div>
+                  <div class="day"><div class="d">Sat<span>8h</span></div><span class="fld sel">10:00</span><span class="fld sel">18:00</span></div>
+                  <div class="day"><div class="d">Sun<span>8h</span></div><span class="fld sel">10:00</span><span class="fld sel">18:00</span></div>
+                </div>
+                <p class="strip-foot"><b>59h</b> open a week. A day whose hours differ from the rest is highlighted.</p>
+              </div>
+            </div>
+
+            <div class="sec"><div><h6>Shift templates</h6><p>One click when you add a shift. Changing one leaves shifts already placed alone.</p></div>
+              <div>
+                <div class="tb-ticks"><span></span><div class="scale"><span style="left:0">10:00</span><span style="left:27.27%">13:00</span><span style="left:54.55%">16:00</span><span style="left:72.73%">18:00</span><span style="left:100%">21:00</span></div><span></span><span></span></div>
+                <div class="tb"><b>Short day<small>10:00–16:00</small></b><div class="axis"><span class="late"></span><span class="fill hl" style="width:54.55%"></span></div><span class="hrs">6h</span><span class="x">⋯</span></div>
+                <div class="tb"><b>Full day<small>10:00–18:00</small></b><div class="axis"><span class="late"></span><span class="fill hl" style="width:72.73%"></span></div><span class="hrs">8h</span><span class="x">⋯</span></div>
+                <div class="tb"><b>Late close<small>10:00–20:30</small></b><div class="axis"><span class="late"></span><span class="fill hl" style="width:95.45%"></span></div><span class="hrs">10.5h</span><span class="x">⋯</span>
+                  <div class="tb-edit">
+                    <div class="lab">Name<span class="fld focus" style="width:150px">Late close</span></div>
+                    <div class="lab">Starts<span class="fld sel" style="width:92px">10:00</span></div>
+                    <div class="lab">Ends<span class="fld sel" style="width:92px">20:30</span></div>
+                    <span class="btn">Done</span>
+                    <span style="margin-left:auto;align-self:center;font-size:12px;color:var(--cd)">Remove</span>
+                  </div>
+                </div>
+                <div class="tb"><b>Saturday<small>10:00–15:30</small></b><div class="axis"><span class="late"></span><span class="fill hl" style="width:50%"></span></div><span class="hrs">5.5h</span><span class="x">⋯</span></div>
+                <div class="tb-legend"><span><i></i>After 18:00: Thursday only</span><span class="link">+ Add template</span></div>
+              </div>
+            </div>
+
+            <div class="sec"><div><h6>Pay rates</h6><p>A share of each person's hourly rate, for the cost estimate. 100% is nothing extra.</p></div>
+              <div class="rates"><span class="lab">Weekends<span class="fld">150%</span></span><span class="lab">Public holidays<span class="fld">200%</span></span></div>
+            </div>
+
+            <div class="sec"><div><h6>Public holidays</h6><p>Costed at the holiday rate. If the shop shuts, close the day on the roster too.</p></div>
+              <div>
+                <div class="hol"><span class="mono">Mon 5 Oct</span><span>Labour Day</span><span class="x">⋯</span></div>
+                <div class="hol"><span class="mono">Fri 25 Dec</span><span>Christmas Day</span><span class="x">⋯</span></div>
+                <div class="hol-add"><span class="fld mono" style="color:var(--i3)">dd/mm/yyyy</span><span class="fld" style="color:var(--i3)">Name (optional)</span><span class="btn">Add</span></div>
+              </div>
+            </div>
+
+            <div class="sec"><div><h6>Backup</h6><p>Everything as one JSON file, to read and keep. The real backup is a copy of <span class="mono">xiaopai.db</span>.</p></div>
+              <div><span class="btn">Export backup</span></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div></div>
+  <ul class="notes">
+    <li>The template bars run from 10:00 to 21:00, the earliest open to the latest close. The hatched part is open on Thursday only.</li>
+    <li>Click a template to edit it in place, as Late close is here. Remove moves into that edit row, out of every line.</li>
+    <li>The index follows your scroll and jumps to a section when clicked.</li>
+  </ul>
+</section>
+
+<!-- ================= PHONE ================= -->
+<section class="screen-block" id="phone">
+  <div class="sb-head"><h2>On a phone</h2><span class="from">The rail becomes a bottom bar</span></div>
+  <div class="phones">
+    <figure class="phone">
+      <div class="screen">
+        <div class="p-week"><span class="arrow">‹</span><span class="wk-dd"><b>28 Sep – 4 Oct</b><span class="chev"></span></span><span class="arrow">›</span></div>
+        <div class="p-sub"><span class="pill hl">This week</span><span class="wk-sub">Week 40 · Draft</span></div>
+        <div class="p-grid">
+          <div class="h" style="text-align:left">Staff</div><div class="h">MON<small>28 Sep</small></div><div class="h">TUE<small>29 Sep</small></div>
+          <div class="n"><b>Mia</b><small>24h</small></div><div><span class="chip hl">10–18</span></div><div></div>
+          <div class="n"><b>Tom</b><small>32h</small></div><div><span class="chip hl">10–16</span></div><div><span class="chip hl">10–18</span></div>
+          <div class="n"><b>Priya</b><small>22h</small></div><div></div><div><span class="chip hl">10–18</span></div>
+          <div class="n"><b>Leo</b><small>6h</small></div><div class="na">N/A</div><div class="na">N/A</div>
+          <div class="n"><b>Sun</b><small>5.5h</small></div><div class="na">N/A</div><div class="na">N/A</div>
+        </div>
+        <p class="p-scroll">Swipe sideways for the rest of the week</p>
+        <div class="p-tabs">
+          <span class="hl"><svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>Roster</span>
+          <span><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5"/><path d="M10 6.5V10l2.5 1.5"/></svg>History</span>
+          <span><svg class="ic" viewBox="0 0 20 20"><circle cx="7.5" cy="7" r="2.7"/><path d="M2.5 16c.6-2.7 2.6-4.2 5-4.2s4.4 1.5 5 4.2"/><circle cx="13.8" cy="7.6" r="2.1"/><path d="M13.5 11.9c2 .1 3.5 1.4 4 3.6"/></svg>Staff</span>
+          <span><svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><circle cx="10" cy="10" r="6" stroke-width="2.8" stroke-dasharray="2.4 2.31"/></svg>Settings</span>
+        </div>
+      </div>
+      <figcaption>Roster, with the week control on top</figcaption>
+    </figure>
+    <figure class="phone">
+      <div class="screen">
+        <div class="p-top"><b>Staff</b><span class="btn pri" style="padding:5px 10px">+ Add</span></div>
+        <div class="p-list">
+          <div class="row"><span class="av">M</span><span class="who"><b>Mia<span class="away">Away 11–13 Oct</span></b><span class="dots"><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span></span><span class="num">$28.50<small>no target</small></span></div>
+          <div class="row"><span class="av">T</span><span class="who"><b>Tom<span class="away">Away 11–13 Oct</span></b><span class="dots"><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span></span><span class="num">$31.00<small>32 h/wk</small></span></div>
+          <div class="row"><span class="av">P</span><span class="who"><b>Priya<span class="away">Away 11–13 Oct</span></b><span class="dots"><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span></span><span class="num">$28.50<small>no target</small></span></div>
+          <div class="row"><span class="av">L</span><span class="who"><b>Leo</b><span class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i class="y"></i></span></span><span class="num">$28.50<small>6 h/wk</small></span></div>
+          <div class="row"><span class="av">S</span><span class="who"><b>Sun<span class="away">Away 11–13 Oct</span></b><span class="dots"><i></i><i></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i><i class="y"></i></span></span><span class="num">$28.50<small>6 h/wk</small></span></div>
+        </div>
+        <p class="p-scroll">Upcoming leave below the list</p>
+        <div class="p-tabs">
+          <span><svg class="ic" viewBox="0 0 20 20"><rect x="3" y="4.5" width="14" height="12" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg>Roster</span>
+          <span><svg class="ic" viewBox="0 0 20 20"><path d="M3.5 10a6.5 6.5 0 1 0 2-4.7"/><path d="M3 3v3.5h3.5"/><path d="M10 6.5V10l2.5 1.5"/></svg>History</span>
+          <span class="hl"><svg class="ic" viewBox="0 0 20 20"><circle cx="7.5" cy="7" r="2.7"/><path d="M2.5 16c.6-2.7 2.6-4.2 5-4.2s4.4 1.5 5 4.2"/><circle cx="13.8" cy="7.6" r="2.1"/><path d="M13.5 11.9c2 .1 3.5 1.4 4 3.6"/></svg>Staff</span>
+          <span><svg class="ic" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><circle cx="10" cy="10" r="6" stroke-width="2.8" stroke-dasharray="2.4 2.31"/></svg>Settings</span>
+        </div>
+      </div>
+      <figcaption>Staff list</figcaption>
+    </figure>
+    <figure class="phone">
+      <div class="screen">
+        <div class="p-top"><b>Staff</b></div>
+        <div class="scrim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="p-head" style="padding:10px 14px"><b>Tom</b><span class="sw"><i></i>Active</span></div>
+          <div class="p-body">
+            <div class="two">
+              <div class="lab">Hours / week<span class="fld mono">32</span></div>
+              <div class="lab">Hourly rate<span class="fld mono">$31.00</span></div>
+            </div>
+            <div class="lab">Usually available<span class="days"><i class="hl">M</i><i class="hl">T</i><i class="hl">W</i><i class="hl">T</i><i class="hl">F</i><i class="hl">S</i><i class="hl">S</i></span></div>
+            <div class="lab">Notes<span class="fld">Prefers early finishes</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="sect">Leave</span><span class="btn sm">Book leave</span></div>
+            <div class="lvlist">
+              <div class="li"><b style="font-weight:500">11 – 13 Oct</b><span>Wedding</span></div>
+              <div class="li"><b style="font-weight:500">23 Oct – 9 Nov</b><span>Sydney</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Tapping someone opens a sheet</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= BUILD ================= -->
+<section class="screen-block" id="build">
+  <div class="sb-head"><h2>What it takes to build</h2></div>
+  <ul class="build">
+    <li><b>Rail and bottom bar.</b> <code>TabBar</code> becomes both, and <code>layout.tsx</code> becomes a two-column shell. The Week summary's side-by-side breakpoint moves from 1310px to about 1380px.</li>
+    <li><b>Week dropdown.</b> A new picker on the roster header, fed from the same query as History.</li>
+    <li><b>Staff.</b> <code>StaffTable</code> splits into a list and an edit panel opened by <code>?person=</code>. <code>LeaveTable</code> becomes the timeline and a Book leave form.</li>
+    <li><b>Settings.</b> A section component and a scroll-aware index. <code>TradingHoursTable</code> becomes the strip, and <code>TemplatesTable</code> becomes the bars with an edit row.</li>
+    <li><b>Highlight.</b> One shared style for the tint, border and text, used by every current or selected state and by the shift chips.</li>
+    <li><b>Phone fix.</b> The sideways scroll from the first review comes with this work.</li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+  // Scale each screen down to fit its column, but not below half size: smaller than that, scroll
+  (function () {
+    var shots = document.querySelectorAll('.shot');
+    function fit() {
+      shots.forEach(function (shot) {
+        var screen = shot.querySelector('.screen');
+        var w = Number(screen.dataset.w) || 1160;
+        screen.style.zoom = Math.max(0.5, Math.min(1, shot.clientWidth / w));
+      });
+    }
+    fit();
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(document.body);
+    else window.addEventListener('resize', fit);
+  })();
+</script>
