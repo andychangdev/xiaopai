@@ -5,9 +5,9 @@ import {
   landingWeek,
   needsPublishing,
   nothingToPublish,
-  publishBadge,
   publishQuestion,
   publishState,
+  publishStatus,
   snapshotOf,
   weekSubtitle,
 } from './publish'
@@ -113,15 +113,17 @@ describe('publishState', () => {
   })
 })
 
-describe('publishBadge', () => {
+describe('publishStatus', () => {
   it('names each of the three states', () => {
-    expect(publishBadge({ status: 'draft' })).toBe('Draft')
-    expect(publishBadge({ status: 'published', version: 1, publishedAt: '2026-09-26', changed: false })).toBe(
-      'Published · v1',
-    )
-    expect(publishBadge({ status: 'published', version: 2, publishedAt: '2026-09-26', changed: true })).toBe(
-      'Unpublished changes',
-    )
+    expect(publishStatus({ status: 'draft' })).toEqual({ label: 'Draft', note: 'not sent to staff yet' })
+    expect(publishStatus({ status: 'published', version: 1, publishedAt: '2026-09-26', changed: false })).toEqual({
+      label: 'Published v1',
+      note: '26 Sep',
+    })
+    expect(publishStatus({ status: 'published', version: 2, publishedAt: '2026-09-26', changed: true })).toEqual({
+      label: 'Unpublished changes',
+      note: null,
+    })
   })
 })
 

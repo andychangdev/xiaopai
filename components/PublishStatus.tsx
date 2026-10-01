@@ -3,18 +3,19 @@
 import { useRef } from 'react'
 import { revertToPublished } from '@/app/actions'
 import { fullDate, type IsoDate } from '@/lib/roster/dates'
-import { publishBadge, type PublishState } from '@/lib/roster/publish'
+import { publishStatus, type PublishState } from '@/lib/roster/publish'
 import { revertQuestion } from '@/lib/roster/revert'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
 /**
- * The badge beside the week's dates, as on History. Draft and Unpublished
- * changes are in amber, since both still need publishing; Published in the
- * accent. Unpublished changes also holds the way back to the version staff
- * have, which asks first. Undo takes a revert back like any grid action.
+ * Where the week stands, in a line over the Publish button. The dot is amber
+ * for Draft and Unpublished changes, since both still need publishing, and
+ * the accent once it's out as it stands. Unpublished changes also holds
+ * Revert, the way back to the version staff have, which asks first. Undo
+ * takes a revert back like any grid action.
  */
-export function PublishBadge({ week, state }: { week: IsoDate; state: PublishState }) {
+export function PublishStatus({ week, state }: { week: IsoDate; state: PublishState }) {
   const [dialog, ask] = useAsk()
   // With the dialog up, a second click can't happen, but one while the revert is on its way could
   const reverting = useRef(false)
@@ -36,30 +37,25 @@ export function PublishBadge({ week, state }: { week: IsoDate; state: PublishSta
     else if (result.report) await notify(`Reverted to v${edited.version}`, result.report)
   }
 
+  const { label, note } = publishStatus(state)
   return (
-    <>
-      <span
-        className={`inline-flex items-center rounded-full border px-2.25 py-1 text-[11px] font-semibold tracking-[0.07em] uppercase ${live ? 'border-accent-line bg-accent-bg text-accent-deep' : 'border-warn-line bg-warn-bg text-warn-deep'}`}
-      >
-        {publishBadge(state)}
-        {edited && (
-          <>
-            <span aria-hidden className="mx-1.75 h-3 w-px bg-warn-line" />
-            <button
-              aria-label={`Revert to v${edited.version}, as published`}
-              title={`Revert to v${edited.version}, as published ${fullDate(edited.publishedAt)}`}
-              // Out to the badge's edge, so it's more than the icon to hit
-              className="-my-1 -mr-1.25 grid place-items-center self-stretch rounded-full px-1.25 hover:text-ink"
-              onClick={revert}
-            >
-              <UndoIcon />
-            </button>
-          </>
-        )}
-      </span>
-      {/* Outside the badge, which would make it all capitals */}
+    <div className="flex min-h-5 items-center gap-1.75 text-[12.5px]">
+      <span aria-hidden className={`size-1.75 flex-none rounded-full ${live ? 'bg-accent' : 'bg-warn'}`} />
+      <span className="font-semibold">{label}</span>
+      {note && <span className="text-ink-2">· {note}</span>}
+      {edited && (
+        <button
+          aria-label={`Revert to v${edited.version}, as published`}
+          title={`Revert to v${edited.version}, as published ${fullDate(edited.publishedAt)}`}
+          className="ml-auto inline-flex items-center gap-1.25 rounded-chip text-[12px] font-medium text-warn-deep hover:text-ink"
+          onClick={revert}
+        >
+          <UndoIcon />
+          Revert
+        </button>
+      )}
       {dialog}
-    </>
+    </div>
   )
 }
 

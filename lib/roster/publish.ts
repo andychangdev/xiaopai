@@ -3,7 +3,7 @@
 // never stored: it's the live week checked against its snapshot, by who and
 // when, so renaming someone or reordering the rows never counts.
 
-import { addDays, fullDate, weekNumber, weekRange, type IsoDate } from './dates'
+import { addDays, fullDate, shortDate, weekNumber, weekRange, type IsoDate } from './dates'
 import { shiftsLabel } from './shifts'
 import { formatHours, type Minutes } from './time'
 import type { Snapshot } from './types'
@@ -55,10 +55,11 @@ export function publishState(
   return { status: 'published', version, publishedAt, changed: changedSince(snapshot, days) }
 }
 
-/** The badge beside the week's dates. */
-export function publishBadge(state: PublishState): string {
-  if (state.status === 'draft') return 'Draft'
-  return state.changed ? 'Unpublished changes' : `Published · v${state.version}`
+/** The status line over the Publish button: where the week stands, and a word on it where there's one to say. */
+export function publishStatus(state: PublishState): { label: string; note: string | null } {
+  if (state.status === 'draft') return { label: 'Draft', note: 'not sent to staff yet' }
+  if (state.changed) return { label: 'Unpublished changes', note: null }
+  return { label: `Published v${state.version}`, note: shortDate(state.publishedAt) }
 }
 
 /** 'Week 41 · Published 26 Sep 2026 · v2 · edited since', under the week's title. */

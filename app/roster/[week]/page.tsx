@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { PublishBadge } from '@/components/PublishBadge'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
 import {
@@ -57,7 +56,6 @@ export default async function RosterPage({ params }: Props) {
                 This week
               </span>
             )}
-            <PublishBadge key={`badge-${week}`} week={week} state={state} />
           </div>
           <div className="text-[11.5px] font-medium tracking-[0.09em] text-ink-3 uppercase">
             {weekSubtitle(week, state)}

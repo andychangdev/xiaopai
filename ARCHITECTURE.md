@@ -338,7 +338,7 @@ lib/
     leave.ts                 booked leave: parsing, overlaps, what it blocks
     closed.ts                a week's closed days
     copy.ts                  what Copy previous week brings and skips
-    publish.ts               snapshots, publish state, badge, the landing week
+    publish.ts               snapshots, publish state, status line, the landing week
     revert.ts                putting a published week back as it went out
     rosterText.ts            the week day by day, and the text for the chat
     history.ts               History's rows
@@ -442,7 +442,7 @@ gaps it hasn't filled yet. The page works it out for the Publish dialog's
 count and the grid for its panel, from the same function.
 
 The modules also own the words. Error messages, warning text, dialog
-questions and badges (`publishBadge`, `publishQuestion`, `copyReport`) come
+questions and status lines (`publishStatus`, `publishQuestion`, `copyReport`) come
 from here, so the rule and the sentence explaining it sit side by side.
 
 **This is the only code with tests.** Every rule in the spec is a test: the
@@ -496,11 +496,11 @@ times. Names and row order don't come into it, so a rename never makes an old
 week look edited, and undoing the only edit puts it back to Published. The
 grid and History both get it from the same function, so they can't disagree.
 
-| State | Badge | Button |
+| State | Status line | Button |
 |---|---|---|
-| Draft | Draft | Publish roster |
-| Published, unchanged | Published · v2 | Publish update, greyed out |
-| Published, edited since | Unpublished changes, with a revert arrow | Publish update |
+| Draft | Draft · not sent to staff yet | Publish roster |
+| Published, unchanged | Published v2 · 26 Sep | Publish update, greyed out |
+| Published, edited since | Unpublished changes, with Revert | Publish update |
 
 Publishing asks first, naming the shifts, the hours and any warnings
 outstanding. Warnings never block it. Then Share roster opens, ready to copy.
@@ -519,7 +519,7 @@ pasted by accident.
 
 ### Revert
 
-The badge's arrow puts an edited week back as it went out. `planRevert`
+Revert, on the Week summary's status line, puts an edited week back as it went out. `planRevert`
 restores the snapshot's shifts and closed days. N/A notes were never
 published, so they stay. A published shift the week can no longer take —
 someone since removed from the staff list, or now on leave that day — stays

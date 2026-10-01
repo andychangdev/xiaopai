@@ -18,6 +18,7 @@ import { formatHours } from '@/lib/roster/time'
 import { InfoIcon } from './Icons'
 import { Panel } from './Panel'
 import { PublishButton } from './PublishButton'
+import { PublishStatus } from './PublishStatus'
 
 type Person = { id: number; name: string; expectedHours: number | null; hourlyRate: Cents | null }
 
@@ -36,8 +37,9 @@ const costCell = 'border-l border-line pr-3 pl-3 text-right'
  * order, and the week's total. Anyone with no hours this week is dimmed. Once
  * anyone on the week has an hourly rate, an estimated cost column joins it,
  * totalled like the hours, with a note under the table naming anyone it
- * leaves out for having no rate. Share roster and Publish sit at its foot,
- * to send the week out once the hours and cost look right.
+ * leaves out for having no rate. Its foot says where the week stands, over
+ * Share roster and Publish, to send the week out once the hours and cost
+ * look right.
  */
 export function WeekSummary({
   week,
@@ -132,17 +134,20 @@ export function WeekSummary({
           {note}
         </p>
       )}
-      <div className="grid grid-cols-2 gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
-        <Link href={`/share/${week}`} className="btn text-center">
-          Share roster
-        </Link>
-        <PublishButton
-          week={week}
-          state={publish}
-          shifts={shifts.length}
-          minutes={weekTotal(shifts)}
-          warnings={warnings}
-        />
+      <div className="grid gap-2.5 border-t border-line bg-surface-3 px-3 py-2.5">
+        <PublishStatus week={week} state={publish} />
+        <div className="grid grid-cols-2 gap-2">
+          <Link href={`/share/${week}`} className="btn text-center">
+            Share roster
+          </Link>
+          <PublishButton
+            week={week}
+            state={publish}
+            shifts={shifts.length}
+            minutes={weekTotal(shifts)}
+            warnings={warnings}
+          />
+        </div>
       </div>
     </Panel>
   )

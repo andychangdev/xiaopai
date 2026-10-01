@@ -123,19 +123,20 @@ into **Unpublished changes**, and publishing again bumps `version` and
 re-snapshots. From v2 the sheet reads `Updated 8 Oct` instead of `Published`,
 so staff can tell a fresh printout from the one already on the wall.
 
-The **Unpublished changes** badge holds an undo icon that reverts the week to
-the published version, after asking: its shifts and closed days go back to the
-snapshot's, and N/A notes stay. A published shift for someone now on leave
-that day, or no longer on the staff list, can't come back, so the week still
-reads Unpublished changes and the dialog says why. Undo takes a revert back.
+The **Unpublished changes** status holds a **Revert** link that puts the week
+back to the published version, after asking: its shifts and closed days go
+back to the snapshot's, and N/A notes stay. A published shift for someone now
+on leave that day, or no longer on the staff list, can't come back, so the
+week still reads Unpublished changes and the dialog says why. Undo takes a
+revert back.
 
-The three states, shown as a badge beside the week's dates:
+The three states, shown in a line over the button:
 
-| State | Badge | Button |
+| State | Status | Button |
 |---|---|---|
-| Never published | Draft | Publish roster |
-| Published, untouched | Published · v1 | Publish update, greyed out |
-| Published, then edited | Unpublished changes | Publish update |
+| Never published | Draft · not sent to staff yet | Publish roster |
+| Published, untouched | Published v1 · 26 Sep | Publish update, greyed out |
+| Published, then edited | Unpublished changes, with Revert | Publish update |
 
 ---
 
@@ -185,10 +186,9 @@ drops below the grid next to Warnings, so the grid never has to scroll for
 it. Week summary
 is a small table of each person's hours against their expected weekly hours,
 plus the week total; anyone more than 20% above or below is highlighted, and
-anyone with no hours that week is dimmed. **Share roster** and **Publish** sit
-at its foot, so the week goes out from where you check its hours and cost. The
-week's publish badge sits beside its dates at the top of the page, as on
-History.
+anyone with no hours that week is dimmed. Its foot says where the week
+stands, in a line with a coloured dot, over **Share roster** and **Publish**,
+so the week goes out from where you check its hours and cost.
 
 Once anyone on the week has an hourly rate, each line also shows an estimated
 cost, under an **Est. cost** heading: hours × their rate, to the nearest
