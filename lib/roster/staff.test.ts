@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { firstName, moveInOrder, parseExpectedHours, parseName, parseNotes, rosterRows, whyNotRemovable } from './staff'
+import { firstName, initialOf, moveInOrder, parseExpectedHours, parseName, parseNotes, rosterRows, whyNotRemovable } from './staff'
 
 const person = (id: number, sortOrder: number, active = true) => ({ id, sortOrder, active, name: `P${id}` })
 
@@ -136,5 +136,26 @@ describe('whyNotRemovable', () => {
       'John Reyes has 4 shifts on record. Being inactive already keeps them off new weeks, ' +
         'and removing the record would leave holes in past rosters.',
     )
+  })
+})
+
+describe('initialOf', () => {
+  it("is the name's first letter, capitalised", () => {
+    expect(initialOf('jade Kitchen')).toBe('J')
+  })
+
+  it('skips leading spaces and punctuation to reach a letter or digit', () => {
+    expect(initialOf('  "The Oak"')).toBe('T')
+    expect(initialOf('7 Seas')).toBe('7')
+  })
+
+  it('keeps a character outside the alphabet whole', () => {
+    expect(initialOf('小排')).toBe('小')
+    expect(initialOf('Émile')).toBe('É')
+  })
+
+  it('skips an emoji to reach a letter, and shows the emoji when the name has nothing else', () => {
+    expect(initialOf('🍜 House')).toBe('H')
+    expect(initialOf('🍜')).toBe('🍜')
   })
 })

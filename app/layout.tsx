@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Archivo, IBM_Plex_Mono } from 'next/font/google'
 import { Sidebar } from '@/components/Sidebar'
 import { businessName } from '@/lib/db/queries'
-import { businessInitial } from '@/lib/roster/settings'
+import { initialOf } from '@/lib/roster/staff'
 import './globals.css'
 
 const archivo = Archivo({ subsets: ['latin'], variable: '--font-archivo' })
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-AU" className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
         <div className="sm:grid sm:grid-cols-[72px_minmax(0,1fr)]">
-          <Sidebar businessName={name} initial={businessInitial(name)} />
+          <Sidebar businessName={name} initial={initialOf(name)} />
           <main className="mx-auto w-full max-w-400 px-4 pt-4.5 pb-[calc(var(--bottom-bar)+40px)]">{children}</main>
         </div>
       </body>

@@ -9,16 +9,6 @@ import { formatRange, formatTime, timesError, type Minutes } from './time'
 /** What the app calls the business until Settings names it. */
 export const DEFAULT_BUSINESS_NAME = 'Your restaurant'
 
-/**
- * The one character on the sidebar's square: the name's first letter or
- * digit, capitalised. A name with neither, like a lone emoji, shows its
- * first character instead.
- */
-export function businessInitial(name: string): string {
-  const first = name.match(/[\p{L}\p{N}]/u)?.[0] ?? [...name.trim()][0] ?? ''
-  return first.toLocaleUpperCase()
-}
-
 export type TradingDay = { open: Minutes; close: Minutes }
 
 const THURSDAY = 3

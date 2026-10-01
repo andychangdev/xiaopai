@@ -28,6 +28,16 @@ export function moveInOrder<T extends { id: number }>(rows: T[], id: number, to:
   return out
 }
 
+/**
+ * The one character on a name's round or square: its first letter or digit,
+ * capitalised, for the sidebar's business and each line on the Staff page. A
+ * name with neither, like a lone emoji, shows its first character instead.
+ */
+export function initialOf(name: string): string {
+  const first = name.match(/[\p{L}\p{N}]/u)?.[0] ?? [...name.trim()][0] ?? ''
+  return first.toLocaleUpperCase()
+}
+
 /** How the grid and the chat address someone: 'John' for John Reyes. */
 export function firstName(name: string): string {
   return name.trim().split(/\s+/)[0]
