@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useOptimistic, useRef, useState, useTransition, type ReactNode } from 'react'
-import { addStaff, removeStaff, setAvailable, updateStaff, type ActionResult } from '@/app/actions'
+import { removeStaff, setAvailable, updateStaff, type ActionResult } from '@/app/actions'
 import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { formatRate } from '@/lib/roster/cost'
@@ -32,10 +32,8 @@ export function StaffPanel({
   today,
   onClose,
   onDismiss,
-  onAdded,
 }: {
-  /** Who it's for, or 'new' while adding someone */
-  person: StaffListRow | 'new'
+  person: StaffListRow
   /** Their bookings, soonest first */
   leave: LeaveListRow[]
   today: IsoDate
@@ -43,8 +41,6 @@ export function StaffPanel({
   onClose: () => void
   /** Closed by a click somewhere else, which keeps the focus it gives */
   onDismiss: () => void
-  /** Someone new is on the list, so their own panel can open */
-  onAdded: (id: number) => void
 }) {
   const ref = useRef<HTMLElement>(null)
   const [error, setError] = useState<string>()
@@ -55,7 +51,7 @@ export function StaffPanel({
   }
 
   // A click anywhere else closes it, though not one that opens someone (their
-  // line, a leave bar, Add person), which moves it on to them instead. A box
+  // line or a leave bar), which moves it on to them instead. A box
   // being typed in is left first, so what's in it saves.
   useEffect(() => {
     const away = (e: PointerEvent) => {
@@ -82,7 +78,7 @@ export function StaffPanel({
       <section
         ref={ref}
         tabIndex={-1}
-        aria-label={person === 'new' ? 'New person' : person.name}
+        aria-label={person.name}
         className="fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-dialog outline-none lg:sticky lg:top-4 lg:z-auto lg:mt-13 lg:max-h-[calc(100dvh-32px)] lg:rounded-card lg:border lg:border-line lg:pb-0 lg:shadow-popover"
         onKeyDown={(e) => {
           // In a box, Esc abandons the edit; in a dialog, it answers no
@@ -92,11 +88,7 @@ export function StaffPanel({
         }}
       >
         <div aria-hidden className="mx-auto mt-2 h-1 w-9 rounded-full bg-line-strong lg:hidden" />
-        {person === 'new' ? (
-          <NewPerson report={report} onClose={onClose} onAdded={onAdded} />
-        ) : (
-          <Person person={person} leave={leave} today={today} report={report} onClose={onClose} />
-        )}
+        <Person person={person} leave={leave} today={today} report={report} onClose={onClose} />
         {error && (
           <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
             {error}
@@ -336,71 +328,5 @@ function AvailableDays({ id, available, report }: { id: number; available: boole
         )
       })}
     </span>
-  )
-}
-
-/** Someone new: a name at least, and anything else you know, then they join the end of the order. */
-function NewPerson({ report, onClose, onAdded }: { report: Report; onClose: () => void; onAdded: (id: number) => void }) {
-  const nameRef = useRef<HTMLInputElement>(null)
-  // A second Enter before the first add returns would add the person twice
-  const adding = useRef(false)
-
-  useEffect(() => nameRef.current?.focus(), [])
-
-  return (
-    <>
-      <Head title="New person" onClose={onClose} />
-      <form
-        className="grid gap-3.5 px-3.5 py-3.5"
-        onSubmit={async (e) => {
-          e.preventDefault()
-          if (adding.current) return
-          adding.current = true
-          const data = new FormData(e.currentTarget)
-          try {
-            const result = await addStaff({
-              name: String(data.get('name')),
-              expectedHours: String(data.get('expectedHours')),
-              hourlyRate: String(data.get('hourlyRate')),
-              notes: String(data.get('notes')),
-            }).catch(() => ({ error: UNREACHABLE, id: undefined }))
-            if (!report(result) && result.id !== undefined) onAdded(result.id)
-            else nameRef.current?.focus()
-          } finally {
-            adding.current = false
-          }
-        }}
-      >
-        <label className={label}>
-          Name
-          <input ref={nameRef} name="name" className="field" autoComplete="off" />
-        </label>
-        <div className="grid grid-cols-2 gap-2.5">
-          <label className={label}>
-            Expected hours / week
-            <input name="expectedHours" className={numberField} inputMode="numeric" placeholder="—" />
-          </label>
-          <label className={label}>
-            Hourly rate
-            <input name="hourlyRate" className={numberField} inputMode="decimal" placeholder="—" />
-          </label>
-        </div>
-        <label className={label}>
-          Notes
-          <input name="notes" className="field" placeholder="Optional" />
-        </label>
-        <p className="text-[11.5px] leading-snug text-ink-3">
-          They join the end of the order, usually available every day. Change either once they&apos;re added.
-        </p>
-        <div className="flex justify-end gap-2">
-          <button type="button" className="btn" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className="btn btn-primary">
-            Add person
-          </button>
-        </div>
-      </form>
-    </>
   )
 }

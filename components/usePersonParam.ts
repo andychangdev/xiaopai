@@ -3,8 +3,8 @@
 import { useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 
-/** Whose panel is open on the Staff page: someone's id, 'new' while adding someone, or nobody. */
-export type Selected = number | 'new' | null
+/** Whose panel is open on the Staff page: someone's id, or nobody. */
+export type Selected = number | null
 
 /**
  * The Staff page's open panel, kept in the URL as `?person=3` so a reload
@@ -15,7 +15,7 @@ export type Selected = number | 'new' | null
  */
 export function usePersonParam() {
   const raw = useSearchParams().get('person')
-  const selected: Selected = raw === 'new' ? 'new' : raw && /^\d+$/.test(raw) ? Number(raw) : null
+  const selected: Selected = raw && /^\d+$/.test(raw) ? Number(raw) : null
 
   const select = useCallback(
     (next: Selected) => {

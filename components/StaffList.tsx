@@ -7,6 +7,7 @@ import { formatRate } from '@/lib/roster/cost'
 import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
 import { awayLabel } from '@/lib/roster/leave'
 import { initialOf, moveInOrder, placeAmong } from '@/lib/roster/staff'
+import { AddPersonForm } from './AddPersonForm'
 import { GripIcon } from './Icons'
 import { ListHead } from './Page'
 import { StaffPanel } from './StaffPanel'
@@ -35,6 +36,7 @@ export function StaffList({
 }) {
   const [selected, select] = usePersonParam()
   const [error, setError] = useState<string>()
+  const [adding, setAdding] = useState(false)
   // A line moves the moment it's dropped, rather than when the server answers
   const [rows, reorder] = useOptimistic(staff, (rows, to: { id: number; place: number }) =>
     moveInOrder(rows, to.id, to.place),
@@ -42,7 +44,7 @@ export function StaffList({
   const [, startTransition] = useTransition()
   const active = rows.filter((p) => p.active)
   const inactive = rows.filter((p) => !p.active)
-  const person = typeof selected === 'number' ? rows.find((p) => p.id === selected) : undefined
+  const person = selected === null ? undefined : rows.find((p) => p.id === selected)
   const leaveOf = (id: number) => leave.filter((l) => l.staffId === id)
   // Open while the person in the panel is in it, and after that as you leave it
   const [showInactive, setShowInactive] = useState(person?.active === false)
@@ -97,7 +99,7 @@ export function StaffList({
   function close(refocus = true) {
     const id = selected
     select(null)
-    if (refocus && typeof id === 'number') document.querySelector<HTMLElement>(`[data-person="${id}"]`)?.focus()
+    if (refocus && id !== null) document.querySelector<HTMLElement>(`[data-person="${id}"]`)?.focus()
   }
 
   return (
@@ -109,11 +111,18 @@ export function StaffList({
             title="People"
             note="In roster order. Drag the handle to rearrange, and click someone to change their details."
             action={
-              <button data-keeps-panel className="btn" onClick={() => select('new')}>
-                + Add person
-              </button>
+              !adding && (
+                <button className="btn" onClick={() => setAdding(true)}>
+                  + Add person
+                </button>
+              )
             }
           />
+          {adding && (
+            <div className="mb-3">
+              <AddPersonForm onDone={() => setAdding(false)} />
+            </div>
+          )}
           <div className="overflow-hidden rounded-card border border-line bg-surface">
             <ul
               onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
@@ -189,16 +198,15 @@ export function StaffList({
         </section>
         {children}
       </div>
-      {person || selected === 'new' ? (
+      {person ? (
         // Keyed, so a box half-typed for one person doesn't carry over to the next
         <StaffPanel
-          key={person?.id ?? 'new'}
-          person={person ?? 'new'}
-          leave={person ? leaveOf(person.id) : []}
+          key={person.id}
+          person={person}
+          leave={leaveOf(person.id)}
           today={today}
           onClose={() => close()}
           onDismiss={() => close(false)}
-          onAdded={(id) => select(id)}
         />
       ) : (
         // Level with the list, under its heading
