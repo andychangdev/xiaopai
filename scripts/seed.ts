@@ -11,14 +11,14 @@ import * as t from '../lib/db/schema'
 import { DEFAULT_TRADING_HOURS } from '../lib/roster/settings'
 import { EVERY_DAY } from '../lib/roster/staff'
 
-// Placeholders from the mockup. Rename them on the Staff page.
+// Placeholders from the mockup. Rename them on the Staff page. Rates are cents.
 const STAFF = [
-  { name: 'John Reyes', expectedHours: 24, available: [true, true, true, true, true, true, false] },
-  { name: 'Priya Naidu', expectedHours: null, available: EVERY_DAY },
-  { name: 'Sarah Dunn', expectedHours: 24, available: EVERY_DAY },
-  { name: 'Lisa Chen', expectedHours: 20, available: [true, true, true, true, true, true, false] },
-  { name: 'Mike Tulloch', expectedHours: 18, available: [false, false, true, true, true, true, true] },
-  { name: 'Dana Okafor', expectedHours: null, available: EVERY_DAY, active: false },
+  { name: 'John Reyes', expectedHours: 24, hourlyRate: 2850, available: [true, true, true, true, true, true, false] },
+  { name: 'Priya Naidu', expectedHours: null, hourlyRate: 3100, available: EVERY_DAY },
+  { name: 'Sarah Dunn', expectedHours: 24, hourlyRate: 2850, available: EVERY_DAY },
+  { name: 'Lisa Chen', expectedHours: 20, hourlyRate: 2600, available: [true, true, true, true, true, true, false] },
+  { name: 'Mike Tulloch', expectedHours: 18, hourlyRate: 2600, available: [false, false, true, true, true, true, true] },
+  { name: 'Dana Okafor', expectedHours: null, hourlyRate: null, available: EVERY_DAY, active: false },
 ]
 
 const TEMPLATES = [

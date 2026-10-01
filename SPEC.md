@@ -36,12 +36,13 @@ database file, easy to back up.
 ## 2. Data model
 
 **Employee** — `id`, `name`, `active`, `available[7]`, `sort_order`,
-`expected_weekly_hours?`, `notes?`
+`expected_weekly_hours?`, `hourly_rate?`, `notes?`
 `sort_order` is set by hand on the Staff page, dragging rows by their handle,
 and is the row order on every roster. Not alphabetical: you think of your staff
 in a particular order, and rows must never move around while you're editing.
 `available` is one flag per weekday — the recurring pattern of when someone can
-work. A dated absence is a **Leave** row instead.
+work. A dated absence is a **Leave** row instead. `hourly_rate` is whole cents
+and only feeds the cost estimate below the grid.
 
 **ShiftTemplate** — `id`, `name`, `start`, `end`
 Used to prefill a shift. Times stay editable afterwards. The three real ones:
@@ -211,7 +212,7 @@ fine.
 ### Staff, Templates, Settings
 
 Plain list-and-form admin screens. Nothing clever. The staff screen carries name,
-availability, expected hours, notes and the active flag, and below it a
+availability, expected hours, hourly rate, notes and the active flag, and below it a
 **Booked leave** table: who, from, to, days, note. Multi-day periods are
 booked there; the roster's own cell action is just the one-day shortcut. Settings holds the business
 name, trading hours per weekday — opens, closes — and the shift templates. Nothing week-specific.

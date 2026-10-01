@@ -21,6 +21,7 @@ import { undoLast, undoable } from '@/lib/db/undo'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
+import { RATE_INVALID, parseHourlyRate } from '@/lib/roster/cost'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { leaveOn, onLeaveError, overlapError, parseLeave } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
@@ -99,11 +100,18 @@ function gridRow(week: IsoDate, staffId: number): { error: string } | { name: st
   return person
 }
 
-export async function addStaff(input: { name: string; expectedHours: string; notes: string }): Promise<ActionResult> {
+export async function addStaff(input: {
+  name: string
+  expectedHours: string
+  hourlyRate: string
+  notes: string
+}): Promise<ActionResult> {
   const name = parseName(text(input?.name))
   if (!name) return { error: NAME_REQUIRED }
   const hours = parseExpectedHours(text(input?.expectedHours))
   if (!hours.ok) return { error: HOURS_INVALID }
+  const rate = parseHourlyRate(text(input?.hourlyRate))
+  if (!rate.ok) return { error: RATE_INVALID }
 
   const db = getDb()
   const last = db.select({ n: max(staff.sortOrder) }).from(staff).get()?.n ?? -1
@@ -111,6 +119,7 @@ export async function addStaff(input: { name: string; expectedHours: string; not
     .values({
       name,
       expectedHours: hours.value,
+      hourlyRate: rate.value,
       notes: parseNotes(text(input?.notes)),
       available: EVERY_DAY,
       sortOrder: last + 1,
@@ -122,10 +131,10 @@ export async function addStaff(input: { name: string; expectedHours: string; not
 
 export async function updateStaff(
   id: number,
-  patch: { name?: string; expectedHours?: string; notes?: string; active?: boolean },
+  patch: { name?: string; expectedHours?: string; hourlyRate?: string; notes?: string; active?: boolean },
 ): Promise<ActionResult> {
   checkId(id)
-  const { name, expectedHours, notes, active } = patch ?? {}
+  const { name, expectedHours, hourlyRate, notes, active } = patch ?? {}
   const set: Partial<typeof staff.$inferInsert> = {}
   if (name !== undefined) {
     const parsed = parseName(text(name))
@@ -136,6 +145,11 @@ export async function updateStaff(
     const hours = parseExpectedHours(text(expectedHours))
     if (!hours.ok) return { error: HOURS_INVALID }
     set.expectedHours = hours.value
+  }
+  if (hourlyRate !== undefined) {
+    const rate = parseHourlyRate(text(hourlyRate))
+    if (!rate.ok) return { error: RATE_INVALID }
+    set.hourlyRate = rate.value
   }
   if (notes !== undefined) set.notes = parseNotes(text(notes))
   if (active !== undefined) set.active = active === true

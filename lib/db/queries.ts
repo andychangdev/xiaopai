@@ -152,6 +152,7 @@ export function staffList() {
       name: staff.name,
       active: staff.active,
       expectedHours: staff.expectedHours,
+      hourlyRate: staff.hourlyRate,
       available: staff.available,
       notes: staff.notes,
     })

@@ -2,7 +2,8 @@ import { index, integer, sqliteTable, text, unique } from 'drizzle-orm/sqlite-co
 import { ALL_OPEN } from '@/lib/roster/closed'
 import type { Snapshot } from '@/lib/roster/types'
 
-// Times are minutes since midnight (600 = 10:00). Dates are 'YYYY-MM-DD'.
+// Times are minutes since midnight (600 = 10:00). Money is whole cents
+// (2850 = $28.50). Dates are 'YYYY-MM-DD'.
 // Weekday arrays are seven entries, Monday first. Column names are the
 // snake_case of the keys (`casing` in open.ts and drizzle.config.ts).
 
@@ -13,6 +14,7 @@ export const staff = sqliteTable('staff', {
   available: text({ mode: 'json' }).$type<boolean[]>().notNull(),
   sortOrder: integer().notNull(),
   expectedHours: integer(),
+  hourlyRate: integer(), // cents, only for the cost estimate
   notes: text(),
 })
 

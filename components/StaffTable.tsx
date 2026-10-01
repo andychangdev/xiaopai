@@ -4,6 +4,7 @@ import { useOptimistic, useRef, useState, useTransition } from 'react'
 import { addStaff, moveStaff, removeStaff, setAvailable, updateStaff, type ActionResult } from '@/app/actions'
 import type { StaffListRow } from '@/lib/db/queries'
 import { withDayAvailable } from '@/lib/roster/availability'
+import { formatRate } from '@/lib/roster/cost'
 import { DAY_NAMES } from '@/lib/roster/dates'
 import { moveInOrder, whyNotRemovable } from '@/lib/roster/staff'
 import { GripIcon } from './Icons'
@@ -12,7 +13,7 @@ import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk, type AskOptions } from './useAsk'
 
-const hoursField = 'field w-18.5 font-mono tabular-nums'
+const numberField = 'field w-18.5 font-mono tabular-nums'
 
 /** Returns the refusal, if there was one, so a box can put its old value back. */
 type Report = (result: ActionResult) => string | undefined
@@ -68,11 +69,12 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-190 border-collapse">
+        <table className="w-full min-w-205 border-collapse">
           <thead>
             <tr>
               <th className={th}>Name</th>
               <th className={th}>Expected hours</th>
+              <th className={th}>Hourly rate</th>
               <th className={th}>Available</th>
               <th className={th}>Notes</th>
               <th className={th}>Active</th>
@@ -200,12 +202,22 @@ function StaffRow({
       </td>
       <td className={td}>
         <SaveOnBlur
-          className={hoursField}
+          className={numberField}
           aria-label="Expected weekly hours"
           inputMode="numeric"
           placeholder="—"
           value={person.expectedHours?.toString() ?? ''}
           onSave={(expectedHours) => save({ expectedHours })}
+        />
+      </td>
+      <td className={td}>
+        <SaveOnBlur
+          className={numberField}
+          aria-label="Hourly rate"
+          inputMode="decimal"
+          placeholder="—"
+          value={person.hourlyRate === null ? '' : formatRate(person.hourlyRate)}
+          onSave={(hourlyRate) => save({ hourlyRate })}
         />
       </td>
       <td className={td}>
@@ -314,7 +326,12 @@ const dropLine = {
 function AddRow({
   onAdd,
 }: {
-  onAdd: (input: { name: string; expectedHours: string; notes: string }) => Promise<string | undefined>
+  onAdd: (input: {
+    name: string
+    expectedHours: string
+    hourlyRate: string
+    notes: string
+  }) => Promise<string | undefined>
 }) {
   const form = 'add-staff'
   const nameRef = useRef<HTMLInputElement>(null)
@@ -336,6 +353,7 @@ function AddRow({
               const refused = await onAdd({
                 name: String(data.get('name')),
                 expectedHours: String(data.get('expectedHours')),
+                hourlyRate: String(data.get('hourlyRate')),
                 notes: String(data.get('notes')),
               })
               if (!refused) el.reset()
@@ -358,9 +376,19 @@ function AddRow({
         <input
           form={form}
           name="expectedHours"
-          className={hoursField}
+          className={numberField}
           aria-label="Their expected weekly hours"
           inputMode="numeric"
+          placeholder="—"
+        />
+      </td>
+      <td className={td}>
+        <input
+          form={form}
+          name="hourlyRate"
+          className={numberField}
+          aria-label="Their hourly rate"
+          inputMode="decimal"
           placeholder="—"
         />
       </td>

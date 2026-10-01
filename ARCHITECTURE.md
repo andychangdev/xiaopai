@@ -211,8 +211,9 @@ meant.
 
 ## 3. Schema
 
-Times are **minutes since midnight** — `600` is 10:00, `1260` is 21:00. Integer
-maths, formatted at the edge. Weekday arrays are seven entries, Monday first.
+Times are **minutes since midnight** — `600` is 10:00, `1260` is 21:00. Money
+is **whole cents** — `2850` is $28.50. Integer maths, formatted at the edge.
+Weekday arrays are seven entries, Monday first.
 
 ```ts
 staff = sqliteTable('staff', {
@@ -222,6 +223,7 @@ staff = sqliteTable('staff', {
   available:     text({ mode: 'json' }).$type<boolean[]>().notNull(),  // 7, Mon-first
   sortOrder:     integer().notNull(),
   expectedHours: integer(),          // nullable
+  hourlyRate:    integer(),          // cents, nullable; only for the cost estimate
   notes:         text(),
 })
 
@@ -322,6 +324,7 @@ lib/
     dates.ts                 week maths, labels, canonicalWeek
     shifts.ts                the Shift type, cells, copying one shift
     hours.ts                 per person, per week, against expected
+    cost.ts                  hourly rates, in cents
     warnings.ts              the whole warnings list, overlapping shifts
     availability.ts          the usual weekly pattern
     notAvailable.ts          N/A notes on one week
