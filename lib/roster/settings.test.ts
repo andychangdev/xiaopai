@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_TRADING_HOURS,
   openMinutes,
+  placeOnScale,
+  templateScale,
   tradingHoursError,
   tradingSummary,
   tradingWeek,
@@ -136,5 +138,48 @@ describe('unusualDays', () => {
 describe('openMinutes', () => {
   it('adds up every day the shop is open', () => {
     expect(openMinutes(DEFAULT_TRADING_HOURS)).toBe(59 * 60)
+  })
+})
+
+describe('templateScale', () => {
+  const t = (start: number, end: number) => ({ start, end })
+
+  it('runs from the earliest opening to the latest close', () => {
+    const scale = templateScale(DEFAULT_TRADING_HOURS, [t(600, 960)])
+    expect([scale.start, scale.end]).toEqual([600, 1260])
+  })
+
+  it('widens to fit a template that starts before opening or ends after closing', () => {
+    const scale = templateScale(DEFAULT_TRADING_HOURS, [t(480, 720), t(1200, 1320)])
+    expect([scale.start, scale.end]).toEqual([480, 1320])
+  })
+
+  it('ticks both ends and the even hours between, clear of either end', () => {
+    expect(templateScale(DEFAULT_TRADING_HOURS, []).ticks).toEqual([600, 720, 840, 960, 1080, 1260])
+  })
+
+  it('names the evening only Thursday is open', () => {
+    expect(templateScale(DEFAULT_TRADING_HOURS, []).spans).toEqual([{ from: 1080, to: 1260, note: 'After 18:00: Thu only' }])
+  })
+
+  it('has nothing to hatch when every day keeps the same hours', () => {
+    expect(templateScale(everyDay(600, 1080), [t(600, 1080)]).spans).toEqual([])
+  })
+
+  it('says which days are out when most are open, and when none are', () => {
+    const week = everyDay(600, 1080)
+    week[0] = day(660, 1080)
+    expect(templateScale(week, [t(540, 960)]).spans).toEqual([
+      { from: 540, to: 600, note: 'Before 10:00: closed every day' },
+      { from: 600, to: 660, note: '10:00–11:00: every day but Mon' },
+    ])
+  })
+})
+
+describe('placeOnScale', () => {
+  it("gives a template's offset and length as shares of the scale", () => {
+    const scale = templateScale(DEFAULT_TRADING_HOURS, [])
+    expect(placeOnScale(scale, 600, 960)).toEqual({ left: 0, width: (6 / 11) * 100 })
+    expect(placeOnScale(scale, 1080, 1260)).toEqual({ left: (8 / 11) * 100, width: (3 / 11) * 100 })
   })
 })

@@ -4,7 +4,7 @@ import { HolidaysTable } from '@/components/HolidaysTable'
 import { PageHead, Section } from '@/components/Page'
 import { PayRateFields } from '@/components/PayRateFields'
 import { SectionIndex } from '@/components/SectionIndex'
-import { TemplatesTable } from '@/components/TemplatesTable'
+import { Templates } from '@/components/Templates'
 import { TradingHours } from '@/components/TradingHours'
 import { today } from '@/lib/clock'
 import { businessName, holidayList, payRates, templateList, tradingHoursWeek } from '@/lib/db/queries'
@@ -27,6 +27,7 @@ const SECTIONS = [
 const flush = '-mx-3'
 
 export default function SettingsPage() {
+  const week = tradingHoursWeek()
   return (
     <div className="max-w-270">
       <PageHead title="Settings">
@@ -43,16 +44,14 @@ export default function SettingsPage() {
             title="Trading hours"
             note="Shown under the roster. Nothing else depends on them, so a shift can still start or end outside them."
           >
-            <TradingHours week={tradingHoursWeek()} />
+            <TradingHours week={week} />
           </Section>
           <Section
             id="shift-templates"
             title="Shift templates"
             note="One click each when you add a shift. Changing or removing one leaves shifts already placed as they are."
           >
-            <div className={flush}>
-              <TemplatesTable templates={templateList()} />
-            </div>
+            <Templates templates={templateList()} week={week} />
           </Section>
           <Section
             id="pay-rates"

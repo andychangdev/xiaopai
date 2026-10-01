@@ -1,7 +1,7 @@
 // Rules for the Settings page: the business's name, the trading hours for
-// each weekday, the line under the grid that sums them up, and where a new
-// shift template starts. Trading hours only ever show; nothing else depends on
-// them.
+// each weekday, the line under the grid that sums them up, where a new shift
+// template starts, and the day the templates are drawn against. Trading hours
+// only ever show; nothing else depends on them.
 
 import { DAY_NAMES } from './dates'
 import { formatRange, formatTime, timesError, type Minutes } from './time'
@@ -70,6 +70,62 @@ export function unusualDays(week: TradingDay[]): boolean[] {
 /** How long the shop is open across the week. */
 export function openMinutes(week: TradingDay[]): Minutes {
   return week.reduce((sum, d) => sum + d.close - d.open, 0)
+}
+
+/**
+ * The day Settings draws each shift template against: from the week's
+ * earliest opening to its latest close, widened to fit any template that
+ * runs outside them. Ticks mark both ends and the round hours between, kept
+ * clear of the ends. Spans are the times not every day is open, to hatch,
+ * each with a note on which days are.
+ */
+export type TemplateScale = {
+  start: Minutes
+  end: Minutes
+  ticks: Minutes[]
+  spans: { from: Minutes; to: Minutes; note: string }[]
+}
+
+export function templateScale(week: TradingDay[], templates: { start: Minutes; end: Minutes }[]): TemplateScale {
+  const start = Math.min(...week.map((d) => d.open), ...templates.map((t) => t.start))
+  const end = Math.max(...week.map((d) => d.close), ...templates.map((t) => t.end))
+
+  const step = end - start > 12 * 60 ? 180 : 120
+  const ticks = [start]
+  for (let t = Math.ceil(start / step) * step; t < end; t += step) {
+    if (t - start > 60 && end - t > 60) ticks.push(t)
+  }
+  ticks.push(end)
+
+  // Between one opening or closing and the next, the same days are open throughout
+  const edges = [...new Set([start, end, ...week.flatMap((d) => [d.open, d.close])])]
+    .filter((t) => start <= t && t <= end)
+    .sort((a, b) => a - b)
+  const spans: { from: Minutes; to: Minutes; who: string }[] = []
+  edges.slice(0, -1).forEach((from, i) => {
+    const to = edges[i + 1]
+    const mid = (from + to) / 2
+    const open = DAY_NAMES.filter((_, weekday) => week[weekday].open <= mid && mid < week[weekday].close)
+    if (open.length === DAY_NAMES.length) return
+    const who = !open.length
+      ? 'closed every day'
+      : open.length >= 4
+        ? `every day but ${DAY_NAMES.filter((day) => !open.includes(day)).join(', ')}`
+        : `${open.join(', ')} only`
+    const last = spans.at(-1)
+    if (last && last.to === from && last.who === who) last.to = to
+    else spans.push({ from, to, who })
+  })
+
+  const when = (from: Minutes, to: Minutes) =>
+    from === start && to !== end ? `Before ${formatTime(to)}` : to === end && from !== start ? `After ${formatTime(from)}` : formatRange(from, to)
+  return { start, end, ticks, spans: spans.map(({ from, to, who }) => ({ from, to, note: `${when(from, to)}: ${who}` })) }
+}
+
+/** Where a stretch of the day sits on the scale, as percentages of its width. */
+export function placeOnScale(scale: TemplateScale, from: Minutes, to: Minutes): { left: number; width: number } {
+  const length = scale.end - scale.start
+  return { left: ((from - scale.start) / length) * 100, width: ((to - from) / length) * 100 }
 }
 
 export const CLOSE_AFTER_OPEN = 'The shop has to close after it opens, and by midnight.'
