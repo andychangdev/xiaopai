@@ -585,7 +585,11 @@ The grid itself is CSS Grid, not a table, in plain CSS classes:
 
 `.cell-closed` hatches a closed day down its whole column. The other pages
 are tables inside `Card`s under a `PageHead` (`components/Page.tsx`), which
-also exports the `th` and `td` class strings they share.
+also exports the `th` and `td` class strings they share. The Staff page is
+the exception: a list with an edit panel beside it, which on a narrow screen
+becomes a sheet over it. Whose panel is open lives in the URL
+(`/staff?person=3`), set through the browser's own history, which Next
+follows, so opening someone needs no trip to the server.
 
 ---
 

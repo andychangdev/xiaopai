@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { firstName, initialOf, moveInOrder, parseExpectedHours, parseName, parseNotes, rosterRows, whyNotRemovable } from './staff'
+import {
+  firstName,
+  initialOf,
+  moveInOrder,
+  parseExpectedHours,
+  parseName,
+  parseNotes,
+  placeAmong,
+  rosterRows,
+  whyNotRemovable,
+} from './staff'
 
 const person = (id: number, sortOrder: number, active = true) => ({ id, sortOrder, active, name: `P${id}` })
 
@@ -113,9 +123,9 @@ describe('whyNotRemovable', () => {
     expect(whyNotRemovable(john, { shifts: 0, leave: 0 })).toBeNull()
   })
 
-  it('refuses someone with shifts, and says to untick Active', () => {
+  it('refuses someone with shifts, and says to switch Active off', () => {
     expect(whyNotRemovable(john, { shifts: 12, leave: 0 })).toBe(
-      'John Reyes has 12 shifts on record. Untick Active instead: that takes them off new weeks, ' +
+      'John Reyes has 12 shifts on record. Switch Active off instead: that takes them off new weeks, ' +
         'and removing the record would leave holes in past rosters.',
     )
   })
@@ -131,11 +141,42 @@ describe('whyNotRemovable', () => {
     )
   })
 
-  it("doesn't tell you to untick Active for someone already inactive", () => {
+  it("doesn't tell you to switch Active off for someone already inactive", () => {
     expect(whyNotRemovable({ ...john, active: false }, { shifts: 4, leave: 0 })).toBe(
       'John Reyes has 4 shifts on record. Being inactive already keeps them off new weeks, ' +
         'and removing the record would leave holes in past rosters.',
     )
+  })
+})
+
+describe('placeAmong', () => {
+  // The whole order, with x inactive, so the Staff page lists only a, b and c together
+  const all = ['a', 'x', 'b', 'c'].map((name, id) => ({ id, name }))
+  const [a, , b, c] = all
+  const shown = [a, b, c]
+  const order = (id: number, gap: number) =>
+    moveInOrder(all, id, placeAmong(all, shown, id, gap)).map((p) => p.name).join('')
+
+  it('puts someone dropped above the first shown first of all', () => {
+    expect(order(c.id, 0)).toBe('caxb')
+  })
+
+  it('puts someone dropped below the last shown last of all', () => {
+    expect(order(a.id, 3)).toBe('xbca')
+  })
+
+  it('lands just above the shown person below the gap, past anyone hidden', () => {
+    expect(order(a.id, 2)).toBe('xbac')
+    expect(order(c.id, 1)).toBe('axcb')
+  })
+
+  it('keeps someone hidden from the list where they were among the rest', () => {
+    expect(order(b.id, 0)).toBe('baxc')
+  })
+
+  it('changes nothing for a gap either side of where someone already is', () => {
+    expect(order(b.id, 1)).toBe('axbc')
+    expect(order(b.id, 2)).toBe('axbc')
   })
 })
 

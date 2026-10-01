@@ -112,17 +112,18 @@ function gridRow(week: IsoDate, staffId: number): { error: string } | { name: st
     !person.active &&
     !db.select({ id: shifts.id }).from(shifts).where(and(eq(shifts.weekStart, week), eq(shifts.staffId, staffId))).get()
   ) {
-    return { error: `${person.name} is inactive. Tick Active on the Staff page to put them back on the roster.` }
+    return { error: `${person.name} is inactive. Switch Active on for them on the Staff page to put them back on the roster.` }
   }
   return person
 }
 
+/** Someone new, active, at the end of the order. Their id comes back, so their panel can open. */
 export async function addStaff(input: {
   name: string
   expectedHours: string
   hourlyRate: string
   notes: string
-}): Promise<ActionResult> {
+}): Promise<ActionResult & { id?: number }> {
   const name = parseName(text(input?.name))
   if (!name) return { error: NAME_REQUIRED }
   const hours = parseExpectedHours(text(input?.expectedHours))
@@ -132,7 +133,8 @@ export async function addStaff(input: {
 
   const db = getDb()
   const last = db.select({ n: max(staff.sortOrder) }).from(staff).get()?.n ?? -1
-  db.insert(staff)
+  const { id } = db
+    .insert(staff)
     .values({
       name,
       expectedHours: hours.value,
@@ -141,9 +143,10 @@ export async function addStaff(input: {
       available: EVERY_DAY,
       sortOrder: last + 1,
     })
-    .run()
+    .returning({ id: staff.id })
+    .get()
   staffChanged()
-  return {}
+  return { id }
 }
 
 export async function updateStaff(
@@ -255,7 +258,7 @@ export async function bookLeave(input: {
   const db = getDb()
   const person = db.select({ name: staff.name, active: staff.active }).from(staff).where(eq(staff.id, staffId)).get()
   if (!person) return { error: 'That person is no longer on the staff list.' }
-  if (!person.active) return { error: `${person.name} is inactive. Tick Active to book leave for them.` }
+  if (!person.active) return { error: `${person.name} is inactive. Switch Active on for them to book leave.` }
   const theirs = db
     .select({ fromDate: leave.fromDate, toDate: leave.toDate })
     .from(leave)

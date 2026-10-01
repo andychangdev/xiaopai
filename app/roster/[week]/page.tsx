@@ -96,7 +96,7 @@ function NoRows({ everyoneInactive }: { everyoneInactive: boolean }) {
         <>
           <p className="font-semibold">Everyone is inactive</p>
           <p className="mt-1 text-[13px] text-ink-2">
-            Tick Active on the {staffPage} for anyone working again, and they get their row back.
+            Switch Active back on for anyone working again on the {staffPage}, and they get their row back.
           </p>
         </>
       ) : (

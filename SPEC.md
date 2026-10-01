@@ -238,8 +238,11 @@ fine.
 
 ### Staff, Templates, Settings
 
-Plain list-and-form admin screens. Nothing clever. The staff screen carries name,
-availability, expected hours, hourly rate, notes and the active flag, and below it a
+Plain admin screens. Nothing clever. The staff screen is a list, one line per
+person in roster order, showing availability, expected hours and hourly rate, with
+inactive people folded away at its foot. Clicking someone opens a panel beside it
+(a sheet on a phone) for their name, availability, expected hours, hourly rate,
+notes and the active flag, and for removing them. Below the list is a
 **Booked leave** table: who, from, to, days, note. Multi-day periods are
 booked there; the roster's own cell action is just the one-day shortcut. Settings holds the business
 name, trading hours per weekday — opens, closes — the shift templates, the weekend and public holiday

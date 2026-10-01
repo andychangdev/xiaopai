@@ -2,11 +2,15 @@ import type { ReactNode } from 'react'
 
 // The admin pages' frame: a heading with a short explanation, then cards
 
-export function PageHead({ title, children }: { title: string; children: ReactNode }) {
+/** `action` is the page's own button, at the right of the heading. */
+export function PageHead({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <div className="mb-4">
-      <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{title}</h1>
-      <p className="mt-1.25 max-w-[64ch] text-[13px] leading-normal text-ink-2">{children}</p>
+    <div className="mb-4 flex flex-wrap items-end justify-between gap-x-4 gap-y-2.5">
+      <div>
+        <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{title}</h1>
+        <p className="mt-1.25 max-w-[64ch] text-[13px] leading-normal text-ink-2">{children}</p>
+      </div>
+      {action}
     </div>
   )
 }

@@ -29,6 +29,24 @@ export function moveInOrder<T extends { id: number }>(rows: T[], id: number, to:
 }
 
 /**
+ * The place in the whole order, counting from 0 as moveInOrder takes it, for
+ * someone dropped into a gap of a list that shows only some of it. The Staff
+ * page lists active people apart from inactive ones. Gap 0 is above the
+ * first person shown, and the last gap below the last. Dropped above someone
+ * shown, they land just above that person, past anyone hidden in between.
+ */
+export function placeAmong(all: { id: number }[], shown: { id: number }[], id: number, gap: number): number {
+  const rest = all.filter((p) => p.id !== id)
+  const others = shown.filter((p) => p.id !== id)
+  const from = shown.findIndex((p) => p.id === id)
+  // Once they're out, every gap below them is a place higher
+  const at = from >= 0 && gap > from ? gap - 1 : gap
+  if (!others.length) return all.findIndex((p) => p.id === id)
+  if (at < others.length) return rest.findIndex((p) => p.id === others[at].id)
+  return rest.findIndex((p) => p.id === others[others.length - 1].id) + 1
+}
+
+/**
  * The one character on a name's round or square: its first letter or digit,
  * capitalised, for the sidebar's business and each line on the Staff page. A
  * name with neither, like a lone emoji, shows its first character instead.
@@ -85,7 +103,7 @@ export function whyNotRemovable(
     .filter(Boolean)
     .join(' and ')
   const instead = person.active
-    ? 'Untick Active instead: that takes them off new weeks'
+    ? 'Switch Active off instead: that takes them off new weeks'
     : 'Being inactive already keeps them off new weeks'
   return `${person.name} has ${has} on record. ${instead}, and removing the record would leave holes in past rosters.`
 }
