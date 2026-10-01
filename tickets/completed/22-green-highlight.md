@@ -10,11 +10,11 @@ The shift chip change departs from the current grid. Reference: `mockup/redesign
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] There's one shared highlight style, built from the existing accent tokens. No new colours go into the theme.
-- [ ] The current tab, History's Published badge and the available-day toggles use it, and look as they do now.
-- [ ] "This week" beside the roster title is a pill in the highlight.
-- [ ] Shift chips use the highlight. Overlapping shifts are still red, hover still shows, and a chip being copied or dragged still shows its dashed outline or dimming.
-- [ ] Text in the highlight meets WCAG AA contrast against its fill.
-- [ ] ARCHITECTURE §7 lists the highlight among the controls every page shares.
+- [x] There's one shared highlight style, built from the existing accent tokens. No new colours go into the theme.
+- [x] The current tab, History's Published badge and the available-day toggles use it, and look as they do now.
+- [x] "This week" beside the roster title is a pill in the highlight.
+- [x] Shift chips use the highlight. Overlapping shifts are still red, hover still shows, and a chip being copied or dragged still shows its dashed outline or dimming.
+- [x] Text in the highlight meets WCAG AA contrast against its fill.
+- [x] ARCHITECTURE §7 lists the highlight among the controls every page shares.
