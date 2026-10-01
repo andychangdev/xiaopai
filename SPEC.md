@@ -129,7 +129,7 @@ snapshot's, and N/A notes stay. A published shift for someone now on leave
 that day, or no longer on the staff list, can't come back, so the week still
 reads Unpublished changes and the dialog says why. Undo takes a revert back.
 
-The three states, shown as a badge next to the button:
+The three states, shown as a badge beside the week's dates:
 
 | State | Badge | Button |
 |---|---|---|
@@ -185,7 +185,10 @@ drops below the grid next to Warnings, so the grid never has to scroll for
 it. Week summary
 is a small table of each person's hours against their expected weekly hours,
 plus the week total; anyone more than 20% above or below is highlighted, and
-anyone with no hours that week is dimmed.
+anyone with no hours that week is dimmed. **Share roster** and **Publish** sit
+at its foot, so the week goes out from where you check its hours and cost. The
+week's publish badge sits beside its dates at the top of the page, as on
+History.
 
 Once anyone on the week has an hourly rate, each line also shows an estimated
 cost, under an **Est. cost** heading: hours × their rate, to the nearest

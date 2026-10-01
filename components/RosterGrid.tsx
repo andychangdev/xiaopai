@@ -9,6 +9,7 @@ import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
 import { leaveOn, onLeaveNote, type Leave } from '@/lib/roster/leave'
 import { naNote, naReason, type NaNote } from '@/lib/roster/notAvailable'
+import type { PublishState } from '@/lib/roster/publish'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
@@ -52,8 +53,8 @@ type Props = {
   tradingHours: string
   /** Monday first */
   closedDays: boolean[]
-  /** Published at any version, which brings in the staffing warnings */
-  published: boolean
+  /** Draft or published, for the Week summary. Published at any version brings in the staffing warnings */
+  publish: PublishState
   /** The weekend and holiday rates, and the week's public holidays, for its cost */
   payRates: PayRates
   /** How many shifts the week before has, for Copy previous week */
@@ -76,7 +77,7 @@ export function RosterGrid({
   templates,
   tradingHours,
   closedDays,
-  published,
+  publish,
   payRates,
   previousShifts,
   lastAction,
@@ -85,6 +86,8 @@ export function RosterGrid({
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const overlapping = overlappingShifts(shifts)
+  const published = publish.status === 'published'
+  const warnings = buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })
   const [dialog, ask] = useAsk()
   const [open, setOpen] = useState<PopoverTarget | null>(null)
 
@@ -290,12 +293,17 @@ export function RosterGrid({
           </div>
         </div>
         <div className="[grid-area:warnings]">
-          <WarningsPanel
-            warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })}
-          />
+          <WarningsPanel warnings={warnings} />
         </div>
         <div className="[grid-area:summary]">
-          <WeekSummary staff={staff} shifts={shifts} rates={payRates} />
+          <WeekSummary
+            week={week}
+            staff={staff}
+            shifts={shifts}
+            rates={payRates}
+            publish={publish}
+            warnings={warnings.length}
+          />
         </div>
       </div>
       {open &&

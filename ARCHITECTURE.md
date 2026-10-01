@@ -392,7 +392,8 @@ two. `/roster` and `/share` on their own land the same way.
 
 Navigation is the tab bar — Roster, Staff, Settings, History. No home tab,
 because the roster *is* home. Share roster isn't a tab: it opens from the
-roster's header, beside Publish, and counts as the Roster tab while it's open.
+foot of the Week summary, next to Publish, and counts as the Roster tab while
+it's open.
 
 History is a page of its own, so the week you have open travels with it as
 `/history?week=2026-10-05`: the tab bar adds it when you leave a grid or

@@ -55,7 +55,7 @@ export function publishState(
   return { status: 'published', version, publishedAt, changed: changedSince(snapshot, days) }
 }
 
-/** The badge beside the Publish button. */
+/** The badge beside the week's dates. */
 export function publishBadge(state: PublishState): string {
   if (state.status === 'draft') return 'Draft'
   return state.changed ? 'Unpublished changes' : `Published · v${state.version}`

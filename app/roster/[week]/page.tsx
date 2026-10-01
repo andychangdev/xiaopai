@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PublishBadge } from '@/components/PublishBadge'
-import { PublishButton } from '@/components/PublishButton'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
 import {
@@ -16,10 +15,8 @@ import {
 } from '@/lib/db/queries'
 import { undoLabel } from '@/lib/db/undo'
 import { addDays, canonicalWeek, mondayOf, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
-import { weekTotal } from '@/lib/roster/hours'
 import { weekSubtitle } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
-import { buildWarnings } from '@/lib/roster/warnings'
 
 // Reads the database, which Next can't see, so render on every request
 export const dynamic = 'force-dynamic'
@@ -37,7 +34,6 @@ export default async function RosterPage({ params }: Props) {
   if (week !== param) redirect(`/roster/${week}`)
 
   const { staff, shifts, naNotes, leave, closedDays, publish: state } = rosterWeek(week)
-  const published = state.status === 'published'
   // Read once, so the header and the grid agree on what day it is
   const now = today()
   const thisWeek = mondayOf(now)
@@ -45,42 +41,27 @@ export default async function RosterPage({ params }: Props) {
 
   return (
     <>
-      <div className="mb-3.5 flex flex-wrap items-end justify-between gap-3.5">
-        <div className="flex items-center gap-2.5">
-          <Today week={thisWeek} here={onThisWeek} />
-          <WeekArrow href={`/roster/${addDays(week, -7)}`} label="Previous week">
-            ‹
-          </WeekArrow>
-          <WeekArrow href={`/roster/${addDays(week, 7)}`} label="Next week">
-            ›
-          </WeekArrow>
-          <div>
-            <div className="flex flex-wrap items-baseline gap-x-2">
-              <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{weekTitle(week)}</h1>
-              {onThisWeek && (
-                <span className="text-[11px] font-semibold tracking-[0.09em] whitespace-nowrap text-accent-deep uppercase">
-                  This week
-                </span>
-              )}
-            </div>
-            <div className="text-[11.5px] font-medium tracking-[0.09em] text-ink-3 uppercase">
-              {weekSubtitle(week, state)}
-            </div>
+      <div className="mb-3.5 flex items-center gap-2.5">
+        <Today week={thisWeek} here={onThisWeek} />
+        <WeekArrow href={`/roster/${addDays(week, -7)}`} label="Previous week">
+          ‹
+        </WeekArrow>
+        <WeekArrow href={`/roster/${addDays(week, 7)}`} label="Next week">
+          ›
+        </WeekArrow>
+        <div>
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{weekTitle(week)}</h1>
+            {onThisWeek && (
+              <span className="text-[11px] font-semibold tracking-[0.09em] whitespace-nowrap text-accent-deep uppercase">
+                This week
+              </span>
+            )}
+            <PublishBadge key={`badge-${week}`} week={week} state={state} />
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <PublishBadge key={`badge-${week}`} week={week} state={state} />
-          <Link href={`/share/${week}`} className="btn">
-            Share roster
-          </Link>
-          <PublishButton
-            key={`publish-${week}`}
-            week={week}
-            state={state}
-            shifts={shifts.length}
-            minutes={weekTotal(shifts)}
-            warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published }).length}
-          />
+          <div className="text-[11.5px] font-medium tracking-[0.09em] text-ink-3 uppercase">
+            {weekSubtitle(week, state)}
+          </div>
         </div>
       </div>
 
@@ -96,7 +77,7 @@ export default async function RosterPage({ params }: Props) {
           templates={templateList()}
           tradingHours={tradingSummary(tradingHoursWeek())}
           closedDays={closedDays}
-          published={published}
+          publish={state}
           payRates={payRatesFor(week)}
           previousShifts={shiftCount(addDays(week, -7))}
           lastAction={undoLabel(week)}

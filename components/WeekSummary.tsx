@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import {
   NO_RATE,
   costFor,
@@ -8,12 +9,15 @@ import {
   type Cents,
   type PayRates,
 } from '@/lib/roster/cost'
+import type { IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursFor, weekTotal } from '@/lib/roster/hours'
 import type { Shift } from '@/lib/roster/shifts'
+import type { PublishState } from '@/lib/roster/publish'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours } from '@/lib/roster/time'
 import { InfoIcon } from './Icons'
 import { Panel } from './Panel'
+import { PublishButton } from './PublishButton'
 
 type Person = { id: number; name: string; expectedHours: number | null; hourlyRate: Cents | null }
 
@@ -32,9 +36,25 @@ const costCell = 'border-l border-line pr-3 pl-3 text-right'
  * order, and the week's total. Anyone with no hours this week is dimmed. Once
  * anyone on the week has an hourly rate, an estimated cost column joins it,
  * totalled like the hours, with a note under the table naming anyone it
- * leaves out for having no rate.
+ * leaves out for having no rate. Share roster and Publish sit at its foot,
+ * to send the week out once the hours and cost look right.
  */
-export function WeekSummary({ staff, shifts, rates }: { staff: Person[]; shifts: Shift[]; rates: PayRates }) {
+export function WeekSummary({
+  week,
+  staff,
+  shifts,
+  rates,
+  publish,
+  warnings,
+}: {
+  week: IsoDate
+  staff: Person[]
+  shifts: Shift[]
+  rates: PayRates
+  publish: PublishState
+  /** How many warnings are outstanding, for the publish dialog */
+  warnings: number
+}) {
   // Before anyone has a rate, a column of dashes would only be noise
   const priced = staff.some((p) => p.hourlyRate !== null)
   const note = priced ? noRateNote(rosteredWithoutRate(staff, shifts)) : null
@@ -112,6 +132,18 @@ export function WeekSummary({ staff, shifts, rates }: { staff: Person[]; shifts:
           {note}
         </p>
       )}
+      <div className="grid grid-cols-2 gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
+        <Link href={`/share/${week}`} className="btn text-center">
+          Share roster
+        </Link>
+        <PublishButton
+          week={week}
+          state={publish}
+          shifts={shifts.length}
+          minutes={weekTotal(shifts)}
+          warnings={warnings}
+        />
+      </div>
     </Panel>
   )
 }

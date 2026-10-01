@@ -9,10 +9,10 @@ import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
 /**
- * The badge beside the Publish button. Draft and Unpublished changes are in
- * amber, since both still need publishing; Published in the accent.
- * Unpublished changes also holds the way back to the version staff have,
- * which asks first. Undo takes a revert back like any grid action.
+ * The badge beside the week's dates, as on History. Draft and Unpublished
+ * changes are in amber, since both still need publishing; Published in the
+ * accent. Unpublished changes also holds the way back to the version staff
+ * have, which asks first. Undo takes a revert back like any grid action.
  */
 export function PublishBadge({ week, state }: { week: IsoDate; state: PublishState }) {
   const [dialog, ask] = useAsk()
