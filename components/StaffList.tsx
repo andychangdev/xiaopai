@@ -5,7 +5,6 @@ import { moveStaff } from '@/app/actions'
 import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
 import { formatRate } from '@/lib/roster/cost'
 import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
-import { awayLabel } from '@/lib/roster/leave'
 import { initialOf, moveInOrder, placeAmong } from '@/lib/roster/staff'
 import { AddPersonForm } from './AddPersonForm'
 import { GripIcon } from './Icons'
@@ -19,8 +18,8 @@ import { usePersonParam } from './usePersonParam'
  * away at the foot. Active people drag by the handle at the start of their
  * line, and with the handle focused the arrow keys move them a place at a
  * time. Clicking someone opens their panel beside the list, or over it on a
- * narrow screen, with their leave. Each line shows the next leave coming up.
- * What goes under the list comes in as children.
+ * narrow screen, with their leave. What goes under the list comes in as
+ * children.
  */
 export function StaffList({
   staff,
@@ -140,7 +139,6 @@ export function StaffList({
                 <Line
                   key={p.id}
                   person={p}
-                  away={awayLabel(leaveOf(p.id), today)}
                   selected={p.id === selected}
                   onOpen={() => select(p.id)}
                   drag={{
@@ -181,8 +179,7 @@ export function StaffList({
                     <Line
                       key={p.id}
                       person={p}
-                      away={awayLabel(leaveOf(p.id), today)}
-                      selected={p.id === selected}
+                          selected={p.id === selected}
                       onOpen={() => select(p.id)}
                     />
                   ))}
@@ -224,14 +221,11 @@ export function StaffList({
  */
 function Line({
   person,
-  away,
   selected,
   onOpen,
   drag,
 }: {
   person: StaffListRow
-  /** Their next leave, for the chip after their name */
-  away: string | null
   selected: boolean
   onOpen: () => void
   drag?: {
@@ -308,14 +302,7 @@ function Line({
           {initialOf(person.name)}
         </span>
         <span className="min-w-0">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="truncate font-semibold">{person.name}</span>
-            {away && (
-              <span className="flex-none rounded-full border border-warn-line bg-warn-bg px-1.75 text-[10.5px] font-semibold whitespace-nowrap text-warn-deep">
-                {away}
-              </span>
-            )}
-          </span>
+          <span className="block truncate font-semibold">{person.name}</span>
           {person.notes && <span className="block truncate text-[11.5px] text-ink-3">{person.notes}</span>}
         </span>
         <span title={`Usually available ${usually}`} className="hidden items-center gap-0.75 sm:flex">

@@ -86,24 +86,6 @@ export function isPast(l: Span, today: IsoDate): boolean {
   return l.toDate < today
 }
 
-/**
- * The chip on someone's line on the Staff page: their next leave, counting
- * any they're on now, and how many more bookings follow it. 'Away 11–13 Oct
- * +1', 'Away until 6 Oct'. Null with nothing to come.
- */
-export function awayLabel(leave: Span[], today: IsoDate): string | null {
-  const ahead = leave.filter((l) => !isPast(l, today)).sort((a, b) => a.fromDate.localeCompare(b.fromDate))
-  const next = ahead[0]
-  if (!next) return null
-  const more = ahead.length > 1 ? ` +${ahead.length - 1}` : ''
-  return `Away ${awayWhen(next, today)}${more}`
-}
-
-function awayWhen(l: Span, today: IsoDate): string {
-  if (l.fromDate <= today) return l.toDate === today ? 'today' : `until ${shortDate(l.toDate)}`
-  return shortSpan(l)
-}
-
 /** '5 Oct', '11–13 Oct', or '23 Oct – 9 Nov': within a month, the month goes once. */
 export function shortSpan({ fromDate, toDate }: Span): string {
   if (fromDate === toDate) return shortDate(fromDate)
