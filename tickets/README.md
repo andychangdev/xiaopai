@@ -32,7 +32,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 26 | [Leave in the staff panel](to-do/26-leave-in-the-panel.md) | 25 |
 | 27 | [Leave timeline](to-do/27-leave-timeline.md) | 26 |
 | 28 | [Settings sections and side index](completed/28-settings-sections.md) | 22 |
-| 29 | [Trading hours week strip](to-do/29-trading-hours-strip.md) | 28 |
+| 29 | [Trading hours week strip](completed/29-trading-hours-strip.md) | 28 |
 | 30 | [Shift template bars](to-do/30-template-bars.md) | 28 |
 
 Tickets 21–30 are the redesign of the navigation, Staff and Settings pages. Their visual reference is `mockup/redesign.html`, not the original mockup.
