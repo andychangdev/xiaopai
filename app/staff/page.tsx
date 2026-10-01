@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LeaveTimeline } from '@/components/LeaveTimeline'
 import { PageHead } from '@/components/Page'
-import { StaffList } from '@/components/StaffList'
+import { AddPersonButton, StaffList } from '@/components/StaffList'
 import { today } from '@/lib/clock'
 import { leaveList, staffList } from '@/lib/db/queries'
 
@@ -15,7 +15,9 @@ export default function StaffPage() {
   const now = today()
   return (
     <div className="max-w-300">
-      <PageHead title="Staff">Everyone you roster, and the leave they&apos;ve booked.</PageHead>
+      <PageHead title="Staff" action={<AddPersonButton />}>
+        In roster order. Drag the handle to rearrange, and click someone to change their details.
+      </PageHead>
       <StaffList staff={staff} leave={leave} today={now}>
         <LeaveTimeline
           leave={leave}
