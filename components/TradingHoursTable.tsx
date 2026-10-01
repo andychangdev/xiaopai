@@ -5,7 +5,7 @@ import { setTradingHours } from '@/app/actions'
 import { DAY_NAMES } from '@/lib/roster/dates'
 import type { TradingDay } from '@/lib/roster/settings'
 import { formatHours } from '@/lib/roster/time'
-import { tableScroll, td, th } from './Page'
+import { sectionRefusal, tableScroll, td, th } from './Page'
 import { UNREACHABLE } from './ShiftPopover'
 import { TimeSelect } from './TimeSelect'
 
@@ -22,7 +22,7 @@ export function TradingHoursTable({ week }: { week: TradingDay[] }) {
   return (
     <>
       <div className={tableScroll}>
-        <table className="w-full min-w-160 border-collapse">
+        <table className="w-full min-w-110 border-collapse">
           <thead>
             <tr>
               <th className={th}>Day</th>
@@ -51,7 +51,7 @@ export function TradingHoursTable({ week }: { week: TradingDay[] }) {
         </table>
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+        <p role="alert" className={sectionRefusal}>
           {error}
         </p>
       )}

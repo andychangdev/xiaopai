@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { setBusinessName } from '@/app/actions'
+import { sectionRefusal } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 
@@ -17,11 +18,9 @@ export function BusinessName({ name }: { name: string }) {
 
   return (
     <>
-      <div className="p-3.5">
-        <SaveOnBlur className="field max-w-[320px]" aria-label="Business name" value={name} onSave={save} />
-      </div>
+      <SaveOnBlur className="field max-w-[320px]" aria-label="Business name" value={name} onSave={save} />
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+        <p role="alert" className={sectionRefusal}>
           {error}
         </p>
       )}

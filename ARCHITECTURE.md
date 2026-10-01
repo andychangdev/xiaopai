@@ -589,7 +589,11 @@ also exports the `th` and `td` class strings they share. The Staff page is
 the exception: a list with an edit panel beside it, which on a narrow screen
 becomes a sheet over it. Whose panel is open lives in the URL
 (`/staff?person=3`), set through the browser's own history, which Next
-follows, so opening someone needs no trip to the server.
+follows, so opening someone needs no trip to the server. Settings is one
+card of `Section`s, each with its title and a line on what it's for beside
+its controls once the card is wide enough (a container query) and above
+them otherwise, and a `SectionIndex` down the side that follows your
+scroll.
 
 ---
 

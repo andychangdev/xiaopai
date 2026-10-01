@@ -27,6 +27,33 @@ export function Card({ title, id, children }: { title: string; id?: string; chil
   )
 }
 
+/**
+ * One part of a page made of sections, like Settings: its title and a line
+ * on what it's for, then its controls. Beside each other once the card is
+ * wide enough, the title above otherwise. The card is the container the
+ * width is measured against.
+ */
+export function Section({ id, title, note, children }: { id: string; title: string; note: ReactNode; children: ReactNode }) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={`${id}-title`}
+      className="grid scroll-mt-4 gap-x-6 gap-y-3 border-b border-line px-5 py-4.5 last:border-b-0 @3xl:grid-cols-[200px_minmax(0,1fr)]"
+    >
+      <div>
+        <h2 id={`${id}-title`} className="text-[14px] font-semibold">
+          {title}
+        </h2>
+        <p className="mt-1 max-w-[52ch] text-[12px] leading-snug text-ink-2">{note}</p>
+      </div>
+      <div className="min-w-0">{children}</div>
+    </section>
+  )
+}
+
+/** What a control in a Section says when it refuses a change. */
+export const sectionRefusal = 'mt-2.5 text-[12.5px] text-crit-deep'
+
 // The box a wide admin table scrolls sideways in. Positioned, so the sr-only
 // labels in its cells stay inside it rather than widening the page.
 export const tableScroll = 'relative overflow-x-auto'

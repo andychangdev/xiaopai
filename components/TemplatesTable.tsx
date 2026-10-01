@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { addTemplate, removeTemplate, updateTemplate, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { formatHours } from '@/lib/roster/time'
-import { tableScroll, td, th } from './Page'
+import { sectionRefusal, tableScroll, td, th } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 import { TimeSelect } from './TimeSelect'
@@ -67,7 +67,7 @@ export function TemplatesTable({ templates }: { templates: Template[] }) {
         </table>
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+        <p role="alert" className={sectionRefusal}>
           {error}
         </p>
       )}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { setPayRate } from '@/app/actions'
 import type { Percent } from '@/lib/roster/cost'
+import { sectionRefusal } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 
@@ -30,12 +31,12 @@ export function PayRateFields({ weekend, holiday }: { weekend: Percent; holiday:
 
   return (
     <>
-      <div className="flex flex-wrap gap-x-7 gap-y-3 p-3.5">
+      <div className="flex flex-wrap gap-x-7 gap-y-3">
         {box('weekend', 'Weekends', weekend)}
         {box('holiday', 'Public holidays', holiday)}
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+        <p role="alert" className={sectionRefusal}>
           {error}
         </p>
       )}

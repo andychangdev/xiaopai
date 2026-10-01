@@ -5,7 +5,7 @@ import { addHoliday, removeHoliday } from '@/app/actions'
 import type { HolidayListRow } from '@/lib/db/queries'
 import { holidayDate } from '@/lib/roster/cost'
 import type { IsoDate } from '@/lib/roster/dates'
-import { tableScroll, td, th } from './Page'
+import { sectionRefusal, tableScroll, td, th } from './Page'
 import { UNREACHABLE } from './ShiftPopover'
 
 const none = <span className="text-ink-3">—</span>
@@ -47,7 +47,7 @@ export function HolidaysTable({ holidays, today }: { holidays: HolidayListRow[];
                     <td className={td}>{h.name ?? none}</td>
                     <td className={`${td} text-right`}>
                       <button
-                        className="text-link text-crit-deep"
+                        className="text-link text-ink-3 hover:text-crit-deep focus-visible:text-crit-deep"
                         aria-label={`Remove ${h.name ?? 'the public holiday'} on ${holidayDate(h.date)}`}
                         onClick={() => remove(h.id)}
                       >
@@ -113,7 +113,7 @@ export function HolidaysTable({ holidays, today }: { holidays: HolidayListRow[];
         </table>
       </div>
       {error && (
-        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+        <p role="alert" className={sectionRefusal}>
           {error}
         </p>
       )}
