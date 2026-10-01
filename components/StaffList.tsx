@@ -60,6 +60,15 @@ export function StaffList({
     if (inPanelInactive) setShowInactive(true)
   }, [inPanelInactive])
 
+  // Whose handle the arrow keys just moved. React moves a line's node to
+  // reorder it, which can take focus off the handle, so it's put back.
+  const refocus = useRef<number | null>(null)
+  useEffect(() => {
+    if (refocus.current === null) return
+    document.querySelector<HTMLElement>(`[data-handle="${refocus.current}"]`)?.focus()
+    refocus.current = null
+  }, [rows])
+
   function move(id: number, gap: number) {
     const place = placeAmong(rows, active, id, gap)
     startTransition(async () => {
@@ -132,7 +141,9 @@ export function StaffList({
                   // A place up is the gap above the one before; a place down, the gap below the one after
                   onMove: (by) => {
                     const to = by < 0 ? i - 1 : i + 2
-                    if (to >= 0 && to <= active.length) move(p.id, to)
+                    if (to < 0 || to > active.length) return
+                    refocus.current = p.id
+                    move(p.id, to)
                   },
                 }}
               />
@@ -243,6 +254,7 @@ function Line({
       {drag ? (
         <button
           draggable
+          data-handle={person.id}
           aria-label={`Move ${person.name} up or down, with the arrow keys`}
           title="Drag to reorder, or use the arrow keys"
           className="grid h-10 w-6 flex-none cursor-grab place-items-center text-ink-3 hover:text-ink"
