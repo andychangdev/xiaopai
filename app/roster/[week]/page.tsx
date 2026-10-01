@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { RosterGrid } from '@/components/RosterGrid'
+import { WeekPicker } from '@/components/WeekPicker'
 import { today } from '@/lib/clock'
 import {
   hasStaff,
@@ -11,11 +12,13 @@ import {
   shiftCount,
   templateList,
   tradingHoursWeek,
+  weekStates,
 } from '@/lib/db/queries'
 import { undoLabel } from '@/lib/db/undo'
-import { addDays, canonicalWeek, mondayOf, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
+import { addDays, canonicalWeek, mondayOf, weekTitle } from '@/lib/roster/dates'
 import { weekSubtitle } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
+import { menuWeeks, weekMenu } from '@/lib/roster/weekMenu'
 
 // Reads the database, which Next can't see, so render on every request
 export const dynamic = 'force-dynamic'
@@ -40,22 +43,19 @@ export default async function RosterPage({ params }: Props) {
 
   return (
     <>
-      <div className="mb-3.5 flex items-center gap-2.5">
-        <Today week={thisWeek} here={onThisWeek} />
-        <WeekArrow href={`/roster/${addDays(week, -7)}`} label="Previous week">
-          ‹
-        </WeekArrow>
-        <WeekArrow href={`/roster/${addDays(week, 7)}`} label="Next week">
-          ›
-        </WeekArrow>
-        <div>
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{weekTitle(week)}</h1>
-            {onThisWeek && <span className="badge highlight">This week</span>}
-          </div>
-          <div className="text-[11.5px] font-medium tracking-[0.09em] text-ink-3 uppercase">
+      <div className="mb-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+        {/* Keyed by week, so the menu is closed on the week it takes you to */}
+        <WeekPicker
+          key={week}
+          week={week}
+          thisWeek={thisWeek}
+          items={weekMenu({ thisWeek, open: week, weeks: weekStates(menuWeeks(thisWeek, week)) })}
+        />
+        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+          {onThisWeek && <span className="badge highlight">This week</span>}
+          <span className="text-[11.5px] font-medium tracking-[0.09em] text-ink-3 uppercase">
             {weekSubtitle(week, state)}
-          </div>
+          </span>
         </div>
       </div>
 
@@ -108,34 +108,5 @@ function NoRows({ everyoneInactive }: { everyoneInactive: boolean }) {
         </>
       )}
     </div>
-  )
-}
-
-// The week buttons, as tall as each other
-const weekButton = 'grid h-7.5 place-items-center rounded-control border border-line bg-surface text-ink-2'
-const weekLink = `${weekButton} hover:border-line-strong hover:text-ink`
-
-function WeekArrow({ href, label, children }: { href: string; label: string; children: string }) {
-  return (
-    <Link href={href} title={label} aria-label={label} className={`${weekLink} w-7.5 text-[15px]`}>
-      {children}
-    </Link>
-  )
-}
-
-/** Back to the week with today in it, from wherever you are. Greyed out once you're there. */
-function Today({ week, here }: { week: IsoDate; here: boolean }) {
-  const size = 'px-2.5 text-[12.5px] font-medium whitespace-nowrap'
-  if (here) {
-    return (
-      <button disabled className={`${weekButton} ${size} opacity-50`}>
-        Today
-      </button>
-    )
-  }
-  return (
-    <Link href={`/roster/${week}`} title={`Go to this week, ${weekRange(week)}`} className={`${weekLink} ${size}`}>
-      Today
-    </Link>
   )
 }

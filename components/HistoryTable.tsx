@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { fullDate, weekTitle } from '@/lib/roster/dates'
-import { historyBadge, type HistoryRow } from '@/lib/roster/history'
-import { needsPublishing } from '@/lib/roster/publish'
+import type { HistoryRow } from '@/lib/roster/history'
 import { formatHours } from '@/lib/roster/time'
 import { tableScroll, td, th } from './Page'
 import { useCopyWeek } from './useCopyWeek'
+import { WeekState } from './WeekState'
 
 const none = <span className="text-ink-3">—</span>
 const mono = `${td} font-mono text-[12.5px] tabular-nums`
@@ -50,7 +50,7 @@ export function HistoryTable({ rows }: { rows: HistoryRow[] }) {
                   {row.open && <span className="text-ink-3"> · open</span>}
                 </td>
                 <td className={td}>
-                  <State row={row} />
+                  <WeekState state={row.state} />
                 </td>
                 <td className={mono}>{row.shifts}</td>
                 <td className={mono}>{formatHours(row.minutes)}</td>
@@ -82,18 +82,5 @@ export function HistoryTable({ rows }: { rows: HistoryRow[] }) {
       </div>
       {dialog}
     </>
-  )
-}
-
-/** Like the grid's badge: the accent once it's out as it stands, amber while it still needs publishing. */
-function State({ row: { state } }: { row: HistoryRow }) {
-  const live = !needsPublishing(state)
-  return (
-    <span className="inline-flex flex-wrap items-center gap-x-2">
-      <span className={`badge ${live ? 'highlight' : 'badge-warn'}`}>{historyBadge(state)}</span>
-      {state.status === 'published' && state.changed && (
-        <span className="text-[12px] whitespace-nowrap text-warn-deep">edited since</span>
-      )}
-    </span>
   )
 }

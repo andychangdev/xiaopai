@@ -342,6 +342,7 @@ lib/
     revert.ts                putting a published week back as it went out
     rosterText.ts            the week day by day, and the text for the chat
     history.ts               History's rows
+    weekMenu.ts              the roster's menu of nearby weeks
     undo.ts                  undo steps and when one still applies
     staff.ts                 grid rows, the manual order, Staff page input
     settings.ts              business name, trading hours, new templates

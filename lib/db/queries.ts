@@ -1,5 +1,5 @@
 import 'server-only'
-import { and, asc, count, eq, gte, is, lte } from 'drizzle-orm'
+import { and, asc, count, eq, gte, inArray, is, lte } from 'drizzle-orm'
 import { SQLiteTable, getTableConfig } from 'drizzle-orm/sqlite-core'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
@@ -83,6 +83,35 @@ function weekOf<P extends Parameters<typeof rosterRows>[0][number] & { name: str
   const closedDays = roster?.closedDays ?? [...ALL_OPEN]
   const days = rosterDays({ weekStart: week, staff: rows, shifts: weekShifts, closedDays })
   return { staff: rows, closedDays, days, publish: publishState(roster, days) }
+}
+
+/**
+ * Each of these weeks with its shift count and where it stands, for the
+ * roster's week menu. Worked out as the grid and History do, so the three
+ * can't disagree.
+ */
+export function weekStates(weeks: IsoDate[]) {
+  const db = getDb()
+  const people = db.select(staffColumns).from(staff).all()
+  const byWeek = new Map<IsoDate, Shift[]>()
+  const weekShifts = db
+    .select({ weekStart: shifts.weekStart, ...shiftColumns })
+    .from(shifts)
+    .where(inArray(shifts.weekStart, weeks))
+    .all()
+  for (const { weekStart, ...s } of weekShifts) byWeek.set(weekStart, [...(byWeek.get(weekStart) ?? []), s])
+  const roster = new Map(
+    db
+      .select({ weekStart: rosters.weekStart, ...rosterColumns })
+      .from(rosters)
+      .where(inArray(rosters.weekStart, weeks))
+      .all()
+      .map(({ weekStart, ...r }) => [weekStart, r]),
+  )
+  return weeks.map((weekStart) => {
+    const these = byWeek.get(weekStart) ?? []
+    return { weekStart, shifts: these.length, state: weekOf(weekStart, these, people, roster.get(weekStart)).publish }
+  })
 }
 
 /** The History list, around the week you have open. Every week with shifts has a roster, so the rosters are every week. */
