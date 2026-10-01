@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { addTemplate, removeTemplate, updateTemplate, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { formatHours } from '@/lib/roster/time'
-import { td, th } from './Page'
+import { tableScroll, td, th } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 import { TimeSelect } from './TimeSelect'
@@ -39,7 +39,7 @@ export function TemplatesTable({ templates }: { templates: Template[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className={tableScroll}>
         <table className="w-full min-w-160 border-collapse">
           <thead>
             <tr>

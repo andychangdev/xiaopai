@@ -5,7 +5,7 @@ import { setTradingHours } from '@/app/actions'
 import { DAY_NAMES } from '@/lib/roster/dates'
 import type { TradingDay } from '@/lib/roster/settings'
 import { formatHours } from '@/lib/roster/time'
-import { td, th } from './Page'
+import { tableScroll, td, th } from './Page'
 import { UNREACHABLE } from './ShiftPopover'
 import { TimeSelect } from './TimeSelect'
 
@@ -21,7 +21,7 @@ export function TradingHoursTable({ week }: { week: TradingDay[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className={tableScroll}>
         <table className="w-full min-w-160 border-collapse">
           <thead>
             <tr>

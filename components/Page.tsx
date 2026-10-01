@@ -23,6 +23,10 @@ export function Card({ title, id, children }: { title: string; id?: string; chil
   )
 }
 
+// The box a wide admin table scrolls sideways in. Positioned, so the sr-only
+// labels in its cells stay inside it rather than widening the page.
+export const tableScroll = 'relative overflow-x-auto'
+
 // The admin tables' header and body cells
 export const th =
   'border-b border-line px-3 py-2.25 text-left text-[10.5px] font-semibold tracking-[0.09em] text-ink-3 uppercase'

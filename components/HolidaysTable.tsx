@@ -5,7 +5,7 @@ import { addHoliday, removeHoliday } from '@/app/actions'
 import type { HolidayListRow } from '@/lib/db/queries'
 import { holidayDate } from '@/lib/roster/cost'
 import type { IsoDate } from '@/lib/roster/dates'
-import { td, th } from './Page'
+import { tableScroll, td, th } from './Page'
 import { UNREACHABLE } from './ShiftPopover'
 
 const none = <span className="text-ink-3">—</span>
@@ -23,7 +23,7 @@ export function HolidaysTable({ holidays, today }: { holidays: HolidayListRow[];
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className={tableScroll}>
         <table className="w-full min-w-120 border-collapse">
           <thead>
             <tr>

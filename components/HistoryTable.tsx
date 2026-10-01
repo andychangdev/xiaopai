@@ -6,7 +6,7 @@ import { fullDate, weekTitle } from '@/lib/roster/dates'
 import { historyBadge, type HistoryRow } from '@/lib/roster/history'
 import { needsPublishing } from '@/lib/roster/publish'
 import { formatHours } from '@/lib/roster/time'
-import { td, th } from './Page'
+import { tableScroll, td, th } from './Page'
 import { useCopyWeek } from './useCopyWeek'
 
 const none = <span className="text-ink-3">—</span>
@@ -28,7 +28,7 @@ export function HistoryTable({ rows }: { rows: HistoryRow[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className={tableScroll}>
         <table className="w-full min-w-180 border-collapse">
           <thead>
             <tr>

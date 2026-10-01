@@ -6,7 +6,7 @@ import type { LeaveListRow } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
 import { describeLeave, isPast, leaveDays, leaveSpan, parseLeave } from '@/lib/roster/leave'
 import { shiftsLabel } from '@/lib/roster/shifts'
-import { td, th } from './Page'
+import { tableScroll, td, th } from './Page'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
@@ -66,7 +66,7 @@ export function LeaveTable({
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className={tableScroll}>
         <table className="w-full min-w-160 border-collapse">
           <thead>
             <tr>

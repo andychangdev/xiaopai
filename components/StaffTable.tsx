@@ -8,7 +8,7 @@ import { formatRate } from '@/lib/roster/cost'
 import { DAY_NAMES } from '@/lib/roster/dates'
 import { moveInOrder, whyNotRemovable } from '@/lib/roster/staff'
 import { GripIcon } from './Icons'
-import { td, th } from './Page'
+import { tableScroll, td, th } from './Page'
 import { SaveOnBlur } from './SaveOnBlur'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk, type AskOptions } from './useAsk'
@@ -68,7 +68,7 @@ export function StaffTable({ staff }: { staff: StaffListRow[] }) {
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className={tableScroll}>
         <table className="w-full min-w-205 border-collapse">
           <thead>
             <tr>
