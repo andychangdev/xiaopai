@@ -5,6 +5,7 @@ import type { LeaveListRow } from '@/lib/db/queries'
 import { dayLabel, shortDate, type IsoDate } from '@/lib/roster/dates'
 import { describeLeave, isPast, leaveDays, leaveSpan, leaveTimeline, shortSpan } from '@/lib/roster/leave'
 import { BookLeaveForm } from './BookLeaveForm'
+import { ListHead } from './Page'
 import { useLeave } from './useLeave'
 import { usePersonParam } from './usePersonParam'
 
@@ -42,21 +43,19 @@ export function LeaveTimeline({
 
   return (
     <section id="leave" aria-labelledby="leave-title" className="scroll-mt-4">
-      <div className="mb-2.5 flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
-        <div>
-          <h2 id="leave-title" className="text-[15px] font-semibold">
-            Upcoming leave
-          </h2>
-          <p className="mt-0.5 text-[12.5px] text-ink-2">
-            Leave blocks rostering on those days. It spans as many weeks as it needs, and Clear week never touches it.
-          </p>
-        </div>
-        {staff.length > 0 && !booking && (
-          <button className="btn" onClick={() => setBooking(true)}>
-            + Book leave
-          </button>
-        )}
-      </div>
+      <ListHead
+        id="leave-title"
+        title="Upcoming leave"
+        note="Leave blocks rostering on those days. It spans as many weeks as it needs, and Clear week never touches it."
+        action={
+          staff.length > 0 &&
+          !booking && (
+            <button className="btn" onClick={() => setBooking(true)}>
+              + Book leave
+            </button>
+          )
+        }
+      />
       {booking && (
         <div className="mb-3">
           <BookLeaveForm
