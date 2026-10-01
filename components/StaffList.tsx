@@ -8,19 +8,10 @@ import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
 import { awayLabel } from '@/lib/roster/leave'
 import { initialOf, moveInOrder, placeAmong } from '@/lib/roster/staff'
 import { GripIcon } from './Icons'
+import { ListHead } from './Page'
 import { StaffPanel } from './StaffPanel'
 import { UNREACHABLE } from './ShiftPopover'
 import { usePersonParam } from './usePersonParam'
-
-/** The Staff page's way in to adding someone: an empty panel. */
-export function AddPersonButton() {
-  const [, select] = usePersonParam()
-  return (
-    <button className="btn btn-primary" onClick={() => select('new')}>
-      + Add person
-    </button>
-  )
-}
 
 /**
  * Everyone, one line each in the roster's order, with inactive people folded
@@ -111,78 +102,90 @@ export function StaffList({
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="grid min-w-0 gap-4">
-        <section aria-label="People" className="overflow-hidden rounded-card border border-line bg-surface">
-          <ul
-            onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
-            // Only while a line's being dragged, so nothing else drops here
-            onDrop={
-              dragging !== null
-                ? (e) => {
-                    e.preventDefault()
-                    drop()
-                  }
-                : undefined
+      <div className="grid min-w-0 gap-7">
+        <section aria-labelledby="people-title">
+          <ListHead
+            id="people-title"
+            title="People"
+            note="In roster order. Drag the handle to rearrange, and click someone to change their details."
+            action={
+              <button className="btn" onClick={() => select('new')}>
+                + Add person
+              </button>
             }
-          >
-            {active.map((p, i) => (
-              <Line
-                key={p.id}
-                person={p}
-                away={awayLabel(leaveOf(p.id), today)}
-                selected={p.id === selected}
-                onOpen={() => select(p.id)}
-                drag={{
-                  dragged: p.id === dragging,
-                  drop: shownGap === i ? 'above' : shownGap === active.length && i === active.length - 1 ? 'below' : undefined,
-                  onStart: () => startDrag(p.id),
-                  onEnd: endDrag,
-                  onOver: dragging !== null ? (below) => setGap(below ? i + 1 : i) : undefined,
-                  // A place up is the gap above the one before; a place down, the gap below the one after
-                  onMove: (by) => {
-                    const to = by < 0 ? i - 1 : i + 2
-                    if (to < 0 || to > active.length) return
-                    refocus.current = p.id
-                    move(p.id, to)
-                  },
-                }}
-              />
-            ))}
-          </ul>
-          {!active.length && (
-            <p className="px-3.5 py-3 text-[13px] text-ink-3">No one active. Add someone, or switch someone back on.</p>
-          )}
-          {inactive.length > 0 && (
-            <details
-              open={showInactive}
-              onToggle={(e) => setShowInactive(e.currentTarget.open)}
-              className="border-t border-line bg-surface-3"
+          />
+          <div className="overflow-hidden rounded-card border border-line bg-surface">
+            <ul
+              onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
+              // Only while a line's being dragged, so nothing else drops here
+              onDrop={
+                dragging !== null
+                  ? (e) => {
+                      e.preventDefault()
+                      drop()
+                    }
+                  : undefined
+              }
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[12px] text-ink-2 [&::-webkit-details-marker]:hidden">
-                <span>
-                  <b className="font-semibold text-ink">Inactive · {inactive.length}</b>
-                  <span className="ml-2">Off new weeks, still on any week where they have shifts.</span>
-                </span>
-                <span className="font-semibold text-accent-deep">{showInactive ? 'Hide' : 'Show'}</span>
-              </summary>
-              <ul className="border-t border-line bg-surface">
-                {inactive.map((p) => (
-                  <Line
-                    key={p.id}
-                    person={p}
-                    away={awayLabel(leaveOf(p.id), today)}
-                    selected={p.id === selected}
-                    onOpen={() => select(p.id)}
-                  />
-                ))}
-              </ul>
-            </details>
-          )}
-          {error && (
-            <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
-              {error}
-            </p>
-          )}
+              {active.map((p, i) => (
+                <Line
+                  key={p.id}
+                  person={p}
+                  away={awayLabel(leaveOf(p.id), today)}
+                  selected={p.id === selected}
+                  onOpen={() => select(p.id)}
+                  drag={{
+                    dragged: p.id === dragging,
+                    drop: shownGap === i ? 'above' : shownGap === active.length && i === active.length - 1 ? 'below' : undefined,
+                    onStart: () => startDrag(p.id),
+                    onEnd: endDrag,
+                    onOver: dragging !== null ? (below) => setGap(below ? i + 1 : i) : undefined,
+                    // A place up is the gap above the one before; a place down, the gap below the one after
+                    onMove: (by) => {
+                      const to = by < 0 ? i - 1 : i + 2
+                      if (to < 0 || to > active.length) return
+                      refocus.current = p.id
+                      move(p.id, to)
+                    },
+                  }}
+                />
+              ))}
+            </ul>
+            {!active.length && (
+              <p className="px-3.5 py-3 text-[13px] text-ink-3">No one active. Add someone, or switch someone back on.</p>
+            )}
+            {inactive.length > 0 && (
+              <details
+                open={showInactive}
+                onToggle={(e) => setShowInactive(e.currentTarget.open)}
+                className="border-t border-line bg-surface-3"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[12px] text-ink-2 [&::-webkit-details-marker]:hidden">
+                  <span>
+                    <b className="font-semibold text-ink">Inactive · {inactive.length}</b>
+                    <span className="ml-2">Off new weeks, still on any week where they have shifts.</span>
+                  </span>
+                  <span className="font-semibold text-accent-deep">{showInactive ? 'Hide' : 'Show'}</span>
+                </summary>
+                <ul className="border-t border-line bg-surface">
+                  {inactive.map((p) => (
+                    <Line
+                      key={p.id}
+                      person={p}
+                      away={awayLabel(leaveOf(p.id), today)}
+                      selected={p.id === selected}
+                      onOpen={() => select(p.id)}
+                    />
+                  ))}
+                </ul>
+              </details>
+            )}
+            {error && (
+              <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+                {error}
+              </p>
+            )}
+          </div>
         </section>
         {children}
       </div>
@@ -197,7 +200,8 @@ export function StaffList({
           onAdded={(id) => select(id)}
         />
       ) : (
-        <p className="hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:block">
+        // Level with the list, under its heading
+        <p className="mt-13 hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:block">
           Click someone to see and change their hours, rate, availability and notes.
         </p>
       )}
