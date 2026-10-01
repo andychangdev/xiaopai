@@ -64,9 +64,10 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
     <div
       ref={wrap}
       className="relative flex w-full items-center gap-1.5 sm:w-auto"
-      // Tabbing out closes it
+      // Tabbing out closes it. A blur to nowhere is a click, which Safari doesn't
+      // focus on, and clicks outside are the pointerdown's to close.
       onBlur={(e) => {
-        if (open && !e.currentTarget.contains(e.relatedTarget)) setOpen(false)
+        if (open && e.relatedTarget && !e.currentTarget.contains(e.relatedTarget)) setOpen(false)
       }}
     >
       <Today week={thisWeek} here={week === thisWeek} />
