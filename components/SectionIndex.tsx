@@ -15,14 +15,17 @@ const READING_LINE = 120
 export function SectionIndex({ sections }: { sections: { id: string; title: string }[] }) {
   const [current, setCurrent] = useState<string | undefined>(sections[0]?.id)
   const [pinned, setPinned] = useState<string | null>(null)
+  // Every save refreshes the page, which sends the list again as a new array,
+  // so the effects follow the ids instead, and a save can't re-pin the URL's
+  const ids = sections.map((s) => s.id).join(' ')
 
   useEffect(() => {
     if (pinned) return
     function track() {
       const atFoot = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2
-      if (atFoot) return setCurrent(sections.at(-1)?.id)
-      let reading = sections[0]?.id
-      for (const { id } of sections) {
+      if (atFoot) return setCurrent(ids.split(' ').at(-1))
+      let reading = ids.split(' ')[0]
+      for (const id of ids.split(' ')) {
         const top = document.getElementById(id)?.getBoundingClientRect().top
         if (top !== undefined && top <= READING_LINE) reading = id
       }
@@ -35,18 +38,18 @@ export function SectionIndex({ sections }: { sections: { id: string; title: stri
       window.removeEventListener('scroll', track)
       window.removeEventListener('resize', track)
     }
-  }, [sections, pinned])
+  }, [ids, pinned])
 
   // A section named in the URL counts as clicked, on arriving and on Back or Forward
   useEffect(() => {
     function named() {
       const id = window.location.hash.slice(1)
-      if (sections.some((s) => s.id === id)) setPinned(id)
+      if (id && ids.split(' ').includes(id)) setPinned(id)
     }
     named()
     window.addEventListener('hashchange', named)
     return () => window.removeEventListener('hashchange', named)
-  }, [sections])
+  }, [ids])
 
   // Scrolling by hand lets go of a clicked section
   useEffect(() => {
