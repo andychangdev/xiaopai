@@ -546,7 +546,7 @@ so the tokens are real utilities:
   --color-line:    #e0d8c9;
   --color-ink:     #1e2420;
   --color-accent:  #12a26a;
-  --color-primary: #007a4d;
+  --color-primary: #109663;
   /* …surfaces, ink levels, warn, crit, radii, shadows, fonts */
 }
 ```
