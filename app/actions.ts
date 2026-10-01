@@ -16,18 +16,35 @@ import {
   staffHistory,
   tradingHoursWeek,
 } from '@/lib/db/queries'
-import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from '@/lib/db/schema'
+import {
+  holidays,
+  leave,
+  naNotes,
+  rosters,
+  settings,
+  shiftTemplates,
+  shifts,
+  staff,
+  tradingHours,
+} from '@/lib/db/schema'
 import { undoLast, undoable } from '@/lib/db/undo'
 import { withDayAvailable } from '@/lib/roster/availability'
 import { dayClosedError, isClosed, withDayClosed } from '@/lib/roster/closed'
 import { copyReport, nothingToCopy, planCopy } from '@/lib/roster/copy'
-import { RATE_INVALID, parseHourlyRate } from '@/lib/roster/cost'
+import {
+  PAY_RATE_INVALID,
+  RATE_INVALID,
+  holidayTakenError,
+  parseHoliday,
+  parseHourlyRate,
+  parsePayRate,
+} from '@/lib/roster/cost'
 import { isInWeek, isMonday, type IsoDate } from '@/lib/roster/dates'
 import { leaveOn, onLeaveError, overlapError, parseLeave } from '@/lib/roster/leave'
 import { markNaError } from '@/lib/roster/notAvailable'
 import { NOTHING_TO_PUBLISH, nothingToPublish, snapshotOf } from '@/lib/roster/publish'
 import { nothingToRevert, planRevert, revertReport } from '@/lib/roster/revert'
-import { NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
+import { DEFAULT_BUSINESS_NAME, NEW_TEMPLATE, tradingHoursError } from '@/lib/roster/settings'
 import {
   EVERY_DAY,
   HOURS_INVALID,
@@ -563,6 +580,40 @@ export async function setBusinessName(name: string): Promise<ActionResult> {
     .values({ id: 1, businessName })
     .onConflictDoUpdate({ target: settings.id, set: { businessName } })
     .run()
+  settingsChanged()
+  return {}
+}
+
+/** The weekend or public holiday rate, a percentage of each person's hourly rate. */
+export async function setPayRate(day: 'weekend' | 'holiday', input: string): Promise<ActionResult> {
+  if (day !== 'weekend' && day !== 'holiday') throw new Error("Expected 'weekend' or 'holiday'")
+  const rate = parsePayRate(text(input))
+  if (rate === null) return { error: PAY_RATE_INVALID }
+  const set = day === 'weekend' ? { weekendRate: rate } : { holidayRate: rate }
+  getDb()
+    .insert(settings)
+    .values({ id: 1, businessName: DEFAULT_BUSINESS_NAME, ...set })
+    .onConflictDoUpdate({ target: settings.id, set })
+    .run()
+  settingsChanged()
+  return {}
+}
+
+export async function addHoliday(input: { date: string; name: string }): Promise<ActionResult> {
+  const holiday = parseHoliday({ date: text(input?.date), name: text(input?.name) })
+  if ('error' in holiday) return holiday
+  const db = getDb()
+  if (db.select({ id: holidays.id }).from(holidays).where(eq(holidays.date, holiday.date)).get()) {
+    return { error: holidayTakenError(holiday.date) }
+  }
+  db.insert(holidays).values(holiday).run()
+  settingsChanged()
+  return {}
+}
+
+export async function removeHoliday(id: number): Promise<ActionResult> {
+  checkId(id)
+  getDb().delete(holidays).where(eq(holidays.id, id)).run()
   settingsChanged()
   return {}
 }

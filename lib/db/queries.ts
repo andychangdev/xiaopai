@@ -3,6 +3,7 @@ import { and, asc, count, eq, gte, is, lte } from 'drizzle-orm'
 import { SQLiteTable, getTableConfig } from 'drizzle-orm/sqlite-core'
 import { today } from '@/lib/clock'
 import { ALL_OPEN } from '@/lib/roster/closed'
+import { DEFAULT_PAY_RATES, type PayRates } from '@/lib/roster/cost'
 import { addDays, mondayOf, type IsoDate } from '@/lib/roster/dates'
 import { historyRows } from '@/lib/roster/history'
 import { landingWeek, needsPublishing, publishState } from '@/lib/roster/publish'
@@ -12,7 +13,7 @@ import { DEFAULT_BUSINESS_NAME, tradingWeek } from '@/lib/roster/settings'
 import { rosterRows } from '@/lib/roster/staff'
 import { getDb } from './client'
 import * as schema from './schema'
-import { leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from './schema'
+import { holidays, leave, naNotes, rosters, settings, shiftTemplates, shifts, staff, tradingHours } from './schema'
 
 /**
  * The week the Roster tab and Share roster open when none is named: the
@@ -197,6 +198,24 @@ export function businessName(): string {
   return getDb().select({ name: settings.businessName }).from(settings).get()?.name ?? DEFAULT_BUSINESS_NAME
 }
 
+/** The weekend and public holiday rates, each a percentage of someone's hourly rate. */
+export function payRates(): Omit<PayRates, 'holidays'> {
+  const rates = getDb()
+    .select({ weekend: settings.weekendRate, holiday: settings.holidayRate })
+    .from(settings)
+    .get()
+  return rates ?? { ...DEFAULT_PAY_RATES }
+}
+
+/** Every public holiday, soonest first. */
+export function holidayList() {
+  return getDb()
+    .select({ id: holidays.id, date: holidays.date, name: holidays.name })
+    .from(holidays)
+    .orderBy(asc(holidays.date))
+    .all()
+}
+
 /** Opening and closing for each weekday, Monday first. */
 export function tradingHoursWeek() {
   return tradingWeek(getDb().select().from(tradingHours).all())
@@ -233,4 +252,5 @@ export function hasStaff() {
 
 export type StaffListRow = ReturnType<typeof staffList>[number]
 export type LeaveListRow = ReturnType<typeof leaveList>[number]
+export type HolidayListRow = ReturnType<typeof holidayList>[number]
 export type Template = ReturnType<typeof templateList>[number]

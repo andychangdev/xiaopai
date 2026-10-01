@@ -30,6 +30,16 @@ export const shiftTemplates = sqliteTable('shift_templates', {
 export const settings = sqliteTable('settings', {
   id: integer().primaryKey(),
   businessName: text().notNull(),
+  // Percentages of each person's hourly rate, for the cost estimate
+  weekendRate: integer().notNull().default(100),
+  holidayRate: integer().notNull().default(100),
+})
+
+// Dated, so a week finds its own. Only the cost estimate reads them.
+export const holidays = sqliteTable('holidays', {
+  id: integer().primaryKey({ autoIncrement: true }),
+  date: text().notNull().unique(),
+  name: text(),
 })
 
 export const tradingHours = sqliteTable('trading_hours', {

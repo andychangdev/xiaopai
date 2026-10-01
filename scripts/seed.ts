@@ -35,7 +35,7 @@ function rowsIn(table: SQLiteTable): number {
 
 let existing: number
 try {
-  existing = [t.staff, t.shiftTemplates, t.tradingHours, t.rosters, t.shifts, t.naNotes, t.leave]
+  existing = [t.staff, t.shiftTemplates, t.tradingHours, t.rosters, t.shifts, t.naNotes, t.leave, t.holidays]
     .map(rowsIn)
     .reduce((a, b) => a + b, 0)
 } catch (e) {

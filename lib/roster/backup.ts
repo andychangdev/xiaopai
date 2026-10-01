@@ -5,7 +5,7 @@
 import type { IsoDate } from './dates'
 
 const ABOUT =
-  "Everything in xiaopai, one list of rows per table. Times are minutes since midnight (600 is 10:00), an hourly rate is cents (2850 is $28.50), dates are YYYY-MM-DD, and a list of seven true/false flags runs Monday to Sunday. It's for reading and keeping, and can't be imported: the real backup is a copy of xiaopai.db."
+  "Everything in xiaopai, one list of rows per table. Times are minutes since midnight (600 is 10:00), an hourly rate is cents (2850 is $28.50), weekend and holiday rates are percentages of it, dates are YYYY-MM-DD, and a list of seven true/false flags runs Monday to Sunday. It's for reading and keeping, and can't be imported: the real backup is a copy of xiaopai.db."
 
 /** The file Export backup downloads, named with the date it was made. */
 export function backupFile(tables: Record<string, unknown[]>, today: IsoDate): { name: string; json: string } {

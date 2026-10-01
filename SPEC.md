@@ -53,10 +53,18 @@ Used to prefill a shift. Times stay editable afterwards. The three real ones:
 | Full day | 10:00–18:00 | 8 |
 | Shopping night | 10:00–21:00 | 11 |
 
-**Settings** — `business_name`, plus `open` and `close` per weekday
+**Settings** — `business_name`, `weekend_rate`, `holiday_rate`, plus `open`
+and `close` per weekday
 The name heads every page and the roster text. Trading hours are currently
 10:00–18:00, Thursday to 21:00. Trading hours print on the sheet and
-nothing else. **Settings holds no closed days** — see below.
+nothing else. The two rates are percentages of each person's hourly rate,
+100 until set, and only feed the cost estimate. **Settings holds no closed
+days** — see below.
+
+**Holiday** — `id`, `date`, `name?`
+A public holiday, entered once in Settings. Like leave it belongs to a real
+date, not a week, and it does nothing but raise that day's cost estimate to
+the holiday rate. It doesn't close the day.
 
 **Leave** — `id`, `employee_id`, `from_date`, `to_date`, `note?`
 A booked period of absence — one day or three weeks, whatever the person asked
@@ -215,7 +223,8 @@ Plain list-and-form admin screens. Nothing clever. The staff screen carries name
 availability, expected hours, hourly rate, notes and the active flag, and below it a
 **Booked leave** table: who, from, to, days, note. Multi-day periods are
 booked there; the roster's own cell action is just the one-day shortcut. Settings holds the business
-name, trading hours per weekday — opens, closes — and the shift templates. Nothing week-specific.
+name, trading hours per weekday — opens, closes — the shift templates, the weekend and public holiday
+rates, and the public holidays: date and an optional name, past ones greyed. Nothing week-specific.
 
 ### History
 
@@ -298,4 +307,4 @@ employee-submitted availability or leave requests ·
 shift swaps · messaging · payroll · timesheets ·
 automatic scheduling.
 
-Deliberately deferred: labour cost estimates, public holidays, mobile editing.
+Deliberately deferred: labour cost estimates, mobile editing.

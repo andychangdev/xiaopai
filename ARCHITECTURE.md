@@ -236,6 +236,8 @@ shiftTemplates = sqliteTable('shift_templates', {
 settings = sqliteTable('settings', {       // one row, id 1
   id:           integer().primaryKey(),
   businessName: text().notNull(),
+  weekendRate:  integer().notNull().default(100),   // % of each person's hourly rate
+  holidayRate:  integer().notNull().default(100),
 })
 
 tradingHours = sqliteTable('trading_hours', {
@@ -273,6 +275,11 @@ leave = sqliteTable('leave', {
   id: integer().primaryKey({ autoIncrement: true }),
   staffId: integer().notNull().references(() => staff.id),
   fromDate: text().notNull(), toDate: text().notNull(), note: text(),
+})
+
+holidays = sqliteTable('holidays', {         // public holidays, for the cost estimate
+  id: integer().primaryKey({ autoIncrement: true }),
+  date: text().notNull().unique(), name: text(),
 })
 ```
 
@@ -324,7 +331,7 @@ lib/
     dates.ts                 week maths, labels, canonicalWeek
     shifts.ts                the Shift type, cells, copying one shift
     hours.ts                 per person, per week, against expected
-    cost.ts                  hourly rates, in cents
+    cost.ts                  hourly, weekend and holiday rates
     warnings.ts              the whole warnings list, overlapping shifts
     availability.ts          the usual weekly pattern
     notAvailable.ts          N/A notes on one week

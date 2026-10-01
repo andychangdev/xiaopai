@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { formatRate, parseHourlyRate } from './cost'
+import { formatRate, holidayDate, parseHoliday, parseHourlyRate, parsePayRate } from './cost'
+
+const MON = '2026-10-05'
 
 describe('parseHourlyRate', () => {
   it('treats blank as no rate', () => {
@@ -42,5 +44,45 @@ describe('formatRate', () => {
     expect(formatRate(3105)).toBe('$31.05')
     expect(formatRate(2800)).toBe('$28.00')
     expect(formatRate(1)).toBe('$0.01')
+  })
+})
+
+describe('parsePayRate', () => {
+  it('reads a whole percentage, with or without the sign', () => {
+    expect(parsePayRate('125')).toBe(125)
+    expect(parsePayRate(' 225% ')).toBe(225)
+  })
+
+  it('treats blank as 100, the usual rate', () => {
+    expect(parsePayRate('')).toBe(100)
+  })
+
+  it('accepts 100 to 500', () => {
+    expect(parsePayRate('100')).toBe(100)
+    expect(parsePayRate('500')).toBe(500)
+  })
+
+  it('refuses anything else', () => {
+    for (const bad of ['99', '501', '0', '-125', '125.5', '1.25', '%', 'double', '125 %']) {
+      expect(parsePayRate(bad), bad).toBeNull()
+    }
+  })
+})
+
+describe('parseHoliday', () => {
+  it('takes a date and an optional name', () => {
+    expect(parseHoliday({ date: MON, name: ' Labour Day ' })).toEqual({ date: MON, name: 'Labour Day' })
+    expect(parseHoliday({ date: MON, name: '  ' })).toEqual({ date: MON, name: null })
+  })
+
+  it('needs a real date', () => {
+    expect(parseHoliday({ date: '', name: 'Labour Day' })).toHaveProperty('error')
+    expect(parseHoliday({ date: '2026-02-30', name: '' })).toHaveProperty('error')
+  })
+})
+
+describe('holidayDate', () => {
+  it('gives the year, since the list runs across years', () => {
+    expect(holidayDate('2026-12-25')).toBe('Fri 25 Dec 2026')
   })
 })
