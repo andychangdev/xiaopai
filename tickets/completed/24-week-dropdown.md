@@ -13,13 +13,13 @@ Reference: `mockup/redesign.html`, the Roster screen. SPEC §3 Roster editor.
 
 **Blocked by:** 22 Green highlight style
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] ‹ and › still step a week. Today still jumps to this week, and is disabled when you're already on it.
-- [ ] The dates open the menu on click, Enter or Space. The arrow keys move through it, Enter opens a week, and Escape closes it and returns focus to the dates.
-- [ ] The menu lists the weeks described above, newest first, with the open week marked.
-- [ ] Each week's state is worked out the same way History works it out. There's no second definition of "edited since".
-- [ ] Choosing a week goes to it, and the URL names the week as now.
-- [ ] Which weeks the menu lists, and their labels, come from a pure function with tests: this week open, an open week outside the seven, and a range that crosses the new year.
-- [ ] On a phone the control spans the width above the grid, and the menu fits on the screen.
-- [ ] SPEC §3 mentions the week menu beside the arrows.
+- [x] ‹ and › still step a week. Today still jumps to this week, and is disabled when you're already on it.
+- [x] The dates open the menu on click, Enter or Space. The arrow keys move through it, Enter opens a week, and Escape closes it and returns focus to the dates.
+- [x] The menu lists the weeks described above, newest first, with the open week marked.
+- [x] Each week's state is worked out the same way History works it out. There's no second definition of "edited since".
+- [x] Choosing a week goes to it, and the URL names the week as now.
+- [x] Which weeks the menu lists, and their labels, come from a pure function with tests: this week open, an open week outside the seven, and a range that crosses the new year.
+- [x] On a phone the control spans the width above the grid, and the menu fits on the screen.
+- [x] SPEC §3 mentions the week menu beside the arrows.
