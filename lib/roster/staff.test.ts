@@ -193,6 +193,7 @@ describe('initialOf', () => {
   it('keeps a character outside the alphabet whole', () => {
     expect(initialOf('小排')).toBe('小')
     expect(initialOf('Émile')).toBe('É')
+    expect(initialOf('E\u0301mile')).toBe('É')
   })
 
   it('skips an emoji to reach a letter, and shows the emoji when the name has nothing else', () => {

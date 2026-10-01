@@ -50,10 +50,13 @@ export function placeAmong(all: { id: number }[], shown: { id: number }[], id: n
  * The one character on a name's round or square: its first letter or digit,
  * capitalised, for the sidebar's business and each line on the Staff page. A
  * name with neither, like a lone emoji, shows its first character instead.
+ * An accent typed as its own mark joins its letter first, and capitals don't
+ * follow the locale, so the server and the browser always agree.
  */
 export function initialOf(name: string): string {
-  const first = name.match(/[\p{L}\p{N}]/u)?.[0] ?? [...name.trim()][0] ?? ''
-  return first.toLocaleUpperCase()
+  const composed = name.normalize('NFC')
+  const first = composed.match(/[\p{L}\p{N}]/u)?.[0] ?? [...composed.trim()][0] ?? ''
+  return first.toUpperCase()
 }
 
 /** How the grid and the chat address someone: 'John' for John Reyes. */
