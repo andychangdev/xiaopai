@@ -6,16 +6,19 @@ import { formatTime, timeOptions, type Minutes } from '@/lib/roster/time'
 /**
  * A drop-down of half-hour times that saves as soon as you pick one. It shows
  * your pick straight away, and goes back to the stored time if the save is
- * refused.
+ * refused. `fill` has it take its box's width, with its chevron tucked in,
+ * for a narrow column like a day of the trading hours strip.
  */
 export function TimeSelect({
   value,
   onSave,
   label,
+  fill = false,
 }: {
   value: Minutes
   onSave: (t: Minutes) => Promise<unknown>
   label: string
+  fill?: boolean
 }) {
   const [shown, setShown] = useOptimistic(value)
   const [, startTransition] = useTransition()
@@ -31,7 +34,7 @@ export function TimeSelect({
           await onSave(t)
         })
       }}
-      className="field w-auto min-w-23 font-mono text-[12.5px] tabular-nums"
+      className={`field font-mono text-[12.5px] tabular-nums ${fill ? 'w-full bg-[position:right_7px_center] pr-5.5' : 'w-auto min-w-23'}`}
     >
       {timeOptions(value).map((t) => (
         <option key={t} value={t}>

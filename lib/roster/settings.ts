@@ -52,6 +52,26 @@ export function tradingSummary(week: TradingDay[]): string {
   return [`Open ${formatRange(usual.open, usual.close)}`, ...odd].join(' · ')
 }
 
+/**
+ * Which days Settings highlights, Monday first: any whose hours aren't the
+ * usual ones, opening or closing. The usual hours are the ones more days
+ * have than any other; with no hours ahead outright, no day stands out.
+ */
+export function unusualDays(week: TradingDay[]): boolean[] {
+  const key = (d: TradingDay) => `${d.open}-${d.close}`
+  const counts = new Map<string, number>()
+  for (const d of week) counts.set(key(d), (counts.get(key(d)) ?? 0) + 1)
+  const [first, second = 0] = [...counts.values()].sort((a, b) => b - a)
+  if (first === second) return week.map(() => false)
+  const usual = [...counts].find(([, n]) => n === first)![0]
+  return week.map((d) => key(d) !== usual)
+}
+
+/** How long the shop is open across the week. */
+export function openMinutes(week: TradingDay[]): Minutes {
+  return week.reduce((sum, d) => sum + d.close - d.open, 0)
+}
+
 export const CLOSE_AFTER_OPEN = 'The shop has to close after it opens, and by midnight.'
 
 /** Why a day can't have these hours, or null when it can. */

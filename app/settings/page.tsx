@@ -5,7 +5,7 @@ import { PageHead, Section } from '@/components/Page'
 import { PayRateFields } from '@/components/PayRateFields'
 import { SectionIndex } from '@/components/SectionIndex'
 import { TemplatesTable } from '@/components/TemplatesTable'
-import { TradingHoursTable } from '@/components/TradingHoursTable'
+import { TradingHours } from '@/components/TradingHours'
 import { today } from '@/lib/clock'
 import { businessName, holidayList, payRates, templateList, tradingHoursWeek } from '@/lib/db/queries'
 
@@ -43,9 +43,7 @@ export default function SettingsPage() {
             title="Trading hours"
             note="Shown under the roster. Nothing else depends on them, so a shift can still start or end outside them."
           >
-            <div className={flush}>
-              <TradingHoursTable week={tradingHoursWeek()} />
-            </div>
+            <TradingHours week={tradingHoursWeek()} />
           </Section>
           <Section
             id="shift-templates"

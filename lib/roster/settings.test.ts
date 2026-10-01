@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_TRADING_HOURS, tradingHoursError, tradingSummary, tradingWeek, type TradingDay } from './settings'
+import {
+  DEFAULT_TRADING_HOURS,
+  openMinutes,
+  tradingHoursError,
+  tradingSummary,
+  tradingWeek,
+  unusualDays,
+  type TradingDay,
+} from './settings'
 
 const day = (open: number, close: number): TradingDay => ({ open, close })
 const everyDay = (open: number, close: number) => Array.from({ length: 7 }, () => day(open, close))
@@ -100,5 +108,33 @@ describe('tradingHoursError', () => {
     expect(tradingHoursError(Number.NaN, 1080)).not.toBeNull()
     expect(tradingHoursError(600.5, 1080)).not.toBeNull()
     expect(tradingHoursError(-30, 1080)).not.toBeNull()
+  })
+})
+
+describe('unusualDays', () => {
+  it('marks no day when every day has the same hours', () => {
+    expect(unusualDays(everyDay(600, 1080))).toEqual([false, false, false, false, false, false, false])
+  })
+
+  it("marks the one day whose hours aren't the usual ones", () => {
+    expect(unusualDays(DEFAULT_TRADING_HOURS)).toEqual([false, false, false, true, false, false, false])
+  })
+
+  it('marks each day that differs, whatever way it differs', () => {
+    const week = everyDay(600, 1080)
+    week[0] = day(660, 1080) // opens late
+    week[6] = day(600, 960) // closes early
+    expect(unusualDays(week)).toEqual([true, false, false, false, false, false, true])
+  })
+
+  it('marks no day when no hours are the most common outright', () => {
+    const week = [day(600, 1080), day(600, 1080), day(600, 1080), day(540, 1020), day(540, 1020), day(540, 1020), day(600, 1260)]
+    expect(unusualDays(week)).toEqual([false, false, false, false, false, false, false])
+  })
+})
+
+describe('openMinutes', () => {
+  it('adds up every day the shop is open', () => {
+    expect(openMinutes(DEFAULT_TRADING_HOURS)).toBe(59 * 60)
   })
 })
