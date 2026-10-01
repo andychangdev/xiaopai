@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-/** A titled box below the roster grid, like Hours this week. */
+/** A titled box below the roster grid, like the Week summary. */
 export function Panel({ title, children }: { title: ReactNode; children: ReactNode }) {
   return (
     <section className="overflow-hidden rounded-card border border-line bg-surface">

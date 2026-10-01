@@ -14,6 +14,7 @@ for a single restaurant. Runs locally. Employees never log in.
 | Week | Monday–Sunday, identified by the Monday's date (`2026-10-05`) |
 | Dates | Plain local date/time strings. No timezone maths, no UTC |
 | Breaks | Not modelled. Hours = end − start |
+| Cost | An estimate only: each person's hours at their hourly rate, raised by a weekend and a public holiday percentage |
 | Overnight shifts | Not supported. End time must be after start time |
 | Shifts per day | An employee can have more than one (split shifts) |
 | Times | 24-hour throughout — `10:00–18:00`; plain hyphens in the copied text |
@@ -177,10 +178,20 @@ Speed matters more than anything else here:
   closed days — none of them are shifts.
 - **Undo** the last grid action, Clear week included.
 
-**Warnings** and **Hours this week** sit in two panels *below* the grid, not
-beside it, so the roster gets the full width of the screen. Hours show per
-person against their expected weekly hours, plus the week total; anyone more
-than 20% above or below is highlighted.
+**Warnings** and **Week summary** sit in two panels *below* the grid, not
+beside it, so the roster gets the full width of the screen. Week summary
+is a small table of each person's hours against their expected weekly hours,
+plus the week total; anyone more than 20% above or below is highlighted, and
+anyone with no hours that week is dimmed.
+
+Once anyone on the week has an hourly rate, each line also shows an estimated
+cost, under an **Est. cost** heading: hours × their rate, to the nearest
+dollar. The Total row adds them up, so it's always the sum of the lines. Saturday and Sunday hours are raised by the
+weekend rate, and a public holiday's by the holiday rate; a holiday at the
+weekend takes whichever is higher. Anyone rostered with no rate shows a dash
+and is left out of the total, and an info note at the foot names them. Rates
+aren't kept per week, so a past week is costed at today's. Until anyone has a
+rate the panel shows hours only.
 
 A cell shows **N/A** over a faint tint when the person either isn't normally
 available that weekday, or has been flagged not available for this one. It's a note, not a barrier: hover and the N/A fades out for the
@@ -307,4 +318,4 @@ employee-submitted availability or leave requests ·
 shift swaps · messaging · payroll · timesheets ·
 automatic scheduling.
 
-Deliberately deferred: labour cost estimates, mobile editing.
+Deliberately deferred: mobile editing.

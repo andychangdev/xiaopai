@@ -27,7 +27,7 @@ browser a file.
 
 ## 2. Five rules
 
-**Never store what you can calculate.** Hours, warnings, whether a cell is
+**Never store what you can calculate.** Hours, cost, warnings, whether a cell is
 N/A, whether a published week has been edited since — all derived on every
 render. A `total_hours` column would be a bug waiting to happen.
 
@@ -331,7 +331,7 @@ lib/
     dates.ts                 week maths, labels, canonicalWeek
     shifts.ts                the Shift type, cells, copying one shift
     hours.ts                 per person, per week, against expected
-    cost.ts                  hourly, weekend and holiday rates
+    cost.ts                  hourly, weekend and holiday rates, and the week's estimated cost
     warnings.ts              the whole warnings list, overlapping shifts
     availability.ts          the usual weekly pattern
     notAvailable.ts          N/A notes on one week
@@ -414,6 +414,10 @@ formatTime(1260)          // '21:00'
 
 hoursFor(staffId, shifts)                 // 1440 — minutes, so 24h
 weekTotal(shifts)                         // 6540, 109h
+rateOn('2026-10-10', rates)               // 125 — a Saturday, at the weekend rate
+costFor(staffId, shifts, 3200, rates)     // 1408 — dollars, weekends and holidays raised
+weekCost(staff, shifts, rates)            // 2779 — the sum of each person's, rounded
+rosteredWithoutRate(staff, shifts)        // [Jean] — on the week, but can't be costed
 
 buildWarnings({ staff, shifts, naNotes, leave, weekStart, closedDays, published })
 // → [{ level: 'high', who: 'John Reyes', text: 'Rostered on Sun — not usually available.' },

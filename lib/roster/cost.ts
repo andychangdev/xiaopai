@@ -1,8 +1,14 @@
-// Money for the cost estimate: each person's hourly rate, and the weekend and
-// public holiday rates that raise it, as percentages. A rate is whole cents
-// (2850 = $28.50), so adding them up never meets floating point.
+// The week's cost, as an estimate: each person's hours at their hourly rate,
+// raised on weekends and public holidays by the percentages in Settings. No
+// other penalty rates, and nothing else payroll would work out, since payroll
+// is out of scope. Worked out from the shifts every time, like hours. A rate
+// is whole cents (2850 = $28.50), and a cost is whole dollars, as exact as an
+// estimate needs.
 
-import { dayName, fullDate, parseIsoDate, type IsoDate } from './dates'
+import { dayName, fullDate, parseIsoDate, weekdayIndex, type IsoDate } from './dates'
+import { hoursFor } from './hours'
+import type { Shift } from './shifts'
+import { firstName } from './staff'
 
 export type Cents = number
 
@@ -13,6 +19,10 @@ export type Holiday = { date: IsoDate; name: string | null }
 
 /** The weekend and public holiday rates, each a percentage of someone's hourly rate, and the public holidays. */
 export type PayRates = { weekend: Percent; holiday: Percent; holidays: Holiday[] }
+
+type Priced = { id: number; name: string; hourlyRate: Cents | null }
+
+type Timed = Pick<Shift, 'staffId' | 'date' | 'start' | 'end'>
 
 export const MAX_HOURLY_RATE = 200
 export const RATE_INVALID = `Hourly rate is an amount up to $${MAX_HOURLY_RATE}, like 28.50, or blank for none.`
@@ -31,6 +41,11 @@ export function parseHourlyRate(input: string): { ok: true; value: Cents | null 
 /** '$28.50', for the Staff page's rate box. */
 export function formatRate(rate: Cents): string {
   return `$${Math.floor(rate / 100)}.${String(rate % 100).padStart(2, '0')}`
+}
+
+/** '$2,940' */
+export function formatDollars(dollars: number): string {
+  return `$${String(dollars).replace(/\B(?=(\d{3})+$)/g, ',')}`
 }
 
 /** Until Settings says otherwise, a weekend or holiday costs the same as any other day. */
@@ -65,4 +80,54 @@ export function holidayDate(date: IsoDate): string {
 
 export function holidayTakenError(date: IsoDate): string {
   return `${holidayDate(date)} is already a public holiday.`
+}
+
+const isWeekend = (date: IsoDate) => weekdayIndex(date) >= 5
+
+/**
+ * What an hour on this date costs, as a percentage of someone's rate: the
+ * highest that applies, so a public holiday on a Sunday costs whichever of
+ * the two is more.
+ */
+export function rateOn(date: IsoDate, rates: PayRates): Percent {
+  const holiday = rates.holidays.some((h) => h.date === date)
+  return Math.max(holiday ? rates.holiday : 100, isWeekend(date) ? rates.weekend : 100)
+}
+
+/** What one person's week costs at their rate, to the nearest dollar. Null for someone with no rate. */
+export function costFor(staffId: number, shifts: Timed[], hourlyRate: Cents | null, rates: PayRates): number | null {
+  if (hourlyRate === null) return null
+  const weighted = shifts
+    .filter((s) => s.staffId === staffId)
+    .reduce((total, s) => total + (s.end - s.start) * rateOn(s.date, rates), 0)
+  // Minutes at a percentage of cents an hour come to dollars × 60 × 100 × 100
+  return Math.round((weighted * hourlyRate) / 600_000)
+}
+
+/**
+ * The week's cost: each person's to the nearest dollar, added up, so the
+ * total is always the sum of the lines above it. Anyone with no rate is left
+ * out.
+ */
+export function weekCost(staff: Priced[], shifts: Timed[], rates: PayRates): number {
+  return staff.reduce((total, p) => total + (costFor(p.id, shifts, p.hourlyRate, rates) ?? 0), 0)
+}
+
+/** Anyone on the week with no rate, whose cost can't be estimated, so the note can name them. */
+export function rosteredWithoutRate<P extends Priced>(staff: P[], shifts: Timed[]): P[] {
+  return staff.filter((p) => p.hourlyRate === null && hoursFor(p.id, shifts) > 0)
+}
+
+export const NO_RATE = 'No hourly rate. Add one on the Staff page.'
+
+// 'Priya, Dana and Mike'
+const and = (items: string[]) =>
+  items.length === 1 ? items[0] : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+
+/** Who the total leaves out for having no rate: 'Jean has no hourly rate, so isn't in the total'. Null for no one. */
+export function noRateNote(noRate: Pick<Priced, 'name'>[]): string | null {
+  if (!noRate.length) return null
+  const names = noRate.map((p) => firstName(p.name))
+  const verb = names.length === 1 ? "has no hourly rate, so isn't" : "have no hourly rate, so aren't"
+  return `${and(names)} ${verb} in the total`
 }

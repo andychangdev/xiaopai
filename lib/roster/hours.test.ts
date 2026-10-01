@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { againstExpected, hoursAgainst, hoursAgainstShort, hoursFor, percentOff, weekTotal } from './hours'
+import { againstExpected, hoursAgainst, hoursFor, percentOff, weekTotal } from './hours'
 
 const shift = (staffId: number, start: number, end: number) => ({ staffId, start, end })
 
@@ -101,16 +101,5 @@ describe('hoursAgainst', () => {
   it('gives just the hours for someone with no expected hours', () => {
     expect(hoursAgainst(h(24), null)).toBe('24h')
     expect(hoursAgainst(0, null)).toBe('0h')
-  })
-})
-
-describe('hoursAgainstShort', () => {
-  it('gives the hours over the expected hours, for the Hours this week panel', () => {
-    expect(hoursAgainstShort(h(24), 24)).toBe('24h/24')
-    expect(hoursAgainstShort(0, 20)).toBe('0h/20')
-  })
-
-  it('gives just the hours for someone with no expected hours', () => {
-    expect(hoursAgainstShort(h(24), null)).toBe('24h')
   })
 })

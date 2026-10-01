@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { addShift, clearWeek, moveShift, removeShift, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
+import type { Cents, PayRates } from '@/lib/roster/cost'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
 import { leaveOn, onLeaveNote, type Leave } from '@/lib/roster/leave'
@@ -13,18 +14,18 @@ import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
 import { buildWarnings, overlappingShifts } from '@/lib/roster/warnings'
 import { CopyPreviousWeek } from './CopyPreviousWeek'
-import { HoursThisWeek } from './HoursThisWeek'
 import { LeavePopover } from './LeavePopover'
 import type { PopoverTarget } from './Popover'
 import { ShiftPopover, UNREACHABLE, actionError } from './ShiftPopover'
 import { UndoButton } from './UndoButton'
 import { useAsk } from './useAsk'
 import { WarningsPanel } from './WarningsPanel'
+import { WeekSummary } from './WeekSummary'
 
 type Person = { id: number; name: string }
 
-/** Someone with a row on the grid, the hours they usually work and the weekdays they can. */
-type StaffRow = Person & { expectedHours: number | null; available: boolean[] }
+/** Someone with a row on the grid, the hours they usually work, their rate and the weekdays they can work. */
+type StaffRow = Person & { expectedHours: number | null; hourlyRate: Cents | null; available: boolean[] }
 
 /** A shift picked up with Copy, whose it is and the chip it came from, until Esc or Done puts it down. */
 type Copying = { shift: Shift; person: Person; chip: HTMLElement }
@@ -53,6 +54,8 @@ type Props = {
   closedDays: boolean[]
   /** Published at any version, which brings in the staffing warnings */
   published: boolean
+  /** The weekend and holiday rates, and the week's public holidays, for its cost */
+  payRates: PayRates
   /** How many shifts the week before has, for Copy previous week */
   previousShifts: number
   /** What Undo would take back, or null when there's nothing to */
@@ -74,6 +77,7 @@ export function RosterGrid({
   tradingHours,
   closedDays,
   published,
+  payRates,
   previousShifts,
   lastAction,
   today,
@@ -287,7 +291,7 @@ export function RosterGrid({
         <WarningsPanel
           warnings={buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })}
         />
-        <HoursThisWeek staff={staff} shifts={shifts} />
+        <WeekSummary staff={staff} shifts={shifts} rates={payRates} />
       </div>
       {open &&
         // A leave day's own popover, unless a shift kept on it was clicked

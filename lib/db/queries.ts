@@ -32,6 +32,7 @@ const staffColumns = {
   active: staff.active,
   sortOrder: staff.sortOrder,
   expectedHours: staff.expectedHours,
+  hourlyRate: staff.hourlyRate,
   available: staff.available,
 }
 const rosterColumns = {
@@ -44,8 +45,8 @@ const rosterColumns = {
 
 /**
  * Everything the grid shows for a week: its rows (everyone active, plus
- * inactive staff with shifts that week) with their expected hours and
- * availability, its shifts, its N/A notes, the leave booked during it and its
+ * inactive staff with shifts that week) with their expected hours, hourly
+ * rate and availability, its shifts, its N/A notes, the leave booked during it and its
  * closed days. Then, for publishing: its roster, the week day by day as the
  * roster text reads it, and where it stands against what was published.
  */
@@ -205,6 +206,17 @@ export function payRates(): Omit<PayRates, 'holidays'> {
     .from(settings)
     .get()
   return rates ?? { ...DEFAULT_PAY_RATES }
+}
+
+/** The pay rates, with the public holidays in a week, for its cost. */
+export function payRatesFor(week: IsoDate): PayRates {
+  const during = getDb()
+    .select({ date: holidays.date, name: holidays.name })
+    .from(holidays)
+    .where(and(gte(holidays.date, week), lte(holidays.date, addDays(week, 6))))
+    .orderBy(asc(holidays.date))
+    .all()
+  return { ...payRates(), holidays: during }
 }
 
 /** Every public holiday, soonest first. */

@@ -5,7 +5,15 @@ import { PublishBadge } from '@/components/PublishBadge'
 import { PublishButton } from '@/components/PublishButton'
 import { RosterGrid } from '@/components/RosterGrid'
 import { today } from '@/lib/clock'
-import { hasStaff, openWeek, rosterWeek, shiftCount, templateList, tradingHoursWeek } from '@/lib/db/queries'
+import {
+  hasStaff,
+  openWeek,
+  payRatesFor,
+  rosterWeek,
+  shiftCount,
+  templateList,
+  tradingHoursWeek,
+} from '@/lib/db/queries'
 import { undoLabel } from '@/lib/db/undo'
 import { addDays, canonicalWeek, mondayOf, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
 import { weekTotal } from '@/lib/roster/hours'
@@ -89,6 +97,7 @@ export default async function RosterPage({ params }: Props) {
           tradingHours={tradingSummary(tradingHoursWeek())}
           closedDays={closedDays}
           published={published}
+          payRates={payRatesFor(week)}
           previousShifts={shiftCount(addDays(week, -7))}
           lastAction={undoLabel(week)}
           today={now}

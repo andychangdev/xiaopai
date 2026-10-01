@@ -31,6 +31,17 @@ export function TrashIcon() {
   )
 }
 
+/** A circled i, for a note on how something was worked out. */
+export function InfoIcon() {
+  return (
+    <Icon>
+      <circle cx="8" cy="8" r="6.25" />
+      <path d="M8 7.25v3.75" />
+      <circle cx="8" cy="5" r="0.9" fill="currentColor" stroke="none" />
+    </Icon>
+  )
+}
+
 /** A cross, for calling something off. */
 export function CrossIcon() {
   return (

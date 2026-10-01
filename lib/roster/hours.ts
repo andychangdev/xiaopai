@@ -50,8 +50,3 @@ export const AGAINST_EXPECTED = {
 export function hoursAgainst(rostered: Minutes, expectedHours: number | null): string {
   return expectedHours === null ? formatHours(rostered) : `${formatHours(rostered)} of ${expectedHours}h`
 }
-
-/** '24h/24' for the Hours this week panel, or '24h' for someone with no expected hours. */
-export function hoursAgainstShort(rostered: Minutes, expectedHours: number | null): string {
-  return expectedHours === null ? formatHours(rostered) : `${formatHours(rostered)}/${expectedHours}`
-}
