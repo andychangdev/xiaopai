@@ -29,6 +29,12 @@ export function Templates({ templates, week }: { templates: Template[]; week: Tr
   const [editing, setEditing] = useState<number | null>(null)
   // The one just added, whose name box takes focus, selected, once it arrives
   const [fresh, setFresh] = useState<number>()
+
+  // Opening another, or closing it, ends its being new
+  function edit(id: number | null) {
+    setEditing(id)
+    if (id !== fresh) setFresh(undefined)
+  }
   // A second click before the first add returns would add two
   const adding = useRef(false)
   const scale = templateScale(week, templates)
@@ -78,8 +84,8 @@ export function Templates({ templates, week }: { templates: Template[]; week: Tr
             scale={scale}
             open={editing === t.id}
             fresh={t.id === fresh}
-            onToggle={() => setEditing(editing === t.id ? null : t.id)}
-            onClose={() => setEditing(null)}
+            onToggle={() => edit(editing === t.id ? null : t.id)}
+            onClose={() => edit(null)}
             save={save}
             ask={ask}
           />
