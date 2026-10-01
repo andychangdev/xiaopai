@@ -15,26 +15,26 @@ This departs from SPEC §3 ("plain list-and-form admin screens") and ARCHITECTUR
 
 **Blocked by:** 22 Green highlight style
 
-**Status:** ready-for-agent
+**Status:** done
 
 List
 
-- [ ] One line per person, in the roster order. Values show as text, and nothing on the list is a box to type in.
-- [ ] Dragging by the handle on the left reorders, with a drop line as now. With a handle focused, the arrow keys still move someone a place at a time.
-- [ ] Inactive people are in a collapsed group at the foot, and can still be opened and made active again.
-- [ ] The intro above the list is one line.
+- [x] One line per person, in the roster order. Values show as text, and nothing on the list is a box to type in.
+- [x] Dragging by the handle on the left reorders, with a drop line as now. With a handle focused, the arrow keys still move someone a place at a time.
+- [x] Inactive people are in a collapsed group at the foot, and can still be opened and made active again.
+- [x] The intro above the list is one line.
 
 Panel
 
-- [ ] Clicking a line, or Enter on it, opens that person's panel. The URL holds who, so reloading keeps it open. Escape or a close button closes it and puts focus back on their line.
-- [ ] Each field saves as it does now. Text saves on leaving the box or on Enter, and Esc abandons the edit. Toggles save at once. A refusal shows in the panel and puts the old value back.
-- [ ] Remove at the foot of the panel: someone with shifts or leave gets the same "Can't remove" explanation as now, and anyone else gets the same confirm.
-- [ ] "+ Add person" opens an empty panel with the name box focused. No one is created until they have a name, and then they join the end of the order.
+- [x] Clicking a line, or Enter on it, opens that person's panel. The URL holds who, so reloading keeps it open. Escape or a close button closes it and puts focus back on their line.
+- [x] Each field saves as it does now. Text saves on leaving the box or on Enter, and Esc abandons the edit. Toggles save at once. A refusal shows in the panel and puts the old value back.
+- [x] Remove at the foot of the panel: someone with shifts or leave gets the same "Can't remove" explanation as now, and anyone else gets the same confirm.
+- [x] "+ Add person" opens an empty panel with the name box focused. No one is created until they have a name, and then they join the end of the order.
 
 Phone
 
-- [ ] On a phone the list fits the width, and the panel is a sheet over the list with the same fields.
+- [x] On a phone the list fits the width, and the panel is a sheet over the list with the same fields.
 
 Docs
 
-- [ ] SPEC §3 and ARCHITECTURE §7 describe the list and panel.
+- [x] SPEC §3 and ARCHITECTURE §7 describe the list and panel.
