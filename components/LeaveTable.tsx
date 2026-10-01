@@ -1,16 +1,11 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { bookLeave, cancelLeave } from '@/app/actions'
 import type { LeaveListRow } from '@/lib/db/queries'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
-import { describeLeave, isPast, leaveDays, leaveSpan, parseLeave } from '@/lib/roster/leave'
-import { shiftsLabel } from '@/lib/roster/shifts'
+import { isPast, leaveDays, leaveSpan, parseLeave } from '@/lib/roster/leave'
 import { tableScroll, td, th } from './Page'
-import { UNREACHABLE } from './ShiftPopover'
-import { useAsk } from './useAsk'
-
-type Booking = { staffId: number; from: string; to: string; note: string }
+import { useLeave, type Booking } from './useLeave'
 
 /** Everyone's leave, soonest first, with past leave greyed and a row at the foot to book more. */
 export function LeaveTable({
@@ -23,46 +18,10 @@ export function LeaveTable({
   staff: { id: number; name: string }[]
   today: IsoDate
 }) {
-  const [dialog, ask, choose] = useAsk()
   const [error, setError] = useState<string>()
+  const [dialog, bookLeave, cancel] = useLeave(setError)
 
-  /**
-   * True once it's booked. Over shifts, the first try comes back with how many
-   * there are, and the booking only goes in once you've said what to do with
-   * them. Removing them is the answer Enter gives.
-   */
-  async function book(booking: Booking): Promise<boolean> {
-    setError(undefined) // whatever went wrong last time, this is a new try
-    const send = (shifts?: 'remove' | 'keep') => bookLeave({ ...booking, shifts }).catch(() => ({ error: UNREACHABLE }))
-    let result: Awaited<ReturnType<typeof send>> = await send()
-    if ('clashes' in result && result.clashes) {
-      const n = result.clashes
-      const them = n === 1 ? 'it' : 'them'
-      const name = staff.find((p) => p.id === booking.staffId)?.name
-      const choice = await choose({
-        title: `Book leave over ${shiftsLabel(n)}?`,
-        body: `${name} has ${shiftsLabel(n)} rostered inside that leave. Remove ${them}, or keep ${them} and have the roster warn about ${n === 1 ? 'it' : 'each'}.`,
-        ok: `Remove ${shiftsLabel(n)}`,
-        other: `Keep ${them}`,
-        danger: true,
-      })
-      if (choice === 'cancel') return false
-      result = await send(choice === 'ok' ? 'remove' : 'keep')
-    }
-    setError(result.error)
-    return !result.error
-  }
-
-  async function cancel(l: LeaveListRow) {
-    const yes = await ask({
-      title: `Cancel ${l.name}'s leave?`,
-      body: `${describeLeave(l)}. Those days can take shifts again.`,
-      ok: 'Cancel leave',
-      cancel: 'Keep it',
-      danger: true,
-    })
-    if (yes) setError((await cancelLeave(l.id).catch(() => ({ error: UNREACHABLE }))).error)
-  }
+  const book = (booking: Booking) => bookLeave(booking, staff.find((p) => p.id === booking.staffId)?.name ?? '')
 
   return (
     <>
