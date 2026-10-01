@@ -117,10 +117,12 @@ export const TIMELINE_WEEKS = 7
 
 /**
  * The Staff page's leave timeline: seven weeks from this week's Monday, with
- * a row for each person with leave in them, in roster order, and a bar per
- * booking from its first day to its last, cut at the edges where it runs
- * past them. Days count from the timeline's first. Alongside, the leave
- * that's over, newest first, and leave beyond the seven weeks, soonest first.
+ * a row for each person with leave still to come or under way, in roster
+ * order, and a bar per booking from its first day to its last, cut at the
+ * edges where it runs past them. Days count from the timeline's first.
+ * Alongside, the leave that's over, newest first, even if it was earlier this
+ * week, and leave beyond the seven weeks, soonest first. So each booking is
+ * in exactly one of the three.
  */
 export function leaveTimeline<T extends Span & { staffId: number }>(leave: T[], order: number[], today: IsoDate) {
   const start = mondayOf(today)
@@ -137,7 +139,7 @@ export function leaveTimeline<T extends Span & { staffId: number }>(leave: T[], 
     }
   }
   const soonest = (a: T, b: T) => a.fromDate.localeCompare(b.fromDate) || a.toDate.localeCompare(b.toDate)
-  const inView = leave.filter((l) => l.fromDate <= end && start <= l.toDate).sort(soonest)
+  const inView = leave.filter((l) => l.fromDate <= end && !isPast(l, today)).sort(soonest)
   return {
     weeks: Array.from({ length: TIMELINE_WEEKS }, (_, i) => addDays(start, i * 7)),
     days,

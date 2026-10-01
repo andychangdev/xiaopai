@@ -247,8 +247,14 @@ describe('leaveTimeline', () => {
   })
 
   it('cuts leave that started before this week at the start', () => {
-    const [row] = leaveTimeline([at(1, '2026-09-20', '2026-09-30')], [1], today).rows
-    expect(row.bars[0]).toMatchObject({ from: 0, length: 3, cutStart: true, cutEnd: false })
+    const [row] = leaveTimeline([at(1, '2026-09-20', '2026-10-02')], [1], today).rows
+    expect(row.bars[0]).toMatchObject({ from: 0, length: 5, cutStart: true, cutEnd: false })
+  })
+
+  it("draws no leave that's over, even earlier this week, and lists it as past instead", () => {
+    const t = leaveTimeline([at(1, '2026-09-28', '2026-09-29')], [1], today)
+    expect(t.rows).toEqual([])
+    expect(t.past).toHaveLength(1)
   })
 
   it('cuts leave that ends after the last week at the end', () => {
