@@ -10,11 +10,11 @@ This departs from ARCHITECTURE §7, where admin pages are tables in cards. Refer
 
 **Blocked by:** 22 Green highlight style
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] The six sections appear in that order in one card. Each has a title and one-line note on the left and its controls on the right.
-- [ ] The side index jumps to each section and stays in view while the page scrolls. Each section has an anchor, so `/settings#trading-hours` lands on it.
-- [ ] The index highlights the section you're reading as you scroll, and the section you clicked straight after a jump.
-- [ ] Every control saves, refuses and reports exactly as it does now.
-- [ ] On a phone the sections stack with the title above the controls, the index is hidden, and nothing scrolls sideways.
-- [ ] ARCHITECTURE §7 describes the section layout.
+- [x] The six sections appear in that order in one card. Each has a title and one-line note on the left and its controls on the right.
+- [x] The side index jumps to each section and stays in view while the page scrolls. Each section has an anchor, so `/settings#trading-hours` lands on it.
+- [x] The index highlights the section you're reading as you scroll, and the section you clicked straight after a jump.
+- [x] Every control saves, refuses and reports exactly as it does now.
+- [x] On a phone the sections stack with the title above the controls, the index is hidden, and nothing scrolls sideways.
+- [x] ARCHITECTURE §7 describes the section layout.

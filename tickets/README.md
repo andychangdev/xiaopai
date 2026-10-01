@@ -31,7 +31,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 25 | [Staff list and edit panel](completed/25-staff-list-and-panel.md) | 22 |
 | 26 | [Leave in the staff panel](to-do/26-leave-in-the-panel.md) | 25 |
 | 27 | [Leave timeline](to-do/27-leave-timeline.md) | 26 |
-| 28 | [Settings sections and side index](to-do/28-settings-sections.md) | 22 |
+| 28 | [Settings sections and side index](completed/28-settings-sections.md) | 22 |
 | 29 | [Trading hours week strip](to-do/29-trading-hours-strip.md) | 28 |
 | 30 | [Shift template bars](to-do/30-template-bars.md) | 28 |
 
