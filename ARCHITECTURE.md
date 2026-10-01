@@ -560,7 +560,11 @@ The app is always light (`color-scheme: light`), whatever the system setting.
 Fonts are Archivo and IBM Plex Mono through `next/font/google`, wired into
 `--font-sans` and `--font-mono`. The few controls every page shares are
 classes in `@layer components`: `.btn`, `.btn-primary`, `.btn-danger`,
-`.field`, `.text-link`.
+`.field`, `.text-link`. `.highlight` is the one look for whatever is current
+or selected (the tab you're on, this week, a shift on the grid): accent-bg,
+accent-line and accent-deep, at 4.7:1 contrast. `.badge` is the small
+uppercase label for where something stands, coloured by `.highlight` or
+`.badge-warn`.
 
 The grid itself is CSS Grid, not a table, in plain CSS classes:
 

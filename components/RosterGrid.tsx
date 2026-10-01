@@ -532,7 +532,7 @@ function Cell({
             <button
               aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}. ${action}`}
               title={overlaps ? `Overlaps another shift. ${tip}` : tip}
-              className={`flex w-full items-center rounded-chip border border-l-[3px] py-1 pl-1.5 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
+              className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
               onClick={(e) => onClick(e, s)}
               // Not while copying, when a press on the chip is a paste
               draggable={mode === 'edit'}
@@ -595,8 +595,7 @@ function Cell({
 
 // On the wrapper's hover, so the chip stays lit with the pointer on its ×
 const chipColours = {
-  usual:
-    'border-line border-l-accent bg-surface-3 group-hover/chip:border-line-strong group-hover/chip:border-l-accent group-hover/chip:bg-surface-2',
+  usual: 'highlight group-hover/chip:border-accent',
   overlaps: 'border-crit-line bg-crit-bg group-hover/chip:border-crit',
 }
 

@@ -97,6 +97,20 @@
   .text-link {
     @apply text-[12.5px] text-accent-deep underline underline-offset-2;
   }
+  /* Whatever is current or selected: the tab you're on, this week, a shift
+     on the grid. It brings its own border, so give the element's other
+     states a border too, transparent if need be, or it shifts a pixel. */
+  .highlight {
+    @apply border border-accent-line bg-accent-bg text-accent-deep;
+  }
+  /* A small label for where something stands, like a week's state. Its
+     colour comes from .highlight, or .badge-warn while it needs doing. */
+  .badge {
+    @apply inline-block rounded-full border px-2 py-0.5 text-[10.5px] font-semibold tracking-[0.07em] whitespace-nowrap uppercase;
+  }
+  .badge-warn {
+    @apply border-warn-line bg-warn-bg text-warn-deep;
+  }
 }
 
 /* The roster grid: a name column, then seven day columns (ARCHITECTURE §7) */

@@ -300,7 +300,7 @@ function AvailableDays({ id, available, report }: { id: number; available: boole
             aria-label={day}
             aria-pressed={on}
             title={`${on ? 'Usually available' : 'Not usually available'} on ${day}`}
-            className={`size-5.75 rounded-chip border text-[11px] leading-none font-semibold ${on ? 'border-accent-line bg-accent-bg text-accent-deep' : 'border-line bg-surface-3 text-ink-3 hover:border-line-strong'}`}
+            className={`size-5.75 rounded-chip border text-[11px] leading-none font-semibold ${on ? 'highlight' : 'border-line bg-surface-3 text-ink-3 hover:border-line-strong'}`}
             onClick={() =>
               startTransition(async () => {
                 setDay({ weekday, on: !on })

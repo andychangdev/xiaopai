@@ -90,11 +90,7 @@ function State({ row: { state } }: { row: HistoryRow }) {
   const live = !needsPublishing(state)
   return (
     <span className="inline-flex flex-wrap items-center gap-x-2">
-      <span
-        className={`rounded-full border px-2 py-0.5 text-[10.5px] font-semibold tracking-[0.07em] whitespace-nowrap uppercase ${live ? 'border-accent-line bg-accent-bg text-accent-deep' : 'border-warn-line bg-warn-bg text-warn-deep'}`}
-      >
-        {historyBadge(state)}
-      </span>
+      <span className={`badge ${live ? 'highlight' : 'badge-warn'}`}>{historyBadge(state)}</span>
       {state.status === 'published' && state.changed && (
         <span className="text-[12px] whitespace-nowrap text-warn-deep">edited since</span>
       )}
