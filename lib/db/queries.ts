@@ -86,51 +86,47 @@ function weekOf<P extends Parameters<typeof rosterRows>[0][number] & { name: str
 }
 
 /**
- * Each of these weeks with its shift count and where it stands, for the
- * roster's week menu. Worked out as the grid and History do, so the three
- * can't disagree.
+ * Weeks with their shifts and where each stands on publishing, worked out
+ * as the grid does: the weeks named, or with none named every week that has
+ * a roster (every week with shifts has one). History and the roster's week
+ * menu both come here, so neither can disagree with the grid.
  */
-export function weekStates(weeks: IsoDate[]) {
+function weeksWithState(only?: IsoDate[]) {
   const db = getDb()
   const people = db.select(staffColumns).from(staff).all()
   const byWeek = new Map<IsoDate, Shift[]>()
-  const weekShifts = db
+  const shiftRows = db
     .select({ weekStart: shifts.weekStart, ...shiftColumns })
     .from(shifts)
-    .where(inArray(shifts.weekStart, weeks))
+    .where(only && inArray(shifts.weekStart, only))
     .all()
-  for (const { weekStart, ...s } of weekShifts) byWeek.set(weekStart, [...(byWeek.get(weekStart) ?? []), s])
+  for (const { weekStart, ...s } of shiftRows) {
+    const week = byWeek.get(weekStart)
+    if (week) week.push(s)
+    else byWeek.set(weekStart, [s])
+  }
   const roster = new Map(
     db
       .select({ weekStart: rosters.weekStart, ...rosterColumns })
       .from(rosters)
-      .where(inArray(rosters.weekStart, weeks))
+      .where(only && inArray(rosters.weekStart, only))
       .all()
       .map(({ weekStart, ...r }) => [weekStart, r]),
   )
-  return weeks.map((weekStart) => {
-    const these = byWeek.get(weekStart) ?? []
-    return { weekStart, shifts: these.length, state: weekOf(weekStart, these, people, roster.get(weekStart)).publish }
+  return (only ?? [...roster.keys()]).map((weekStart) => {
+    const weekShifts = byWeek.get(weekStart) ?? []
+    return { weekStart, shifts: weekShifts, state: weekOf(weekStart, weekShifts, people, roster.get(weekStart)).publish }
   })
 }
 
-/** The History list, around the week you have open. Every week with shifts has a roster, so the rosters are every week. */
+/** Each of these weeks with its shift count and where it stands, for the roster's week menu. */
+export function weekStates(weeks: IsoDate[]) {
+  return weeksWithState(weeks).map(({ weekStart, shifts, state }) => ({ weekStart, shifts: shifts.length, state }))
+}
+
+/** The History list, around the week you have open. */
 export function history(open: IsoDate) {
-  const db = getDb()
-  const people = db.select(staffColumns).from(staff).all()
-  const byWeek = new Map<IsoDate, Shift[]>()
-  for (const { weekStart, ...s } of db.select({ weekStart: shifts.weekStart, ...shiftColumns }).from(shifts).all()) {
-    byWeek.set(weekStart, [...(byWeek.get(weekStart) ?? []), s])
-  }
-  const weeks = db
-    .select({ weekStart: rosters.weekStart, ...rosterColumns })
-    .from(rosters)
-    .all()
-    .map(({ weekStart, ...roster }) => {
-      const weekShifts = byWeek.get(weekStart) ?? []
-      return { weekStart, shifts: weekShifts, state: weekOf(weekStart, weekShifts, people, roster).publish }
-    })
-  return historyRows({ open, weeks })
+  return historyRows({ open, weeks: weeksWithState() })
 }
 
 /** Every booking with at least one day in the week, whoever it's for. */
