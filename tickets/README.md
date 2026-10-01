@@ -24,7 +24,7 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 18 | [JSON export](completed/18-json-export.md) | 05 |
 | 19 | [Dock launcher](completed/19-dock-launcher.md) | 01 |
 | 20 | [Roster toolbar tidy and This week](completed/20-roster-toolbar-tidy.md) | 07, 15 |
-| 21 | [Phone pages stop scrolling sideways](to-do/21-phone-sideways-scroll.md) | — |
+| 21 | [Phone pages stop scrolling sideways](completed/21-phone-sideways-scroll.md) | — |
 | 22 | [Green highlight style](to-do/22-green-highlight.md) | — |
 | 23 | [Icon sidebar and phone tab bar](to-do/23-sidebar-and-phone-bar.md) | 22 |
 | 24 | [Week dropdown on the roster](to-do/24-week-dropdown.md) | 22 |

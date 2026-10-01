@@ -6,10 +6,10 @@ Found in the redesign review. It's worth fixing now, ahead of tickets 25–30, b
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] At 400px wide, Staff, Settings and History are exactly as wide as the screen, and nothing scrolls the page sideways.
-- [ ] Wide tables still scroll sideways inside their card.
-- [ ] The hidden column headings are still read out by a screen reader.
-- [ ] Roster and Share roster stay as they are. Both already fit at 400px.
-- [ ] Checked in a real browser at 400px, not only in the code.
+- [x] At 400px wide, Staff, Settings and History are exactly as wide as the screen, and nothing scrolls the page sideways.
+- [x] Wide tables still scroll sideways inside their card.
+- [x] The hidden column headings are still read out by a screen reader.
+- [x] Roster and Share roster stay as they are. Both already fit at 400px.
+- [x] Checked in a real browser at 400px, not only in the code.
