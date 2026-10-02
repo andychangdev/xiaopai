@@ -26,12 +26,11 @@ export default async function HistoryPage({ searchParams }: Props) {
   return (
     <div className="max-w-210">
       <PageHead title="History">
-        Every week that has shifts or has been published, newest first. Open one to look at it, or copy it over
-        the week you have open,{' '}
+        Every week that has shifts or has been published, newest first, with the week you have open,{' '}
         <Link href={`/roster/${week}`} className="text-link">
           {weekTitle(week)}
         </Link>
-        . Published weeks keep the names and times they went out with, so changing the staff list never rewrites
+        , marked. Published weeks keep the names and times they went out with, so changing the staff list never rewrites
         a roster people already worked.
       </PageHead>
       <Card title="Weeks">

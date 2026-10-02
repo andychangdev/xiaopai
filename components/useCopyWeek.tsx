@@ -9,10 +9,9 @@ import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 
 /**
- * Copies one week over another, for Copy previous week and History's Copy
- * into open week alike. Says so when there's nothing to copy, asks before
- * replacing shifts already there, then reports what came across and what was
- * skipped, so nothing disappears silently. Render `dialog` anywhere; `copy`
+ * Copies one week over another, for Copy previous week. Says so when there's
+ * nothing to copy, asks before replacing shifts already there, then reports
+ * what came across and what was skipped, so nothing disappears silently. Render `dialog` anywhere; `copy`
  * resolves true once the week has been copied and the report read.
  *
  *   const [dialog, copy] = useCopyWeek()
