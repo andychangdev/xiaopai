@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   describeLeave,
   leaveTimeline,
+  daySpan,
   shortSpan,
   isPast,
   leaveDays,
@@ -189,6 +190,14 @@ describe('shortSpan', () => {
     expect(shortSpan({ fromDate: '2026-10-05', toDate: '2026-10-05' })).toBe('5 Oct')
     expect(shortSpan({ fromDate: '2026-10-11', toDate: '2026-10-13' })).toBe('11–13 Oct')
     expect(shortSpan({ fromDate: '2026-10-23', toDate: '2026-11-09' })).toBe('23 Oct – 9 Nov')
+  })
+})
+
+describe('daySpan', () => {
+  it('gives the days alone, across a month end too', () => {
+    expect(daySpan({ fromDate: '2026-10-05', toDate: '2026-10-05' })).toBe('5')
+    expect(daySpan({ fromDate: '2026-10-11', toDate: '2026-10-13' })).toBe('11–13')
+    expect(daySpan({ fromDate: '2026-09-30', toDate: '2026-10-02' })).toBe('30–2')
   })
 })
 

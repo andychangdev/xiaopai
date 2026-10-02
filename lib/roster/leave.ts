@@ -94,6 +94,12 @@ export function shortSpan({ fromDate, toDate }: Span): string {
   return `${from} – ${to}`
 }
 
+/** '5', '11–13' or '30–2': just the days of the month, for a bar with room for no more. */
+export function daySpan({ fromDate, toDate }: Span): string {
+  const day = (d: IsoDate) => String(Number(d.slice(8)))
+  return fromDate === toDate ? day(fromDate) : `${day(fromDate)}–${day(toDate)}`
+}
+
 /** How many weeks the Staff page's leave timeline shows, this one first. */
 export const TIMELINE_WEEKS = 7
 

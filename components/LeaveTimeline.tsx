@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { LeaveListRow } from '@/lib/db/queries'
 import { dayLabel, shortDate, type IsoDate } from '@/lib/roster/dates'
-import { describeLeave, isPast, leaveDays, leaveSpan, leaveTimeline, shortSpan } from '@/lib/roster/leave'
+import { daySpan, describeLeave, isPast, leaveDays, leaveSpan, leaveTimeline, shortSpan } from '@/lib/roster/leave'
 import { LeaveForm } from './LeaveForm'
 import { ListHead } from './Page'
 import { useLeave } from './useLeave'
@@ -14,7 +14,8 @@ import { usePanelParam } from './usePanelParam'
  * bar per booking, with a line at today. Overlaps, like four people out on
  * the same three days, show at a glance. A bar opens the booking in the
  * page's panel, to change it or cancel it, and has the highlight while it's
- * there, as the person whose panel is open has on their row. Leave that's
+ * there, as the person whose panel is open has on their row. Hovering one
+ * shows who, when and why, which a short bar has no room to say. Leave that's
  * over and leave further ahead are a click away, as lists. On a phone the
  * bookings are a list, soonest first, and a line opens the same panel.
  */
@@ -108,12 +109,24 @@ export function LeaveTimeline({
                     data-keeps-panel
                     aria-label={`${l.name} away ${describeLeave(l)}`}
                     aria-expanded={l.id === booked}
-                    title={`${describeLeave(l)}. Change or cancel it`}
-                    className={`absolute inset-y-2 flex items-center overflow-hidden border px-1.5 text-[10.5px] font-semibold whitespace-nowrap ${l.id === booked ? 'highlight' : 'border-warn-line bg-warn-bg text-warn-deep hover:border-warn'} ${cutStart ? 'rounded-l-none border-l-0' : 'rounded-l-chip'} ${cutEnd ? 'rounded-r-none border-r-0' : 'rounded-r-chip'}`}
-                    style={{ left: day(from), width: day(length) }}
+                    className={`group absolute inset-y-2 flex items-center border px-1.5 text-[10.5px] font-semibold whitespace-nowrap ${l.id === booked ? 'highlight' : 'border-warn-line bg-warn-bg text-warn-deep hover:border-warn'} ${cutStart ? 'rounded-l-none border-l-0' : 'rounded-l-chip'} ${cutEnd ? 'rounded-r-none border-r-0' : 'rounded-r-chip'}`}
+                    // On a narrow screen a day can be thinner than a bar's padding, so a
+                    // one-day bar reaches into the next. One ending on the last day goes
+                    // from the right, so it reaches back instead of off the end.
+                    style={
+                      from + length === timeline.days
+                        ? { right: 0, width: day(length) }
+                        : { left: day(from), width: day(length) }
+                    }
                     onClick={() => openBooking(l.id)}
                   >
                     <FitLabel options={labels(l)} />
+                    <span
+                      aria-hidden
+                      className={`pointer-events-none absolute bottom-full z-10 mb-1.5 hidden w-max rounded-chip border border-line-strong bg-surface px-2 py-1 text-[11.5px] font-medium text-ink shadow-popover group-hover:block group-focus-visible:block ${cardAt(from + length / 2, timeline.days)}`}
+                    >
+                      <b className="font-semibold">{l.name}</b> · {describeLeave(l)}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -174,14 +187,40 @@ export function LeaveTimeline({
   )
 }
 
+/** A bar's label, and for the small ones that run edge to edge, their type size. */
+type Fit = { text: string; size?: string }
+
+/** Smaller and smaller, for a bar too short for its days at full size */
+const SMALL = ['9.5px', '8.5px']
+
 /**
- * What a bar can say, fullest first: the note and dates, the dates, and
- * within one month just the days ('11–13'), which the week columns place.
+ * What a bar can say, fullest first: the note and dates, the dates, and just
+ * the days ('11–13'), which the week columns place. Then, for a bar of a day
+ * or two, the days in smaller type, edge to edge, or failing that the first
+ * of them, so even the shortest booking says when it is.
  */
-function labels(l: LeaveListRow): string[] {
+function labels(l: LeaveListRow): Fit[] {
   const span = shortSpan(l)
-  const sameMonth = l.fromDate.slice(0, 7) === l.toDate.slice(0, 7)
-  return [l.note ? `${l.note} · ${span}` : span, span, ...(sameMonth ? [span.split(' ')[0]] : [])]
+  const days = daySpan(l)
+  const first = daySpan({ fromDate: l.fromDate, toDate: l.fromDate })
+  return [
+    ...(l.note ? [{ text: `${l.note} · ${span}` }] : []),
+    { text: span },
+    { text: days },
+    ...SMALL.map((size) => ({ text: days, size })),
+    ...(first !== days ? SMALL.map((size) => ({ text: first, size })) : []),
+  ]
+}
+
+/**
+ * Where a bar's hover card sits, so it stays inside the timeline: from the
+ * bar's left edge in the first third, from its right in the last, otherwise
+ * centred over it.
+ */
+function cardAt(middle: number, days: number): string {
+  if (middle < days / 3) return 'left-0'
+  if (middle > (days * 2) / 3) return 'right-0'
+  return 'left-1/2 -translate-x-1/2'
 }
 
 function ListToggle({ open, onClick, children }: { open: boolean; onClick: () => void; children: ReactNode }) {
@@ -250,34 +289,45 @@ function LeaveLine({
 
 /**
  * The fullest of these labels that fits its bar, or none: measured against
- * the bar's width, so nothing is cut off mid-word. The bar's own name says
- * the whole booking either way.
+ * the bar's width, so nothing is cut off mid-word. A small one ignores the
+ * bar's padding. The hover card says the whole booking either way.
  */
-function FitLabel({ options }: { options: string[] }) {
+function FitLabel({ options }: { options: Fit[] }) {
   const ref = useRef<HTMLSpanElement>(null)
-  const [shown, setShown] = useState<string | null>(null)
-  const key = options.join('\n')
+  const [shown, setShown] = useState<Fit | null>(null)
+  const key = JSON.stringify(options)
 
   useLayoutEffect(() => {
-    const label = ref.current!
-    const bar = label.parentElement!
+    const bar = ref.current!.parentElement!
     const pen = document.createElement('canvas').getContext('2d')!
+    let live = true
     function fit() {
-      const style = getComputedStyle(label)
-      pen.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
-      const { paddingLeft, paddingRight } = getComputedStyle(bar)
+      const { fontWeight, fontSize, fontFamily, paddingLeft, paddingRight } = getComputedStyle(bar)
       const room = bar.clientWidth - parseFloat(paddingLeft) - parseFloat(paddingRight)
-      setShown(key.split('\n').find((o) => pen.measureText(o).width <= room) ?? null)
+      const fits = ({ text, size }: Fit) => {
+        pen.font = `${fontWeight} ${size ?? fontSize} ${fontFamily}`
+        return pen.measureText(text).width <= (size ? bar.clientWidth - 2 : room)
+      }
+      setShown((JSON.parse(key) as Fit[]).find(fits) ?? null)
     }
     fit()
+    document.fonts.ready.then(() => live && fit()) // again in the page's own font, once it's in
     const resized = new ResizeObserver(fit)
     resized.observe(bar)
-    return () => resized.disconnect()
+    return () => {
+      live = false
+      resized.disconnect()
+    }
   }, [key])
 
   return (
-    <span ref={ref} aria-hidden>
-      {shown}
+    <span
+      ref={ref}
+      aria-hidden
+      className={shown?.size ? 'absolute inset-0 flex items-center justify-center' : 'min-w-0 overflow-hidden'}
+      style={shown?.size ? { fontSize: shown.size } : undefined}
+    >
+      {shown?.text}
     </span>
   )
 }
