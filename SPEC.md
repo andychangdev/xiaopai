@@ -260,8 +260,7 @@ Every week with shifts on it, newest first: the date range, draft or
 published (with version), shift count, hours, and when it was published. The
 week you're currently editing is marked and has no actions.
 
-Each other row offers **Open** (navigate to that week) and **Copy into open
-week** (same copy rules as Copy previous week).
+Each other row offers **Open** (navigate to that week).
 
 ### Roster text
 
