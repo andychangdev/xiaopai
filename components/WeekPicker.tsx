@@ -74,7 +74,8 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
       <WeekArrow href={`/roster/${addDays(week, -7)}`} label="Previous week">
         ‹
       </WeekArrow>
-      <h1 className="min-w-0 flex-1 sm:flex-none">
+      {/* Under the page's Roster heading */}
+      <h2 className="min-w-0 flex-1 sm:flex-none">
         <button
           ref={button}
           aria-expanded={open}
@@ -100,7 +101,7 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
             <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-      </h1>
+      </h2>
       <WeekArrow href={`/roster/${addDays(week, 7)}`} label="Next week">
         ›
       </WeekArrow>

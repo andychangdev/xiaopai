@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { PageHead } from '@/components/Page'
 import { RosterGrid } from '@/components/RosterGrid'
 import { WeekPicker } from '@/components/WeekPicker'
 import { today } from '@/lib/clock'
@@ -43,6 +44,10 @@ export default async function RosterPage({ params }: Props) {
 
   return (
     <>
+      <PageHead title="Roster">
+        One week at a time. Click a cell to add a shift, or drag one to move it. Nothing reaches staff until you
+        publish the week and share it.
+      </PageHead>
       <div className="mb-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
         {/* Keyed by week, so the menu is closed on the week it takes you to */}
         <WeekPicker
