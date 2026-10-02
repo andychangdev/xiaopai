@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useOptimistic, useRef, useState, useTransition, type ReactNode } from 'react'
+import { useOptimistic, useState, useTransition } from 'react'
 import { removeStaff, setAvailable, updateStaff, type ActionResult } from '@/app/actions'
 import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
 import { withDayAvailable } from '@/lib/roster/availability'
@@ -9,8 +9,8 @@ import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
 import { isPast, leaveDays, leaveSpan } from '@/lib/roster/leave'
 import { whyNotRemovable } from '@/lib/roster/staff'
 import { BookLeaveForm } from './BookLeaveForm'
-import { CrossIcon } from './Icons'
 import { SaveOnBlur } from './SaveOnBlur'
+import { PanelHead, SidePanel } from './SidePanel'
 import { UNREACHABLE } from './ShiftPopover'
 import { useAsk } from './useAsk'
 import { useLeave } from './useLeave'
@@ -22,9 +22,8 @@ const numberField = 'field font-mono tabular-nums'
 type Report = (result: ActionResult) => string | undefined
 
 /**
- * Everything about one person, beside the Staff page's list or, on a narrow
- * screen, as a sheet over it. Each box saves as you leave it and each toggle
- * as you press it, as the old table did. Esc, × or a click outside closes it.
+ * Everything about one person, in the Staff page's panel. Each box saves as
+ * you leave it and each toggle as you press it, as the old table did.
  */
 export function StaffPanel({
   person,
@@ -42,7 +41,6 @@ export function StaffPanel({
   /** Closed by a click somewhere else, which keeps the focus it gives */
   onDismiss: () => void
 }) {
-  const ref = useRef<HTMLElement>(null)
   const [error, setError] = useState<string>()
   // Every save reports back; the last refusal shows at the foot of the panel
   const report: Report = (result) => {
@@ -50,69 +48,15 @@ export function StaffPanel({
     return result.error
   }
 
-  // A click anywhere else closes it, though not one that opens someone (their
-  // line or a leave bar), which moves it on to them instead. A box
-  // being typed in is left first, so what's in it saves.
-  useEffect(() => {
-    const away = (e: PointerEvent) => {
-      const target = e.target as Element
-      if (ref.current?.contains(target) || target.closest?.('[data-keeps-panel]')) return
-      const typing = document.activeElement
-      if (typing instanceof HTMLElement && ref.current?.contains(typing)) typing.blur()
-      onDismiss()
-    }
-    document.addEventListener('pointerdown', away)
-    return () => document.removeEventListener('pointerdown', away)
-  }, [onDismiss])
-
-  // Coming in, focus comes too, unless a box in it has already taken it
-  useEffect(() => {
-    const box = ref.current
-    if (box && !box.contains(document.activeElement)) box.focus({ preventScroll: true })
-  }, [])
-
   return (
-    <>
-      {/* The sheet's backdrop, which a click closes like anywhere else; beside the list there's none */}
-      <div aria-hidden className="fixed inset-0 z-50 bg-scrim lg:hidden" />
-      <section
-        ref={ref}
-        tabIndex={-1}
-        aria-label={person.name}
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-dialog outline-none lg:sticky lg:top-4 lg:z-auto lg:mt-13 lg:max-h-[calc(100dvh-32px)] lg:rounded-card lg:border lg:border-line lg:pb-0 lg:shadow-popover"
-        onKeyDown={(e) => {
-          // In a box, Esc abandons the edit; in a dialog, it answers no
-          const target = e.target as HTMLElement
-          if (e.key !== 'Escape' || target.closest('input, select, textarea, dialog')) return
-          onClose()
-        }}
-      >
-        <div aria-hidden className="mx-auto mt-2 h-1 w-9 rounded-full bg-line-strong lg:hidden" />
-        <Person person={person} leave={leave} today={today} report={report} onClose={onClose} />
-        {error && (
-          <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
-            {error}
-          </p>
-        )}
-      </section>
-    </>
-  )
-}
-
-function Head({ title, onClose, children }: { title: string; onClose: () => void; children?: ReactNode }) {
-  return (
-    <div className="flex items-center gap-3 border-b border-line px-3.5 py-3">
-      <h2 className="min-w-0 flex-1 truncate text-[15px] font-semibold">{title}</h2>
-      {children}
-      <button
-        aria-label="Close"
-        title="Close (Esc)"
-        className="grid size-7 place-items-center rounded-control text-ink-3 hover:bg-surface-2 hover:text-ink"
-        onClick={onClose}
-      >
-        <CrossIcon />
-      </button>
-    </div>
+    <SidePanel label={person.name} onClose={onClose} onDismiss={onDismiss}>
+      <Person person={person} leave={leave} today={today} report={report} onClose={onClose} />
+      {error && (
+        <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+          {error}
+        </p>
+      )}
+    </SidePanel>
   )
 }
 
@@ -158,7 +102,7 @@ function Person({
 
   return (
     <>
-      <Head title={person.name} onClose={onClose}>
+      <PanelHead title={person.name} onClose={onClose}>
         <button
           role="switch"
           aria-checked={active}
@@ -181,7 +125,7 @@ function Person({
           </span>
           Active
         </button>
-      </Head>
+      </PanelHead>
       <div className="grid gap-3.5 px-3.5 py-3.5">
         <label className={label}>
           Name
