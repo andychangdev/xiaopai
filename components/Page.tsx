@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 export function PageHead({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="mb-4">
-      <h1 className="text-[19px] font-semibold tracking-[-0.01em]">{title}</h1>
+      <h1 className="text-[30px] leading-tight font-semibold tracking-[-0.02em]">{title}</h1>
       <p className="mt-1.25 max-w-[64ch] text-[13px] leading-normal text-ink-2">{children}</p>
     </div>
   )
