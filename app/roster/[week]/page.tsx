@@ -16,7 +16,7 @@ import {
 } from '@/lib/db/queries'
 import { undoLabel } from '@/lib/db/undo'
 import { addDays, canonicalWeek, mondayOf, weekTitle } from '@/lib/roster/dates'
-import { weekSubtitle } from '@/lib/roster/publish'
+import { unpublishedShifts, weekSubtitle } from '@/lib/roster/publish'
 import { tradingSummary } from '@/lib/roster/settings'
 import { menuWeeks, weekMenu } from '@/lib/roster/weekMenu'
 
@@ -35,7 +35,7 @@ export default async function RosterPage({ params }: Props) {
   const week = canonicalWeek(param, openWeek)
   if (week !== param) redirect(`/roster/${week}`)
 
-  const { staff, shifts, naNotes, leave, closedDays, publish: state } = rosterWeek(week)
+  const { staff, shifts, naNotes, leave, closedDays, roster, publish: state } = rosterWeek(week)
   // Read once, so the header and the grid agree on what day it is
   const now = today()
   const thisWeek = mondayOf(now)
@@ -72,6 +72,7 @@ export default async function RosterPage({ params }: Props) {
           tradingHours={tradingSummary(tradingHoursWeek())}
           closedDays={closedDays}
           publish={state}
+          unpublished={unpublishedShifts(state.status === 'published' ? (roster?.snapshot ?? null) : null, shifts)}
           payRates={payRatesFor(week)}
           previousShifts={shiftCount(addDays(week, -7))}
           lastAction={undoLabel(week)}

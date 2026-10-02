@@ -4,7 +4,8 @@
 // when, so renaming someone or reordering the rows never counts.
 
 import { addDays, fullDate, shortDate, weekNumber, weekRange, type IsoDate } from './dates'
-import { shiftsLabel } from './shifts'
+import { timesOf } from './rosterText'
+import { shiftsLabel, type NewShift, type Shift } from './shifts'
 import { formatHours, type Minutes } from './time'
 import type { Snapshot } from './types'
 
@@ -41,6 +42,23 @@ function dayKey(day: Snapshot['days'][number]): string {
 /** Whether the week has changed since it was published: a shift or a closed day, never a name. */
 export function changedSince(snapshot: Snapshot, days: Snapshot['days']): boolean {
   return snapshot.days.length !== days.length || snapshot.days.some((day, i) => dayKey(day) !== dayKey(days[i]))
+}
+
+const shiftKey = (s: NewShift) => `${s.staffId}|${s.date}|${s.start}|${s.end}`
+
+/**
+ * The ids of the shifts staff don't have yet: all of them in a week never
+ * published, and in one that has been, those not in the version that went
+ * out, so added, moved or retimed since. Matched by who, day and times, which
+ * a cell never holds twice.
+ */
+export function unpublishedShifts(published: Snapshot | null, shifts: Shift[]): number[] {
+  const sent = new Set(
+    (published?.days ?? []).flatMap(({ date, on }) =>
+      on.flatMap(({ staffId, times }) => times.map((range) => shiftKey({ staffId, date, ...timesOf(range) }))),
+    ),
+  )
+  return shifts.filter((s) => !sent.has(shiftKey(s))).map((s) => s.id)
 }
 
 /** Where the week stands, from its roster (if it has one) and how it looks now. */

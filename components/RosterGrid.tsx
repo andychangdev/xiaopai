@@ -55,6 +55,8 @@ type Props = {
   closedDays: boolean[]
   /** Draft or published, for the Week summary. Published at any version brings in the staffing warnings */
   publish: PublishState
+  /** The ids of the shifts staff don't have yet, amber until they're published */
+  unpublished: number[]
   /** The weekend and holiday rates, and the week's public holidays, for its cost */
   payRates: PayRates
   /** How many shifts the week before has, for Copy previous week */
@@ -78,6 +80,7 @@ export function RosterGrid({
   tradingHours,
   closedDays,
   publish,
+  unpublished,
   payRates,
   previousShifts,
   lastAction,
@@ -86,6 +89,7 @@ export function RosterGrid({
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const overlapping = overlappingShifts(shifts)
+  const notOut = new Set(unpublished)
   const published = publish.status === 'published'
   const warnings = buildWarnings({ staff, shifts, naNotes, leave, weekStart: week, closedDays, published })
   const [dialog, ask] = useAsk()
@@ -249,6 +253,7 @@ export function RosterGrid({
                         date={date}
                         shifts={inCell}
                         overlapping={overlapping}
+                        unpublished={notOut}
                         na={na ? naNote(na, person.name, date) : undefined}
                         leave={away && onLeaveNote(person.name, away)}
                         mode={!copying ? 'edit' : copy ? 'paste' : away ? 'away' : 'holds'}
@@ -436,6 +441,7 @@ function Cell({
   date,
   shifts,
   overlapping,
+  unpublished,
   na,
   leave,
   mode,
@@ -453,6 +459,8 @@ function Cell({
   shifts: Shift[]
   /** The week's shifts that overlap another */
   overlapping: Set<number>
+  /** The week's shifts staff don't have yet */
+  unpublished: Set<number>
   /** Why the person isn't expected this day, when they aren't */
   na?: string
   /** Who's away and when, when the person's on leave this day */
@@ -523,6 +531,7 @@ function Cell({
         const times = formatRange(s.start, s.end)
         const picked = s.id === copying?.id
         const overlaps = overlapping.has(s.id)
+        const notOut = unpublished.has(s.id)
         const action = picked ? 'Being copied' : chipAction
         // Dragging is for the pointer, so only the tooltip mentions it
         const tip = mode === 'edit' ? `${action}, or drag it to another cell` : action
@@ -530,9 +539,9 @@ function Cell({
           // The × sits over the chip rather than in it, as a button can't hold another
           <div key={s.id} className={`group/chip relative ${s.id === dragged ? 'opacity-40' : ''}`}>
             <button
-              aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}. ${action}`}
-              title={overlaps ? `Overlaps another shift. ${tip}` : tip}
-              className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
+              aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}${notOut ? ', not published yet' : ''}. ${action}`}
+              title={overlaps ? `Overlaps another shift. ${tip}` : notOut ? `Not published yet. ${tip}` : tip}
+              className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : notOut ? 'unpublished' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
               onClick={(e) => onClick(e, s)}
               // Not while copying, when a press on the chip is a paste
               draggable={mode === 'edit'}
@@ -593,9 +602,11 @@ function Cell({
   )
 }
 
-// On the wrapper's hover, so the chip stays lit with the pointer on its ×
+// On the wrapper's hover, so the chip stays lit with the pointer on its ×. An
+// overlap outranks being unpublished: it's a problem, the other just news.
 const chipColours = {
   usual: 'highlight group-hover/chip:border-accent',
+  unpublished: 'badge-warn group-hover/chip:border-warn',
   overlaps: 'border-crit-line bg-crit-bg group-hover/chip:border-crit',
 }
 

@@ -9,6 +9,7 @@ import {
   publishState,
   publishStatus,
   snapshotOf,
+  unpublishedShifts,
   weekSubtitle,
 } from './publish'
 import { rosterDays } from './rosterText'
@@ -88,6 +89,36 @@ describe('changedSince', () => {
     const before = snapshotOf({ weekStart: WEEK, days: days(undefined, [short, long]), today: '2026-09-27', previous: null })
     // The short one removed and added back, so it now has the later id
     expect(changedSince(before, days(undefined, [long, { ...short, id: nextId++ }]))).toBe(false)
+  })
+})
+
+describe('unpublishedShifts', () => {
+  const published = snapshotOf({ weekStart: WEEK, days: days(), today: '2026-09-27', previous: null })
+
+  it('is every shift in a week never published', () => {
+    expect(unpublishedShifts(null, SHIFTS)).toEqual(SHIFTS.map((s) => s.id))
+  })
+
+  it('is none of them once the week goes out as it stands', () => {
+    expect(unpublishedShifts(published, SHIFTS)).toEqual([])
+  })
+
+  it('is a shift added, moved or retimed since, by its id', () => {
+    const added = shift(JOHN, WED, 10, 18)
+    const moved = { ...SHIFTS[0], date: WED }
+    const retimed = { ...SHIFTS[1], end: h(18) }
+    const now = [moved, retimed, SHIFTS[2], SHIFTS[3], added]
+    expect(unpublishedShifts(published, now)).toEqual([moved.id, retimed.id, added.id])
+  })
+
+  it('matches by who, not by name, so a rename leaves it published', () => {
+    const renamed = snapshotOf({
+      weekStart: WEEK,
+      days: days([{ ...JOHN, name: 'Johnny Reyes' }, LISA]),
+      today: '2026-09-27',
+      previous: null,
+    })
+    expect(unpublishedShifts(renamed, SHIFTS)).toEqual([])
   })
 })
 

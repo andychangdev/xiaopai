@@ -123,6 +123,10 @@ into **Unpublished changes**, and publishing again bumps `version` and
 re-snapshots. From v2 the sheet reads `Updated 8 Oct` instead of `Published`,
 so staff can tell a fresh printout from the one already on the wall.
 
+On the grid, a shift staff don't have yet shows in amber: every shift in a
+draft, and in a published week those added, moved or retimed since. An
+overlap's red outranks it.
+
 The **Unpublished changes** status holds a **Revert** link that puts the week
 back to the published version, after asking: its shifts and closed days go
 back to the snapshot's, and N/A notes stay. A published shift for someone now
