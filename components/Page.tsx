@@ -29,10 +29,10 @@ export function ListHead({ id, title, note, action }: { id: string; title: strin
   )
 }
 
-/** `id` lets another page link straight to the card. */
+/** `id` lets another page link straight to the card. The last on a page leaves the bottom to the page padding. */
 export function Card({ title, id, children }: { title: string; id?: string; children: ReactNode }) {
   return (
-    <section id={id} className="mb-4 scroll-mt-4 overflow-hidden rounded-card border border-line bg-surface">
+    <section id={id} className="mb-4 scroll-mt-4 overflow-hidden last:mb-0 rounded-card border border-line bg-surface">
       <h2 className="border-b border-line bg-surface-3 px-3.5 py-2.5 text-[11px] font-semibold tracking-widest text-ink-2 uppercase">
         {title}
       </h2>

@@ -31,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="sm:grid sm:grid-cols-[72px_minmax(0,1fr)]">
           <Sidebar businessName={name} initial={initialOf(name)} />
-          <main className="mx-auto w-full max-w-400 px-4 pt-4.5 pb-[calc(var(--bottom-bar)+40px)]">{children}</main>
+          <main className="mx-auto w-full max-w-400 p-4 pt-8 pb-[calc(var(--bottom-bar)+16px)]">{children}</main>
         </div>
       </body>
     </html>
