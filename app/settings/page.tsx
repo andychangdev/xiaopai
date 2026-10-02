@@ -18,7 +18,7 @@ const flush = '-mx-3'
 export default function SettingsPage() {
   const week = tradingHoursWeek()
   return (
-    <div className="max-w-222">
+    <div className="max-w-225">
       <PageHead title="Settings">
         The things that hold from week to week. Anything about one week is done on the roster.
       </PageHead>
