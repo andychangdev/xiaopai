@@ -271,6 +271,10 @@ day says so on one line. An open day with nobody on it says `(no one rostered)`,
 so it can't be mistaken for an omission. The heading is the business name
 from Settings, in capitals.
 
+Within a day, people run from the **shortest shift to the longest**. A split
+shift counts as its parts added together, and people on for the same length
+keep their roster order.
+
 ```
 YOUR RESTAURANT — STAFF ROSTER
 5 Oct - 11 Oct 2026
@@ -282,13 +286,13 @@ Lisa 10:00-18:00
 Tue 6 Oct - CLOSED
 
 Wed 7 Oct
-Sarah 10:00-18:00
 Lisa 10:00-16:00
+Sarah 10:00-18:00
 
 Thu 8 Oct
-Priya 10:00-21:00
 Sarah 10:00-16:00
 Mike 10:00-18:00
+Priya 10:00-21:00
 
 Published 27 Sep 2026
 ```

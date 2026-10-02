@@ -53,6 +53,14 @@ export function timesOf(range: string): { start: Minutes; end: Minutes } {
   return { start, end }
 }
 
+/** How long someone's on for the day, a split shift's parts added together. */
+function minutesOn(times: string[]): Minutes {
+  return times.reduce((sum, range) => {
+    const { start, end } = timesOf(range)
+    return sum + end - start
+  }, 0)
+}
+
 /** '5 Oct - 11 Oct 2026', or '28 Dec 2026 - 3 Jan 2027' across New Year. */
 function rangeLine(weekStart: IsoDate): string {
   const sunday = addDays(weekStart, 6)
@@ -69,7 +77,10 @@ function publishedLine(publishedAt: IsoDate, version: number): string {
 
 /**
  * The text to paste: a heading with the business's name, then each day, first names only, a split
- * shift on one line. A closed day says so, and an open one with nobody on it
+ * shift on one line. Each day runs from the shortest shift to the longest, a
+ * split shift by its parts added together and a tie in roster row order.
+ * Sorting here rather than in rosterDays means a week published before still
+ * comes out that way. A closed day says so, and an open one with nobody on it
  * says that, so it can't be taken for a line missed out. It ends by saying
  * when it was published, or that it's a draft, so a half-built week can't be
  * pasted by accident.
@@ -88,7 +99,9 @@ export function rosterText({
       lines.push(`${dayLabel(day.date)} - CLOSED`, '')
       continue
     }
-    const on = day.on.map((p) => `${firstName(p.name)} ${p.times.join(', ')}`)
+    const on = day.on
+      .toSorted((a, b) => minutesOn(a.times) - minutesOn(b.times))
+      .map((p) => `${firstName(p.name)} ${p.times.join(', ')}`)
     lines.push(dayLabel(day.date), ...(on.length ? on : ['(no one rostered)']), '')
   }
   lines.push(publishedAt && version ? publishedLine(publishedAt, version) : 'DRAFT - not published yet')

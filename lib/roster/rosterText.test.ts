@@ -104,13 +104,13 @@ describe('rosterText', () => {
         'Tue 6 Oct - CLOSED',
         '',
         'Wed 7 Oct',
-        'Sarah 10:00-18:00',
         'Lisa 10:00-16:00',
+        'Sarah 10:00-18:00',
         '',
         'Thu 8 Oct',
-        'Priya 10:00-21:00',
         'Sarah 10:00-16:00',
         'Mike 10:00-18:00',
+        'Priya 10:00-21:00',
         '',
         'Fri 9 Oct',
         '(no one rostered)',
@@ -124,6 +124,44 @@ describe('rosterText', () => {
         'DRAFT - not published yet',
       ].join('\n'),
     )
+  })
+
+  // The lines under a day's heading
+  const dayLines = (text: string, label: string) => {
+    const lines = text.split('\n')
+    const from = lines.indexOf(label) + 1
+    return lines.slice(from, lines.indexOf('', from))
+  }
+
+  it('runs each day from the shortest shift to the longest, a tie in roster row order', () => {
+    const fri = [
+      shift(MIKE, FRI, 10, 18),
+      shift(PRIYA, FRI, 17, 21),
+      shift(SARAH, FRI, 10, 18),
+      shift(JOHN, FRI, 12, 22),
+    ]
+    expect(dayLines(text(fri), 'Fri 9 Oct')).toEqual([
+      'Priya 17:00-21:00',
+      'Sarah 10:00-18:00',
+      'Mike 10:00-18:00',
+      'John 12:00-22:00',
+    ])
+  })
+
+  it('counts a split shift by its parts added together, not the span of the day', () => {
+    // John's 10-14 and 18-22 make 8 hours, though they span 12
+    const fri = [shift(JOHN, FRI, 10, 14), shift(JOHN, FRI, 18, 22), shift(PRIYA, FRI, 10, 19)]
+    expect(dayLines(text(fri), 'Fri 9 Oct')).toEqual(['John 10:00-14:00, 18:00-22:00', 'Priya 10:00-19:00'])
+  })
+
+  it('sorts a week published before, its snapshot still in roster row order', () => {
+    const on = [
+      { staffId: PRIYA.id, name: 'Priya Naidu', times: ['10:00-21:00'] },
+      { staffId: SARAH.id, name: 'Sarah Dunn', times: ['10:00-16:00'] },
+    ]
+    const days = [{ date: THU, closed: false, on }]
+    const out = rosterText({ businessName: NAME, weekStart: WEEK, days, publishedAt: '2026-09-27', version: 1 })
+    expect(dayLines(out, 'Thu 8 Oct')).toEqual(['Sarah 10:00-16:00', 'Priya 10:00-21:00'])
   })
 
   it('ends with the day it was published, once it has been', () => {
