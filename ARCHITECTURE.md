@@ -405,6 +405,7 @@ The sidebar is 72px, so the Week summary sits beside the grid only from
 History is a page of its own, so the week you have open travels with it as
 `/history?week=2026-10-05`: the sidebar adds it when you leave a grid or
 Share roster, and Roster takes you back to that week rather than to `/`.
+History's Copy into open week copies into that week.
 
 ---
 
@@ -536,7 +537,7 @@ a grid action, so Undo takes it back.
 
 Every week with shifts or a publish, plus the week you have open, newest
 first: shifts, hours, `Draft` or `Published · v2`, and when. Any week can be
-opened.
+opened, or copied into the open week exactly as Copy previous week would.
 
 ---
 
@@ -591,8 +592,7 @@ becomes a sheet over it. Whose panel is open lives in the URL
 follows, so opening someone needs no trip to the server. Settings is one
 card of `Section`s, each with its title and a line on what it's for beside
 its controls once the card is wide enough (a container query) and above
-them otherwise, and a `SectionIndex` down the side that follows your
-scroll.
+them otherwise.
 
 ---
 
@@ -619,8 +619,9 @@ const [dialog, ask, choose] = useAsk()
 if (await ask({ title: 'Clear week?', body: '…', ok: 'Clear 12 shifts', danger: true })) …
 ```
 
-`useCopyWeek` builds on it for Copy previous week's whole flow — nothing to
-copy, replace what's there, what came across.
+`useCopyWeek` builds on it for the whole copy flow — nothing to copy, replace
+what's there, what came across — so Copy previous week and History's Copy
+into open week behave the same.
 
 ### Undo
 
