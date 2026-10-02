@@ -7,7 +7,7 @@ import { isClosed } from './closed'
 import { addDays, dayLabel, fullDate, shortDate, weekDates, type IsoDate } from './dates'
 import { cellKey, shiftsByCell, type Shift } from './shifts'
 import { firstName } from './staff'
-import { formatTime } from './time'
+import { formatTime, type Minutes } from './time'
 import type { Snapshot } from './types'
 
 /**
@@ -42,6 +42,15 @@ export function rosterDays({
         })
     return { date, closed, on }
   })
+}
+
+/** '10:00-18:00', as rosterDays writes a snapshot's times, back to minutes. */
+export function timesOf(range: string): { start: Minutes; end: Minutes } {
+  const [start, end] = range.split('-').map((time) => {
+    const [h, m] = time.split(':').map(Number)
+    return h * 60 + m
+  })
+  return { start, end }
 }
 
 /** '5 Oct - 11 Oct 2026', or '28 Dec 2026 - 3 Jan 2027' across New Year. */

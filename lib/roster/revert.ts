@@ -8,8 +8,8 @@
 
 import { fullDate, type IsoDate } from './dates'
 import { leaveOn, type Leave } from './leave'
+import { timesOf } from './rosterText'
 import { shiftsLabel, type NewShift, type Shift } from './shifts'
-import type { Minutes } from './time'
 import type { Snapshot } from './types'
 
 /** How many published shifts can't come back, by why. */
@@ -25,15 +25,6 @@ export type RevertPlan = {
   skipped: RevertSkipped
   /** Whether it changes the week at all */
   changes: boolean
-}
-
-/** '10:00-18:00', as rosterDays writes a snapshot's times, back to minutes. */
-function timesOf(range: string): { start: Minutes; end: Minutes } {
-  const [start, end] = range.split('-').map((time) => {
-    const [h, m] = time.split(':').map(Number)
-    return h * 60 + m
-  })
-  return { start, end }
 }
 
 const shiftKey = (s: NewShift) => `${s.staffId}|${s.date}|${s.start}|${s.end}`
