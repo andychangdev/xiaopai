@@ -20,13 +20,13 @@ const AHEAD = 4
 const BEHIND = 2
 
 /**
- * The weeks the menu offers, newest first: four after the open week, the open
- * week, and two before it. Rosters are built ahead, so more of it looks
- * forward than back. It moves with the open week, so it always reaches past
- * wherever you are.
+ * The weeks the menu offers, oldest first, as a calendar reads: two before
+ * the open week, the open week, and four after it. Rosters are built ahead,
+ * so more of it looks forward than back. It moves with the open week, so it
+ * always reaches past wherever you are.
  */
 export function menuWeeks(open: IsoDate): IsoDate[] {
-  return Array.from({ length: AHEAD + 1 + BEHIND }, (_, i) => addDays(open, (AHEAD - i) * 7))
+  return Array.from({ length: BEHIND + 1 + AHEAD }, (_, i) => addDays(open, (i - BEHIND) * 7))
 }
 
 const NEAR: Record<number, string> = { 1: 'Next week', 0: 'This week', [-1]: 'Last week' }
