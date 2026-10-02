@@ -71,14 +71,14 @@ export function parseLeave(input: {
 }
 
 /**
- * Why a new booking can't go in alongside the person's others, or null when
- * it can. Two bookings sharing a day would leave the grid unsure which one
- * to name.
+ * Why a booking, new or changed, can't go in alongside the person's others,
+ * or null when it can. Two bookings sharing a day would leave the grid unsure
+ * which one to name.
  */
 export function overlapError(name: string, booking: Span, theirs: Span[]): string | null {
   const clash = theirs.find((l) => l.fromDate <= booking.toDate && booking.fromDate <= l.toDate)
   if (!clash) return null
-  return `${firstName(name)} already has leave booked ${leaveSpan(clash)}. Cancel that first to change it.`
+  return `${firstName(name)} already has leave booked ${leaveSpan(clash)}. Change that booking instead.`
 }
 
 /** Over, so the Staff page greys it. */

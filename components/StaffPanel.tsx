@@ -8,7 +8,7 @@ import { formatRate } from '@/lib/roster/cost'
 import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
 import { isPast, leaveDays, leaveSpan } from '@/lib/roster/leave'
 import { whyNotRemovable } from '@/lib/roster/staff'
-import { BookLeaveForm } from './BookLeaveForm'
+import { LeaveForm } from './LeaveForm'
 import { SaveOnBlur } from './SaveOnBlur'
 import { PanelHead, SidePanel } from './SidePanel'
 import { UNREACHABLE } from './ShiftPopover'
@@ -31,6 +31,7 @@ export function StaffPanel({
   today,
   onClose,
   onDismiss,
+  className,
 }: {
   person: StaffListRow
   /** Their bookings, soonest first */
@@ -40,6 +41,8 @@ export function StaffPanel({
   onClose: () => void
   /** Closed by a click somewhere else, which keeps the focus it gives */
   onDismiss: () => void
+  /** Where the page puts it beside the lists */
+  className?: string
 }) {
   const [error, setError] = useState<string>()
   // Every save reports back; the last refusal shows at the foot of the panel
@@ -49,7 +52,7 @@ export function StaffPanel({
   }
 
   return (
-    <SidePanel label={person.name} onClose={onClose} onDismiss={onDismiss}>
+    <SidePanel label={person.name} onClose={onClose} onDismiss={onDismiss} className={className}>
       <Person person={person} leave={leave} today={today} report={report} onClose={onClose} />
       {error && (
         <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
@@ -225,8 +228,8 @@ function PersonLeave({ person, leave, today }: { person: StaffListRow; leave: Le
       )}
       {!ahead.length && !booking && <p className="text-[12px] text-ink-3">No leave booked.</p>}
       {booking && (
-        <BookLeaveForm
-          onBook={(b) => book({ ...b, staffId: person.id }, person.name)}
+        <LeaveForm
+          onSave={(b) => book({ ...b, staffId: person.id }, person.name)}
           onDone={() => setBooking(false)}
         />
       )}

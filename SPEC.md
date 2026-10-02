@@ -249,7 +249,9 @@ inactive people folded away at its foot. Clicking someone opens a panel beside i
 notes and the active flag, their leave, and for removing them. Below the list,
 **Upcoming leave** draws the next seven weeks: a row per person away and a bar
 per booking, a line at today, and the leave that's over or further ahead
-behind links, each cancellable. On a phone it's a list, soonest first. Leave is booked there or in the person's panel, and
+behind links, each cancellable. Clicking a booking still to come opens it in
+the panel, to change its days or reason, or cancel it; shifts on days it
+adds are asked about as when booking. On a phone it's a list, soonest first. Leave is booked there or in the person's panel, and
 the roster can't book any. Settings holds the business
 name, trading hours per weekday — opens, closes — the shift templates, the weekend and public holiday
 rates, and the public holidays: date and an optional name, past ones greyed. Nothing week-specific.

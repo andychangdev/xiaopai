@@ -3,7 +3,7 @@
 // Every mutation. These are POST endpoints that anything reaching the app can
 // call, so each one checks its input with the same rules the UI uses.
 
-import { and, asc, count, eq, gte, inArray, lte, max } from 'drizzle-orm'
+import { and, asc, count, eq, gt, gte, inArray, lt, lte, max, ne, or } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { today } from '@/lib/clock'
 import { getDb } from '@/lib/db/client'
@@ -274,6 +274,53 @@ export async function bookLeave(input: {
   db.transaction((tx) => {
     if (inside === 'remove') tx.delete(shifts).where(during).run()
     tx.insert(leave).values({ staffId, ...booking }).run()
+  })
+  staffChanged()
+  return {}
+}
+
+/**
+ * Changes a booking's days or reason, from the Staff page's Upcoming leave.
+ * Shifts on the days it adds are asked about as when it was booked. Ones on
+ * days it already covered were kept then, so they stay without asking, and
+ * days it lets go of can take shifts again.
+ */
+export async function updateLeave(
+  id: number,
+  input: { from: string; to: string; note: string; shifts?: 'remove' | 'keep' },
+): Promise<ActionResult & { clashes?: number }> {
+  checkId(id)
+  const inside = input?.shifts
+  if (inside !== undefined && inside !== 'remove' && inside !== 'keep') {
+    throw new Error("Expected shifts to be 'remove' or 'keep'")
+  }
+  const booking = parseLeave({ from: text(input?.from), to: text(input?.to), note: text(input?.note) })
+  if ('error' in booking) return booking
+
+  const db = getDb()
+  const was = db.select().from(leave).where(eq(leave.id, id)).get()
+  if (!was) return { error: 'That leave has already been cancelled.' }
+  const person = db.select({ name: staff.name }).from(staff).where(eq(staff.id, was.staffId)).get()!
+  const theirs = db
+    .select({ fromDate: leave.fromDate, toDate: leave.toDate })
+    .from(leave)
+    .where(and(eq(leave.staffId, was.staffId), ne(leave.id, id)))
+    .all()
+  const overlap = overlapError(person.name, booking, theirs)
+  if (overlap) return { error: overlap }
+
+  const added = and(
+    eq(shifts.staffId, was.staffId),
+    gte(shifts.date, booking.fromDate),
+    lte(shifts.date, booking.toDate),
+    or(lt(shifts.date, was.fromDate), gt(shifts.date, was.toDate)),
+  )
+  const clashes = db.select({ n: count() }).from(shifts).where(added).get()!.n
+  if (clashes && !inside) return { clashes }
+
+  db.transaction((tx) => {
+    if (inside === 'remove') tx.delete(shifts).where(added).run()
+    tx.update(leave).set(booking).where(eq(leave.id, id)).run()
   })
   staffChanged()
   return {}

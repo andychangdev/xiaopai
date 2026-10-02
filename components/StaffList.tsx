@@ -8,10 +8,11 @@ import { DAY_NAMES, type IsoDate } from '@/lib/roster/dates'
 import { initialOf, moveInOrder, placeAmong } from '@/lib/roster/staff'
 import { AddPersonForm } from './AddPersonForm'
 import { GripIcon } from './Icons'
+import { LeavePanel } from './LeavePanel'
 import { ListHead } from './Page'
 import { StaffPanel } from './StaffPanel'
 import { UNREACHABLE } from './ShiftPopover'
-import { usePersonParam } from './usePersonParam'
+import { usePanelParam } from './usePanelParam'
 
 /**
  * Everyone, one line each in the roster's order, with inactive people folded
@@ -19,7 +20,7 @@ import { usePersonParam } from './usePersonParam'
  * line, and with the handle focused the arrow keys move them a place at a
  * time. Clicking someone opens their panel beside the list, or over it on a
  * narrow screen, with their leave. What goes under the list comes in as
- * children.
+ * children, and a booking clicked there opens in the same panel.
  */
 export function StaffList({
   staff,
@@ -33,7 +34,8 @@ export function StaffList({
   today: IsoDate
   children?: ReactNode
 }) {
-  const [selected, select] = usePersonParam()
+  const [selected, select] = usePanelParam('person')
+  const [booked] = usePanelParam('leave')
   const [error, setError] = useState<string>()
   const [adding, setAdding] = useState(false)
   // A line moves the moment it's dropped, rather than when the server answers
@@ -45,6 +47,7 @@ export function StaffList({
   const inactive = rows.filter((p) => !p.active)
   const person = selected === null ? undefined : rows.find((p) => p.id === selected)
   const leaveOf = (id: number) => leave.filter((l) => l.staffId === id)
+  const booking = booked === null ? undefined : leave.find((l) => l.id === booked)
   // Open while the person in the panel is in it, and after that as you leave it
   const [showInactive, setShowInactive] = useState(person?.active === false)
   const inPanelInactive = person?.active === false
@@ -94,107 +97,114 @@ export function StaffList({
     move(active[from].id, shownGap)
   }
 
-  /** Closing with Esc or ×, focus goes back to their line, so the keyboard carries on from there. */
+  /**
+   * Closing with Esc or ×, focus goes back to their line, or the booking's
+   * bar, so the keyboard carries on from there.
+   */
   function close(refocus = true) {
-    const id = selected
-    select(null)
-    if (refocus && id !== null) document.querySelector<HTMLElement>(`[data-person="${id}"]`)?.focus()
+    const opener = selected !== null ? `[data-person="${selected}"]` : booked !== null ? `[data-leave="${booked}"]` : null
+    select(null) // there's one panel, so this closes either
+    if (!refocus || !opener) return
+    // The timeline's bar or, on a phone, the list's line: whichever shows
+    ;[...document.querySelectorAll<HTMLElement>(opener)].find((el) => el.checkVisibility())?.focus()
   }
 
   return (
-    <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="grid min-w-0 gap-7">
-        <section aria-labelledby="people-title">
-          <ListHead
-            id="people-title"
-            title="People"
-            note="In roster order. Drag the handle to rearrange, and click someone to change their details."
-            action={
-              !adding && (
-                <button className="btn" onClick={() => setAdding(true)}>
-                  + Add person
-                </button>
-              )
-            }
-          />
-          {adding && (
-            <div className="mb-3">
-              <AddPersonForm onDone={() => setAdding(false)} />
-            </div>
-          )}
-          <div className="overflow-hidden rounded-card border border-line bg-surface">
-            <ul
-              onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
-              // Only while a line's being dragged, so nothing else drops here
-              onDrop={
-                dragging !== null
-                  ? (e) => {
-                      e.preventDefault()
-                      drop()
-                    }
-                  : undefined
-              }
-            >
-              {active.map((p, i) => (
-                <Line
-                  key={p.id}
-                  person={p}
-                  selected={p.id === selected}
-                  onOpen={() => select(p.id)}
-                  drag={{
-                    dragged: p.id === dragging,
-                    drop: shownGap === i ? 'above' : shownGap === active.length && i === active.length - 1 ? 'below' : undefined,
-                    onStart: () => startDrag(p.id),
-                    onEnd: endDrag,
-                    onOver: dragging !== null ? (below) => setGap(below ? i + 1 : i) : undefined,
-                    // A place up is the gap above the one before; a place down, the gap below the one after
-                    onMove: (by) => {
-                      const to = by < 0 ? i - 1 : i + 2
-                      if (to < 0 || to > active.length) return
-                      refocus.current = p.id
-                      move(p.id, to)
-                    },
-                  }}
-                />
-              ))}
-            </ul>
-            {!active.length && (
-              <p className="px-3.5 py-3 text-[13px] text-ink-3">No one active. Add someone, or switch someone back on.</p>
-            )}
-            {inactive.length > 0 && (
-              <details
-                open={showInactive}
-                onToggle={(e) => setShowInactive(e.currentTarget.open)}
-                className="border-t border-line bg-surface-3"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[12px] text-ink-2 [&::-webkit-details-marker]:hidden">
-                  <span>
-                    <b className="font-semibold text-ink">Inactive · {inactive.length}</b>
-                    <span className="ml-2">Off new weeks, still on any week where they have shifts.</span>
-                  </span>
-                  <span className="font-semibold text-accent-deep">{showInactive ? 'Hide' : 'Show'}</span>
-                </summary>
-                <ul className="border-t border-line bg-surface">
-                  {inactive.map((p) => (
-                    <Line
-                      key={p.id}
-                      person={p}
-                          selected={p.id === selected}
-                      onOpen={() => select(p.id)}
-                    />
-                  ))}
-                </ul>
-              </details>
-            )}
-            {error && (
-              <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
-                {error}
-              </p>
-            )}
+    // On a wide screen, People and Upcoming leave are two rows, with the
+    // panel's column beside them. Someone's panel runs down both, so it stays
+    // in view over their leave; a booking's sits level with the timeline. Any
+    // height the panel has over the lists goes under the timeline.
+    <div className="grid items-start gap-x-4 gap-y-7 lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-[auto_1fr]">
+      <section aria-labelledby="people-title" className="min-w-0">
+        <ListHead
+          id="people-title"
+          title="People"
+          note="In roster order. Drag the handle to rearrange, and click someone to change their details."
+          action={
+            !adding && (
+              <button className="btn" onClick={() => setAdding(true)}>
+                + Add person
+              </button>
+            )
+          }
+        />
+        {adding && (
+          <div className="mb-3">
+            <AddPersonForm onDone={() => setAdding(false)} />
           </div>
-        </section>
-        {children}
-      </div>
+        )}
+        <div className="overflow-hidden rounded-card border border-line bg-surface">
+          <ul
+            onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
+            // Only while a line's being dragged, so nothing else drops here
+            onDrop={
+              dragging !== null
+                ? (e) => {
+                    e.preventDefault()
+                    drop()
+                  }
+                : undefined
+            }
+          >
+            {active.map((p, i) => (
+              <Line
+                key={p.id}
+                person={p}
+                selected={p.id === selected}
+                onOpen={() => select(p.id)}
+                drag={{
+                  dragged: p.id === dragging,
+                  drop: shownGap === i ? 'above' : shownGap === active.length && i === active.length - 1 ? 'below' : undefined,
+                  onStart: () => startDrag(p.id),
+                  onEnd: endDrag,
+                  onOver: dragging !== null ? (below) => setGap(below ? i + 1 : i) : undefined,
+                  // A place up is the gap above the one before; a place down, the gap below the one after
+                  onMove: (by) => {
+                    const to = by < 0 ? i - 1 : i + 2
+                    if (to < 0 || to > active.length) return
+                    refocus.current = p.id
+                    move(p.id, to)
+                  },
+                }}
+              />
+            ))}
+          </ul>
+          {!active.length && (
+            <p className="px-3.5 py-3 text-[13px] text-ink-3">No one active. Add someone, or switch someone back on.</p>
+          )}
+          {inactive.length > 0 && (
+            <details
+              open={showInactive}
+              onToggle={(e) => setShowInactive(e.currentTarget.open)}
+              className="border-t border-line bg-surface-3"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between px-3.5 py-2.5 text-[12px] text-ink-2 [&::-webkit-details-marker]:hidden">
+                <span>
+                  <b className="font-semibold text-ink">Inactive · {inactive.length}</b>
+                  <span className="ml-2">Off new weeks, still on any week where they have shifts.</span>
+                </span>
+                <span className="font-semibold text-accent-deep">{showInactive ? 'Hide' : 'Show'}</span>
+              </summary>
+              <ul className="border-t border-line bg-surface">
+                {inactive.map((p) => (
+                  <Line
+                    key={p.id}
+                    person={p}
+                        selected={p.id === selected}
+                    onOpen={() => select(p.id)}
+                  />
+                ))}
+              </ul>
+            </details>
+          )}
+          {error && (
+            <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
+              {error}
+            </p>
+          )}
+        </div>
+      </section>
+      <div className="min-w-0 lg:col-start-1 lg:row-start-2">{children}</div>
       {person ? (
         // Keyed, so a box half-typed for one person doesn't carry over to the next
         <StaffPanel
@@ -204,11 +214,20 @@ export function StaffList({
           today={today}
           onClose={() => close()}
           onDismiss={() => close(false)}
+          className="lg:col-start-2 lg:row-[1/span_2]"
+        />
+      ) : booking ? (
+        <LeavePanel
+          key={booking.id}
+          leave={booking}
+          onClose={() => close()}
+          onDismiss={() => close(false)}
+          className="lg:col-start-2 lg:row-start-2"
         />
       ) : (
         // Level with the list, under its heading
-        <p className="mt-13 hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:block">
-          Click someone to see and change their hours, rate, availability and notes.
+        <p className="mt-13 hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:col-start-2 lg:row-start-1 lg:block">
+          Click someone to see and change their hours, rate, availability and notes, or a booking to change it.
         </p>
       )}
     </div>

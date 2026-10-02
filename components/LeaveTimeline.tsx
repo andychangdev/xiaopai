@@ -4,18 +4,19 @@ import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { LeaveListRow } from '@/lib/db/queries'
 import { dayLabel, shortDate, type IsoDate } from '@/lib/roster/dates'
 import { describeLeave, isPast, leaveDays, leaveSpan, leaveTimeline, shortSpan } from '@/lib/roster/leave'
-import { BookLeaveForm } from './BookLeaveForm'
+import { LeaveForm } from './LeaveForm'
 import { ListHead } from './Page'
 import { useLeave } from './useLeave'
-import { usePersonParam } from './usePersonParam'
+import { usePanelParam } from './usePanelParam'
 
 /**
  * Everyone's leave over the next seven weeks, a row per person away and a
  * bar per booking, with a line at today. Overlaps, like four people out on
- * the same three days, show at a glance. A bar opens its person's panel, and
- * the person whose panel is open has their row highlighted. Leave that's
+ * the same three days, show at a glance. A bar opens the booking in the
+ * page's panel, to change it or cancel it, and has the highlight while it's
+ * there, as the person whose panel is open has on their row. Leave that's
  * over and leave further ahead are a click away, as lists. On a phone the
- * bookings are a list, soonest first.
+ * bookings are a list, soonest first, and a line opens the same panel.
  */
 export function LeaveTimeline({
   leave,
@@ -31,7 +32,8 @@ export function LeaveTimeline({
   staff: { id: number; name: string }[]
   today: IsoDate
 }) {
-  const [selected, select] = usePersonParam()
+  const [selected] = usePanelParam('person')
+  const [booked, openBooking] = usePanelParam('leave')
   const [error, setError] = useState<string>()
   const [dialog, book, cancel] = useLeave(setError)
   const [booking, setBooking] = useState(false)
@@ -58,9 +60,9 @@ export function LeaveTimeline({
       />
       {booking && (
         <div className="mb-3">
-          <BookLeaveForm
+          <LeaveForm
             staff={staff}
-            onBook={async ({ staffId, ...b }) => {
+            onSave={async ({ staffId, ...b }) => {
               if (!staffId) {
                 setError("Pick who's away.")
                 return false
@@ -102,12 +104,14 @@ export function LeaveTimeline({
                 {bars.map(({ leave: l, from, length, cutStart, cutEnd }) => (
                   <button
                     key={l.id}
+                    data-leave={l.id}
                     data-keeps-panel
                     aria-label={`${l.name} away ${describeLeave(l)}`}
-                    title={`${describeLeave(l)}. Open ${l.name}`}
-                    className={`absolute inset-y-2 flex items-center overflow-hidden border border-warn-line bg-warn-bg px-1.5 text-[10.5px] font-semibold whitespace-nowrap text-warn-deep hover:border-warn ${cutStart ? 'rounded-l-none border-l-0' : 'rounded-l-chip'} ${cutEnd ? 'rounded-r-none border-r-0' : 'rounded-r-chip'}`}
+                    aria-expanded={l.id === booked}
+                    title={`${describeLeave(l)}. Change or cancel it`}
+                    className={`absolute inset-y-2 flex items-center overflow-hidden border px-1.5 text-[10.5px] font-semibold whitespace-nowrap ${l.id === booked ? 'highlight' : 'border-warn-line bg-warn-bg text-warn-deep hover:border-warn'} ${cutStart ? 'rounded-l-none border-l-0' : 'rounded-l-chip'} ${cutEnd ? 'rounded-r-none border-r-0' : 'rounded-r-chip'}`}
                     style={{ left: day(from), width: day(length) }}
-                    onClick={() => select(l.staffId)}
+                    onClick={() => openBooking(l.id)}
                   >
                     <FitLabel options={labels(l)} />
                   </button>
@@ -121,7 +125,13 @@ export function LeaveTimeline({
         </div>
         <ul className="sm:hidden">
           {upcoming.map((l) => (
-            <LeaveLine key={l.id} leave={l} onCancel={() => cancel(l)} />
+            <LeaveLine
+              key={l.id}
+              leave={l}
+              open={l.id === booked}
+              onOpen={() => openBooking(l.id)}
+              onCancel={() => cancel(l)}
+            />
           ))}
           {!upcoming.length && <li className="px-3.5 py-3 text-[13px] text-ink-3">No leave booked.</li>}
         </ul>
@@ -148,7 +158,13 @@ export function LeaveTimeline({
         {list && (
           <ul id="leave-list" className="border-t border-line">
             {(list === 'past' ? timeline.past : timeline.later).map((l) => (
-              <LeaveLine key={l.id} leave={l} past={list === 'past'} onCancel={() => cancel(l)} />
+              <LeaveLine
+                key={l.id}
+                leave={l}
+                open={l.id === booked}
+                onOpen={list === 'later' ? () => openBooking(l.id) : undefined}
+                onCancel={() => cancel(l)}
+              />
             ))}
           </ul>
         )}
@@ -176,19 +192,51 @@ function ListToggle({ open, onClick, children }: { open: boolean; onClick: () =>
   )
 }
 
-/** One booking as a line of a list: who, when, why, how long, and Cancel. */
-function LeaveLine({ leave: l, past = false, onCancel }: { leave: LeaveListRow; past?: boolean; onCancel: () => void }) {
+/**
+ * One booking as a line of a list: who, when, why, how long, and Cancel.
+ * Leave still to come opens in the panel, and has the highlight while it's
+ * there; leave that's over is greyed.
+ */
+function LeaveLine({
+  leave: l,
+  open = false,
+  onOpen,
+  onCancel,
+}: {
+  leave: LeaveListRow
+  open?: boolean
+  onOpen?: () => void
+  onCancel: () => void
+}) {
   const days = leaveDays(l)
-  return (
-    <li className={`flex items-center justify-between gap-3 border-b border-line px-3 py-2 last:border-b-0 ${past ? 'text-ink-3' : ''}`}>
-      <span className="min-w-0">
-        <span className="block text-[12.5px]">
-          <b className="font-semibold">{l.name}</b> · {leaveSpan(l)}
-        </span>
-        <span className="block truncate text-[11.5px] text-ink-3">
-          {[l.note, `${days} ${days === 1 ? 'day' : 'days'}`].filter(Boolean).join(' · ')}
-        </span>
+  const what = (
+    <>
+      <span className="block text-[12.5px]">
+        <b className="font-semibold">{l.name}</b> · {leaveSpan(l)}
       </span>
+      <span className="block truncate text-[11.5px] text-ink-3">
+        {[l.note, `${days} ${days === 1 ? 'day' : 'days'}`].filter(Boolean).join(' · ')}
+      </span>
+    </>
+  )
+  return (
+    <li
+      className={`flex items-center justify-between gap-3 border px-3 py-2 ${open ? 'highlight' : 'border-transparent border-b-line last:border-b-transparent'} ${onOpen ? '' : 'text-ink-3'}`}
+    >
+      {onOpen ? (
+        <button
+          data-leave={l.id}
+          data-keeps-panel
+          aria-expanded={open}
+          className="min-w-0 flex-1 text-left"
+          aria-label={`Change ${l.name}'s leave, ${describeLeave(l)}`}
+          onClick={onOpen}
+        >
+          {what}
+        </button>
+      ) : (
+        <span className="min-w-0">{what}</span>
+      )}
       <button
         className="text-link text-ink-3 hover:text-crit-deep focus-visible:text-crit-deep"
         aria-label={`Cancel ${l.name}'s leave, ${leaveSpan(l)}`}

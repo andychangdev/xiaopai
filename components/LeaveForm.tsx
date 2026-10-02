@@ -7,24 +7,29 @@ const label = 'grid gap-1 text-[11.5px] font-semibold text-ink-2'
 
 /**
  * Booking leave: from, to (the same day unless you say otherwise) and why.
- * With `staff` it asks who's away too. `onBook` says whether it went in;
- * once it has, the form is done. Esc or Cancel gives up.
+ * With `staff` it asks who's away too. With `leave` it's that booking being
+ * changed, in the panel: it starts filled in, has no box of its own, and
+ * saves rather than books. `onSave` says whether it went in; once it has,
+ * the form is done. Esc or Cancel gives up.
  */
-export function BookLeaveForm({
+export function LeaveForm({
   staff,
-  onBook,
+  leave,
+  onSave,
   onDone,
 }: {
   /** Who it could be for, when the form has to ask */
   staff?: { id: number; name: string }[]
-  onBook: (booking: { staffId: number | null; from: string; to: string; note: string }) => Promise<boolean>
+  /** The booking being changed */
+  leave?: { fromDate: string; toDate: string; note: string | null }
+  onSave: (booking: { staffId: number | null; from: string; to: string; note: string }) => Promise<boolean>
   onDone: () => void
 }) {
-  const [from, setFrom] = useState('')
-  const [to, setTo] = useState('')
+  const [from, setFrom] = useState(leave?.fromDate ?? '')
+  const [to, setTo] = useState(leave?.toDate ?? '')
   const first = useRef<HTMLSelectElement & HTMLInputElement>(null)
-  // A second Enter before the first booking returns would book it twice
-  const booking = useRef(false)
+  // A second Enter before the first save returns would book it twice
+  const saving = useRef(false)
   const parsed = parseLeave({ from, to, note: '' })
   const days = 'error' in parsed ? null : leaveDays(parsed)
 
@@ -32,7 +37,7 @@ export function BookLeaveForm({
 
   return (
     <form
-      className="grid gap-2.5 rounded-control border border-line bg-surface-3 p-2.5"
+      className={`grid gap-2.5 ${leave ? '' : 'rounded-control border border-line bg-surface-3 p-2.5'}`}
       onKeyDown={(e) => {
         if (e.key === 'Escape') {
           e.stopPropagation()
@@ -41,14 +46,14 @@ export function BookLeaveForm({
       }}
       onSubmit={async (e) => {
         e.preventDefault()
-        if (booking.current) return
-        booking.current = true
+        if (saving.current) return
+        saving.current = true
         const data = new FormData(e.currentTarget)
         try {
           const staffId = staff ? Number(data.get('staffId')) || null : null
-          if (await onBook({ staffId, from, to, note: String(data.get('note')) })) onDone()
+          if (await onSave({ staffId, from, to, note: String(data.get('note')) })) onDone()
         } finally {
-          booking.current = false
+          saving.current = false
         }
       }}
     >
@@ -97,7 +102,7 @@ export function BookLeaveForm({
       </div>
       <label className={label}>
         Reason
-        <input name="note" className="field" placeholder="Optional" />
+        <input name="note" className="field" placeholder="Optional" defaultValue={leave?.note ?? ''} />
       </label>
       <div className="flex items-center justify-end gap-2">
         <span className="mr-auto font-mono text-[12px] text-ink-3 tabular-nums">
@@ -107,7 +112,7 @@ export function BookLeaveForm({
           Cancel
         </button>
         <button type="submit" className="btn btn-primary">
-          Book leave
+          {leave ? 'Save' : 'Book leave'}
         </button>
       </div>
     </form>

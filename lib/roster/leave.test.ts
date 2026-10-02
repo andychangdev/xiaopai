@@ -161,7 +161,7 @@ describe('overlapError', () => {
   const theirs = [FAMILY]
 
   it('refuses leave that shares a day with a booking they already have', () => {
-    const msg = 'Lisa already has leave booked Thu 8 Oct – Fri 9 Oct. Cancel that first to change it.'
+    const msg = 'Lisa already has leave booked Thu 8 Oct – Fri 9 Oct. Change that booking instead.'
     expect(overlapError('Lisa Chen', { fromDate: '2026-10-09', toDate: '2026-10-12' }, theirs)).toBe(msg)
     expect(overlapError('Lisa Chen', { fromDate: '2026-10-05', toDate: '2026-10-08' }, theirs)).toBe(msg)
     expect(overlapError('Lisa Chen', { fromDate: '2026-10-05', toDate: '2026-10-11' }, theirs)).toBe(msg)

@@ -171,11 +171,12 @@ refreshes the grid, Share roster and History; `staffChanged` and
 every page. You never write "add it to local state, and also save it" —
 there is one source of truth and the UI is a view of it.
 
-Two actions ask before they go ahead. `copyWeek` over a week that already has
+Three actions ask before they go ahead. `copyWeek` over a week that already has
 shifts comes back with `{ replacing: 12 }`, and `bookLeave` over rostered
-shifts with `{ clashes: 2 }`. The client asks the manager, then calls again
-with the answer (`replace: true`, `shifts: 'remove' | 'keep'`). The count is
-the server's, taken as the week is now.
+shifts with `{ clashes: 2 }`, as does `updateLeave` over shifts on the days
+it adds. The client asks the manager, then calls again with the answer
+(`replace: true`, `shifts: 'remove' | 'keep'`). The count is the server's,
+taken as the week is now.
 
 ### Migrations
 
@@ -586,9 +587,10 @@ The grid itself is CSS Grid, not a table, in plain CSS classes:
 are tables inside `Card`s under a `PageHead` (`components/Page.tsx`), which
 also exports the `th` and `td` class strings they share. The Staff page is
 the exception: a list with an edit panel beside it, which on a narrow screen
-becomes a sheet over it. Whose panel is open lives in the URL
-(`/staff?person=3`), set through the browser's own history, which Next
-follows, so opening someone needs no trip to the server. Settings is one
+becomes a sheet over it. It shows someone or one booking of leave, and
+which lives in the URL (`/staff?person=3`, or `?leave=7`), set through the
+browser's own history, which Next follows, so opening one needs no trip to
+the server. Settings is one
 card of `Section`s, each with its title and a line on what it's for beside
 its controls once the card is wide enough (a container query) and above
 them otherwise.

@@ -4,17 +4,21 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { CrossIcon } from './Icons'
 
 /**
- * The Staff page's panel: beside the list, or on a narrow screen a sheet
- * over it. Esc, × or a click outside closes it.
+ * The Staff page's panel, for someone or for one booking: beside the lists,
+ * or on a narrow screen a sheet over them. Esc, × or a click outside closes
+ * it.
  */
 export function SidePanel({
   label,
   onClose,
   onDismiss,
+  className = '',
   children,
 }: {
   /** What it's for, for a screen reader */
   label: string
+  /** Where the page puts it beside the lists */
+  className?: string
   /** Closed with Esc or × */
   onClose: () => void
   /** Closed by a click somewhere else, which keeps the focus it gives */
@@ -23,9 +27,9 @@ export function SidePanel({
 }) {
   const ref = useRef<HTMLElement>(null)
 
-  // A click anywhere else closes it, though not one that opens someone (their
-  // line or a leave bar), which moves it on to them instead. A box
-  // being typed in is left first, so what's in it saves.
+  // A click anywhere else closes it, though not one that opens someone or a
+  // booking (their line or a leave bar), which moves it on to them instead.
+  // A box being typed in is left first, so what's in it saves.
   useEffect(() => {
     const away = (e: PointerEvent) => {
       const target = e.target as Element
@@ -52,7 +56,7 @@ export function SidePanel({
         ref={ref}
         tabIndex={-1}
         aria-label={label}
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-dialog outline-none lg:sticky lg:top-4 lg:z-auto lg:mt-13 lg:max-h-[calc(100dvh-32px)] lg:rounded-card lg:border lg:border-line lg:pb-0 lg:shadow-popover"
+        className={`fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-dialog outline-none lg:sticky lg:top-4 lg:z-auto lg:mt-13 lg:max-h-[calc(100dvh-32px)] lg:rounded-card lg:border lg:border-line lg:pb-0 lg:shadow-popover ${className}`}
         onKeyDown={(e) => {
           // In a box, Esc abandons the edit; in a dialog, it answers no
           const target = e.target as HTMLElement
