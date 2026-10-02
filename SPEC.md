@@ -146,7 +146,7 @@ The three states, shown in a line over the button:
 
 Employees as rows, Mon–Sun as columns. One week at a time, with
 arrows to move between weeks. The week's dates open a menu of the weeks
-around this one, two ahead and four back, each with where it stands, and a
+around the one open, four ahead and two back, each with where it stands, and a
 link on to History for the rest.
 
 Every active employee is a row — there is no adding people to a week. Hiding

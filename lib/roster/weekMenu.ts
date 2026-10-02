@@ -1,4 +1,4 @@
-// The roster's week menu: the weeks around this one, each with where it
+// The roster's week menu: the weeks around the open one, each with where it
 // stands, so you can jump straight to one without stepping a week at a time
 // or going through History.
 
@@ -15,19 +15,18 @@ export type WeekMenuItem = {
   state: PublishState | null
 }
 
-// How many weeks either side of this one the menu reaches
-const AHEAD = 2
-const BEHIND = 4
+// How many weeks either side of the open one the menu reaches
+const AHEAD = 4
+const BEHIND = 2
 
 /**
- * The weeks the menu offers, newest first: two after this week, this week,
- * and four before it. The open week is always among them, in date order,
- * however far away it is.
+ * The weeks the menu offers, newest first: four after the open week, the open
+ * week, and two before it. Rosters are built ahead, so more of it looks
+ * forward than back. It moves with the open week, so it always reaches past
+ * wherever you are.
  */
-export function menuWeeks(thisWeek: IsoDate, open: IsoDate): IsoDate[] {
-  const weeks = Array.from({ length: AHEAD + 1 + BEHIND }, (_, i) => addDays(thisWeek, (AHEAD - i) * 7))
-  if (!weeks.includes(open)) weeks.push(open)
-  return weeks.sort().reverse()
+export function menuWeeks(open: IsoDate): IsoDate[] {
+  return Array.from({ length: AHEAD + 1 + BEHIND }, (_, i) => addDays(open, (AHEAD - i) * 7))
 }
 
 const NEAR: Record<number, string> = { 1: 'Next week', 0: 'This week', [-1]: 'Last week' }

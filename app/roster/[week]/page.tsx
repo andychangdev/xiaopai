@@ -49,7 +49,7 @@ export default async function RosterPage({ params }: Props) {
           key={week}
           week={week}
           thisWeek={thisWeek}
-          items={weekMenu({ thisWeek, open: week, weeks: weekStates(menuWeeks(thisWeek, week)) })}
+          items={weekMenu({ thisWeek, open: week, weeks: weekStates(menuWeeks(week)) })}
         />
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
           {onThisWeek && <span className="badge highlight">This week</span>}

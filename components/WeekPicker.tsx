@@ -12,7 +12,7 @@ const weekLink = `${weekButton} hover:border-line-strong hover:text-ink`
 
 /**
  * The roster's week control: Today, then ‹ and › either side of the week's
- * dates. The dates open a menu of the weeks around this one, each with where
+ * dates. The dates open a menu of the weeks around the open one, each with where
  * it stands, and the way on to History for the rest. In the menu the arrow
  * keys move, Enter opens a week, and Esc closes it.
  */
