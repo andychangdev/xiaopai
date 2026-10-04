@@ -507,7 +507,7 @@ grid and History both get it from the same function, so they can't disagree.
 |---|---|---|
 | Draft | Draft · not sent to staff yet | Publish roster |
 | Published, unchanged | Published v2 · 26 Sep | Publish update, greyed out |
-| Published, edited since | Unpublished changes, with Revert | Publish update |
+| Published, edited since | Edited, with Revert | Publish update |
 
 Publishing asks first, naming the shifts, the hours and any warnings
 outstanding. Warnings never block it. Then Share roster opens, ready to copy.
@@ -530,7 +530,7 @@ Revert, on the Week summary's status line, puts an edited week back as it went o
 restores the snapshot's shifts and closed days. N/A notes were never
 published, so they stay. A published shift the week can no longer take —
 someone since removed from the staff list, or now on leave that day — stays
-out, and the week still reads Unpublished changes, which is true. A revert is
+out, and the week still reads Edited, which is true. A revert is
 a grid action, so Undo takes it back.
 
 ### History

@@ -119,7 +119,7 @@ outstanding and publishes anyway — the manager already knows the roster is
 unusual, that's why they built it that way.
 
 A published week stays editable; there's no unpublish step. Editing one puts it
-into **Unpublished changes**, and publishing again bumps `version` and
+into **Edited**, and publishing again bumps `version` and
 re-snapshots. From v2 the sheet reads `Updated 8 Oct` instead of `Published`,
 so staff can tell a fresh printout from the one already on the wall.
 
@@ -127,11 +127,11 @@ On the grid, a shift staff don't have yet shows in amber: every shift in a
 draft, and in a published week those added, moved or retimed since. An
 overlap's red outranks it.
 
-The **Unpublished changes** status holds a **Revert** link that puts the week
+The **Edited** status holds a **Revert** link that puts the week
 back to the published version, after asking: its shifts and closed days go
 back to the snapshot's, and N/A notes stay. A published shift for someone now
 on leave that day, or no longer on the staff list, can't come back, so the
-week still reads Unpublished changes and the dialog says why. Undo takes a
+week still reads Edited and the dialog says why. Undo takes a
 revert back.
 
 The three states, shown in a line over the button:
@@ -140,7 +140,7 @@ The three states, shown in a line over the button:
 |---|---|---|
 | Never published | Draft · not sent to staff yet | Publish roster |
 | Published, untouched | Published v1 · 26 Sep | Publish update, greyed out |
-| Published, then edited | Unpublished changes, with Revert | Publish update |
+| Published, then edited | Edited, with Revert | Publish update |
 
 ---
 

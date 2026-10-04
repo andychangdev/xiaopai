@@ -4,7 +4,7 @@
 // no longer take stays out: one for someone removed from the staff list
 // since, or on leave that day, since booking leave over a shift is the
 // manager's call. The week then still differs from what staff have, and reads
-// Unpublished changes, which is true.
+// Edited, which is true.
 
 import { fullDate, type IsoDate } from './dates'
 import { leaveOn, type Leave } from './leave'

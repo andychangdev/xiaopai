@@ -76,7 +76,7 @@ export function publishState(
 /** The status line over the Publish button: where the week stands, and a word on it where there's one to say. */
 export function publishStatus(state: PublishState): { label: string; note: string | null } {
   if (state.status === 'draft') return { label: 'Draft', note: 'not sent to staff yet' }
-  if (state.changed) return { label: 'Unpublished changes', note: null }
+  if (state.changed) return { label: 'Edited', note: null }
   return { label: `Published v${state.version}`, note: shortDate(state.publishedAt) }
 }
 

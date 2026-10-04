@@ -10,8 +10,8 @@ import { useAsk } from './useAsk'
 
 /**
  * Where the week stands, in a line over the Publish button. The dot is amber
- * for Draft and Unpublished changes, since both still need publishing, and
- * the accent once it's out as it stands. Unpublished changes also holds
+ * for Draft and Edited, since both still need publishing, and
+ * the accent once it's out as it stands. Edited also holds
  * Revert, the way back to the version staff have, which asks first. Undo
  * takes a revert back like any grid action.
  */

@@ -152,7 +152,7 @@ describe('publishStatus', () => {
       note: '26 Sep',
     })
     expect(publishStatus({ status: 'published', version: 2, publishedAt: '2026-09-26', changed: true })).toEqual({
-      label: 'Unpublished changes',
+      label: 'Edited',
       note: null,
     })
   })
