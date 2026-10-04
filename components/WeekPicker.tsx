@@ -127,7 +127,7 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
                     </span>
                     <span className={`block text-[11px] ${item.open ? '' : 'text-ink-3'}`}>{item.label}</span>
                   </span>
-                  {/* The amber badge is enough to say it's been edited since */}
+                  {/* The badge says Edited, so no note beside it */}
                   <WeekState state={item.state} editedNote={false} />
                 </Link>
               </li>
