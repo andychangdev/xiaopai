@@ -72,8 +72,9 @@
 
 /* The few controls every page shares, from the mockup's .btn, .f and .link */
 @layer components {
+  /* It gives a little under a press */
   .btn {
-    @apply inline-block rounded-control border border-line bg-surface px-3.25 py-1.75 text-[13px] font-medium hover:border-line-strong;
+    @apply inline-block rounded-control border border-line bg-surface px-3.25 py-1.75 text-[13px] font-medium transition-[scale] duration-100 hover:border-line-strong motion-safe:active:not-disabled:scale-97;
   }
   .btn-primary {
     @apply border-primary bg-primary font-semibold text-primary-ink hover:border-primary-2 hover:bg-primary-2;
