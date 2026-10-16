@@ -1,7 +1,7 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useDragControls, useIsPresent, useMotionValue, type Variants } from 'motion/react'
+import { useCallback, useEffect, useOptimistic, useRef, useState, useTransition } from 'react'
 import { addShift, clearWeek, moveShift, removeShift, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
@@ -74,7 +74,7 @@ const headCell =
 export function RosterGrid({
   week,
   staff,
-  shifts,
+  shifts: saved,
   naNotes,
   leave,
   templates,
@@ -87,6 +87,11 @@ export function RosterGrid({
   lastAction,
   today,
 }: Props) {
+  // A dropped shift is in its new cell the moment it lands, rather than when the server answers
+  const [shifts, moveShown] = useOptimistic(saved, (all, to: { id: number; staffId: number; date: IsoDate }) =>
+    all.map((s) => (s.id === to.id ? { ...s, staffId: to.staffId, date: to.date } : s)),
+  )
+  const [, startTransition] = useTransition()
   const days = weekDates(week)
   const cells = shiftsByCell(shifts)
   const overlapping = overlappingShifts(shifts)
@@ -144,25 +149,47 @@ export function RosterGrid({
   const [dragging, setDragging] = useState<Shift | null>(null)
   // The cell a drop would land in, so it can show it
   const [over, setOver] = useState<string | null>(null)
-  const dragFrame = useRef(0)
+  const landing = useRef<{ staffId: number; date: IsoDate } | null>(null)
 
-  function startDrag(shift: Shift) {
-    setOpen(null) // it's about the cell the shift is leaving
-    // A frame later, once the browser has its picture of the chip, which would otherwise be the dimmed one
-    dragFrame.current = requestAnimationFrame(() => setDragging(shift))
-  }
+  // Shifts that came or went since the grid last drew. More than one at once,
+  // like Copy previous week or Clear week, and they come or go a day at a time.
+  const ids = new Set(shifts.map((s) => s.id))
+  const seen = useRef(ids)
+  const bulk = ids.size + seen.current.size - 2 * [...ids].filter((id) => seen.current.has(id)).length > 1
+  useEffect(() => {
+    seen.current = ids
+  })
 
-  function endDrag() {
-    cancelAnimationFrame(dragFrame.current)
-    setDragging(null)
-    setOver(null)
+  const drag: Drag = {
+    landing: over !== null,
+    start(shift) {
+      setOpen(null) // it's about the cell the shift is leaving
+      setDragging(shift)
+    },
+    // The cell under the pointer, if the shift could land there
+    over(e) {
+      const { clientX, clientY } = e as PointerEvent
+      const cell = document.elementFromPoint(clientX, clientY)?.closest<HTMLElement>('[data-drop]')
+      landing.current = cell ? { staffId: Number(cell.dataset.staff), date: cell.dataset.date as IsoDate } : null
+      setOver(cell?.dataset.drop ?? null)
+    },
+    end() {
+      const to = landing.current
+      landing.current = null
+      setDragging(null)
+      setOver(null)
+      if (dragging && to) move(dragging, to)
+    },
   }
 
   // One action rather than a remove and an add, so Undo takes it back in one go
-  async function move(shift: Shift, to: { staffId: number; date: IsoDate }) {
-    endDrag()
-    const error = await actionError(() => moveShift(shift.id, to))
-    if (error) await ask({ title: "Couldn't move the shift", body: error, ok: 'OK', cancel: null })
+  function move(shift: Shift, to: { staffId: number; date: IsoDate }) {
+    startTransition(async () => {
+      moveShown({ id: shift.id, ...to })
+      const error = await actionError(() => moveShift(shift.id, to))
+      // Not awaited, so the shift goes back to its cell while this says why
+      if (error) ask({ title: "Couldn't move the shift", body: error, ok: 'OK', cancel: null })
+    })
   }
 
   async function remove(shift: Shift, button: HTMLElement) {
@@ -222,7 +249,8 @@ export function RosterGrid({
     <>
       <div className="roster-layout">
         <div className="overflow-hidden rounded-card border border-line bg-surface [grid-area:grid]">
-          <div className="overflow-x-auto">
+          {/* layoutScroll, so chips sliding into place allow for the grid scrolled sideways */}
+          <motion.div layoutScroll className="overflow-x-auto">
             <div className="roster-grid">
               <div className={`${headCell} border-r border-r-line text-ink-2`}>Staff</div>
               {days.map((date, i) => (
@@ -272,18 +300,16 @@ export function RosterGrid({
                           )
                         }}
                         onRemove={remove}
-                        dragged={dragging?.id}
                         drop={canDrop ? (over === key ? 'over' : 'open') : undefined}
-                        onDrag={(shift) => (shift ? startDrag(shift) : endDrag())}
-                        onDropHover={(on) => setOver((o) => (on ? key : o === key ? null : o))}
-                        onDrop={() => dragging && move(dragging, { staffId: person.id, date })}
+                        drag={drag}
+                        delay={bulk ? i * 0.04 : 0}
                       />
                     )
                   })}
                 </Row>
               ))}
             </div>
-          </div>
+          </motion.div>
           <div className="flex flex-wrap gap-2 border-t border-line bg-surface-3 px-3 py-2.5">
             <UndoButton week={week} last={lastAction} />
             <CopyPreviousWeek week={week} previousShifts={previousShifts} />
@@ -425,7 +451,7 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  *
  * A chip drags to another cell to move its shift there, times and all. While
  * one's being dragged, a cell that could take it outlines itself under the
- * pointer; one that couldn't, like a leave day, refuses the drop.
+ * pointer; one that couldn't, like a leave day, sends it back where it was.
  *
  * While a shift is being copied, a click anywhere in the cell pastes it
  * alongside what's there, unless the cell already holds those times.
@@ -453,11 +479,9 @@ function Cell({
   copying,
   onClick,
   onRemove,
-  dragged,
   drop,
-  onDrag,
-  onDropHover,
-  onDrop,
+  drag,
+  delay,
 }: {
   person: Person
   date: IsoDate
@@ -475,14 +499,11 @@ function Cell({
   onClick: (e: React.MouseEvent<HTMLElement>, shift?: Shift) => void
   /** From a chip's ×, the button itself so focus has somewhere to go after */
   onRemove: (shift: Shift, button: HTMLElement) => void
-  /** The id of the shift being dragged, wherever it is */
-  dragged?: number
   /** Whether the shift being dragged could land here, and if the pointer's here now */
   drop?: 'open' | 'over'
-  /** A chip picked up, or null once it's put down, wherever that is */
-  onDrag: (shift: Shift | null) => void
-  onDropHover: (over: boolean) => void
-  onDrop: () => void
+  drag: Drag
+  /** How long the cell's chips wait to come or go, in seconds */
+  delay: number
 }) {
   const filled = shifts.length > 0
   const where = `${person.name} on ${dayLabel(date)}`
@@ -507,74 +528,53 @@ function Cell({
   return (
     <div
       data-cell
+      // Where the shift being dragged would land, if it can
+      data-drop={drop && cellKey(person.id, date)}
+      data-staff={person.id}
+      data-date={date}
       title={leave ?? na}
-      className={`flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-1.25' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''}`}
+      className={`relative flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-1.25' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''}`}
       // The padding and the gaps between chips paste too
       onClick={mode === 'paste' ? (e) => e.target === e.currentTarget && onClick(e) : undefined}
-      // Only a cell that could take the shift accepts it; anywhere else the drop is refused
-      onDragOver={
-        drop &&
-        ((e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-          onDropHover(true)
-        })
-      }
-      onDragLeave={
-        // Into one of its own chips is still over the cell
-        drop && ((e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && onDropHover(false))
-      }
-      onDrop={
-        drop &&
-        ((e) => {
-          e.preventDefault()
-          onDrop()
-        })
-      }
     >
-      {shifts.map((s) => {
-        const times = formatRange(s.start, s.end)
-        const picked = s.id === copying?.id
-        const overlaps = overlapping.has(s.id)
-        const notOut = unpublished.has(s.id)
-        const action = picked ? 'Being copied' : chipAction
-        // Dragging is for the pointer, so only the tooltip mentions it
-        const tip = mode === 'edit' ? `${action}, or drag it to another cell` : action
-        return (
-          // The × sits over the chip rather than in it, as a button can't hold another
-          <div key={s.id} className={`group/chip relative ${s.id === dragged ? 'opacity-40' : ''}`}>
-            <button
-              aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}${notOut ? ', not published yet' : ''}. ${action}`}
-              title={overlaps ? `Overlaps another shift. ${tip}` : notOut ? `Not published yet. ${tip}` : tip}
-              className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : notOut ? 'unpublished' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
-              onClick={(e) => onClick(e, s)}
-              // Not while copying, when a press on the chip is a paste
-              draggable={mode === 'edit'}
-              onDragStart={(e) => {
-                e.dataTransfer.effectAllowed = 'move'
-                e.dataTransfer.setData('text/plain', `${person.name}, ${dayLabel(date)}, ${times}`)
-                onDrag(s)
-              }}
-              onDragEnd={() => onDrag(null)}
-            >
-              <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] whitespace-nowrap tabular-nums">
-                {times}
-              </span>
-            </button>
-            {/* While copying, a click on the chip pastes, so there's nothing to remove */}
-            {mode === 'edit' && (
+      {/* Not on the way in: a week opening, or the page loading, draws its chips as they are */}
+      <AnimatePresence initial={false} mode="popLayout" custom={delay}>
+        {shifts.map((s) => {
+          const times = formatRange(s.start, s.end)
+          const picked = s.id === copying?.id
+          const overlaps = overlapping.has(s.id)
+          const notOut = unpublished.has(s.id)
+          const action = picked ? 'Being copied' : chipAction
+          // Dragging is for the pointer, so only the tooltip mentions it
+          const tip = mode === 'edit' ? `${action}, or drag it to another cell` : action
+          return (
+            // Not while copying, when a press on the chip is a paste
+            <Chip key={s.id} shift={s} overlaps={overlaps} delay={delay} drag={mode === 'edit' ? drag : undefined}>
               <button
-                aria-label={`Remove ${person.name}'s ${times} on ${dayLabel(date)}`}
-                title="Remove"
-                className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit-deep focus-visible:opacity-100"
-                onClick={(e) => onRemove(s, e.currentTarget)}
+                aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}${notOut ? ', not published yet' : ''}. ${action}`}
+                title={overlaps ? `Overlaps another shift. ${tip}` : notOut ? `Not published yet. ${tip}` : tip}
+                className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : notOut ? 'unpublished' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
+                onClick={(e) => onClick(e, s)}
               >
-                ×
+                <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] whitespace-nowrap tabular-nums">
+                  {times}
+                </span>
               </button>
-            )}
-          </div>
-        )
-      })}
+              {/* While copying, a click on the chip pastes, so there's nothing to remove */}
+              {mode === 'edit' && (
+                <button
+                  aria-label={`Remove ${person.name}'s ${times} on ${dayLabel(date)}`}
+                  title="Remove"
+                  className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit-deep focus-visible:opacity-100"
+                  onClick={(e) => onRemove(s, e.currentTarget)}
+                >
+                  ×
+                </button>
+              )}
+            </Chip>
+          )
+        })}
+      </AnimatePresence>
       <button
         data-add
         aria-label={na ? `${add}. ${na}` : add}
@@ -604,6 +604,100 @@ function Cell({
         )}
       </button>
     </div>
+  )
+}
+
+/** Dragging a chip, the same for every cell. */
+type Drag = {
+  /** Whether the pointer's over a cell the shift could land in, so letting go there keeps it */
+  landing: boolean
+  start: (shift: Shift) => void
+  over: (e: MouseEvent | TouchEvent | PointerEvent) => void
+  end: () => void
+}
+
+// The delay is the cell's, so a whole week comes or goes a day at a time
+const chipMotion: Variants = {
+  hidden: (delay: number) => ({ opacity: 0, scale: 0.85, transition: { delay } }),
+  shown: (delay: number) => ({ opacity: 1, scale: 1, transition: { delay } }),
+  // A shake as it comes to overlap another, new or not
+  overlaps: (delay: number) => ({
+    opacity: 1,
+    scale: 1,
+    x: [0, -3, 3, -2, 2, 0],
+    transition: { delay, x: { delay, duration: 0.4 } },
+  }),
+}
+
+/**
+ * A shift's chip, which pops in and out and slides over to make room. It
+ * drags by the mouse, lifted off the grid, and let go anywhere it can't land
+ * it springs back. On a touch screen a finger on it still scrolls the grid.
+ */
+function Chip({
+  ref,
+  shift,
+  overlaps,
+  delay,
+  drag,
+  children,
+}: {
+  /** From AnimatePresence, to lift it out of the cell while it goes */
+  ref?: React.Ref<HTMLDivElement>
+  shift: Shift
+  overlaps: boolean
+  delay: number
+  /** Only when it can be dragged */
+  drag?: Drag
+  children: React.ReactNode
+}) {
+  const controls = useDragControls()
+  // Above the grid from picking it up until it's back in place
+  const [lifted, setLifted] = useState(false)
+  // Where the drag has it. Dropped in another cell, it fades where it was let
+  // go; if the move's refused while it's fading, it's back in its own cell.
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const present = useIsPresent()
+  useEffect(() => {
+    if (!present) return
+    x.set(0)
+    y.set(0)
+  }, [present, x, y])
+  return (
+    // The × sits over the chip rather than in it, as a button can't hold another
+    <motion.div
+      ref={ref}
+      layout="position"
+      custom={delay}
+      variants={chipMotion}
+      initial="hidden"
+      animate={overlaps ? 'overlaps' : 'shown'}
+      exit="hidden"
+      drag={!!drag}
+      dragControls={controls}
+      dragListener={false}
+      dragMomentum={false}
+      dragSnapToOrigin={!drag?.landing}
+      // Stiff enough to settle right back in place: Motion's own stops a couple of pixels short
+      dragTransition={{ bounceStiffness: 600, bounceDamping: 40 }}
+      whileDrag={{ scale: 1.06, boxShadow: '0 12px 32px rgba(0, 0, 0, 0.18)' }}
+      onDragStart={() => {
+        setLifted(true)
+        drag?.start(shift)
+      }}
+      onDrag={(e) => drag?.over(e)}
+      onDragEnd={() => drag?.end()}
+      onDragTransitionEnd={() => setLifted(false)}
+      // Lifted, it lets the pointer through to the cell it's over
+      style={lifted ? { x, y, zIndex: 30, pointerEvents: 'none' } : { x, y }}
+      className="group/chip relative rounded-chip select-none"
+      onPointerDown={(e) => {
+        if (drag && e.pointerType === 'mouse' && e.button === 0) controls.start(e)
+      }}
+    >
+      {children}
+    </motion.div>
   )
 }
 
