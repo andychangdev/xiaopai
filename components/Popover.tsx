@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { dayLabel, type IsoDate } from '@/lib/roster/dates'
 import type { Leave } from '@/lib/roster/leave'
@@ -53,8 +54,12 @@ export function Popover({
       const r = anchor.getBoundingClientRect()
       const { clientWidth: vw, clientHeight: vh } = document.documentElement // not counting scrollbars
       const { offsetWidth: w, offsetHeight: h } = box
-      box.style.left = `${Math.max(MARGIN, Math.min(vw - w - MARGIN, r.left))}px`
-      box.style.top = `${r.bottom + GAP + h + MARGIN > vh ? Math.max(MARGIN, r.top - GAP - h) : r.bottom + GAP}px`
+      const left = Math.max(MARGIN, Math.min(vw - w - MARGIN, r.left))
+      const above = r.bottom + GAP + h + MARGIN > vh
+      box.style.left = `${left}px`
+      box.style.top = `${above ? Math.max(MARGIN, r.top - GAP - h) : r.bottom + GAP}px`
+      // It grows out of the cell, from whichever edge is nearest it
+      box.style.transformOrigin = `${r.left + r.width / 2 - left}px ${above ? '100%' : '0'}`
     }
     place()
     const resized = new ResizeObserver(place)
@@ -87,11 +92,14 @@ export function Popover({
   }, [close, anchor])
 
   return (
-    <div
+    <motion.div
       ref={ref}
       role="dialog"
       aria-label={label}
       tabIndex={-1}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.12 } }}
       className="fixed z-50 outline-none max-h-[calc(100vh-16px)] w-62.5 overflow-y-auto rounded-card border border-line-strong bg-surface p-2.75 shadow-popover"
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
@@ -109,6 +117,6 @@ export function Popover({
         {firstName(person.name)} · {dayLabel(date)}
       </h3>
       {children}
-    </div>
+    </motion.div>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addShift, clearWeek, moveShift, removeShift, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
@@ -311,20 +312,22 @@ export function RosterGrid({
           />
         </div>
       </div>
-      {open &&
-        // A leave day's own popover, unless a shift kept on it was clicked
-        (open.leave && !open.shift ? (
-          <LeavePopover key={cellKey(open.person.id, open.date)} target={open} leave={open.leave} onClose={close} />
-        ) : (
-          <ShiftPopover
-            key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')}
-            week={week}
-            target={open}
-            templates={templates}
-            onClose={close}
-            onCopy={(shift) => setCopying({ shift, person: open.person, chip: open.anchor })}
-          />
-        ))}
+      <AnimatePresence>
+        {open &&
+          // A leave day's own popover, unless a shift kept on it was clicked
+          (open.leave && !open.shift ? (
+            <LeavePopover key={cellKey(open.person.id, open.date)} target={open} leave={open.leave} onClose={close} />
+          ) : (
+            <ShiftPopover
+              key={cellKey(open.person.id, open.date) + (open.shift?.id ?? '+')}
+              week={week}
+              target={open}
+              templates={templates}
+              onClose={close}
+              onCopy={(shift) => setCopying({ shift, person: open.person, chip: open.anchor })}
+            />
+          ))}
+      </AnimatePresence>
       {copying && (
         <>
           {/* Room to scroll the footer out from under the bar */}

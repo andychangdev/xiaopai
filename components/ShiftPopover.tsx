@@ -1,5 +1,6 @@
 'use client'
 
+import { useIsPresent } from 'motion/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { addShift, removeShift, setMarkedNa, updateShift, type ActionResult } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
@@ -47,15 +48,17 @@ export function ShiftPopover({
   const [error, setError] = useState<string>()
   // A second Enter before the first save returns would add the shift twice
   const saving = useRef(false)
-  // Closed by a click elsewhere while a save was on its way
+  // Closed by a click elsewhere while a save was on its way, whether it's
+  // still fading or gone
   const gone = useRef(false)
+  const present = useIsPresent()
 
   useEffect(() => {
-    gone.current = false // Strict Mode mounts twice
+    gone.current = !present // Strict Mode mounts twice
     return () => {
       gone.current = true
     }
-  }, [])
+  }, [present])
 
   /** Closes, handing focus back to the cell like a dialog would. */
   function done(focus: HTMLElement | null | undefined = anchor) {
