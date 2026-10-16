@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, Reorder, useDragControls } from 'motion/react'
 import { useEffect, useOptimistic, useRef, useState, useTransition, type ReactNode } from 'react'
 import { moveStaff } from '@/app/actions'
 import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
@@ -18,8 +18,8 @@ import { usePanelParam } from './usePanelParam'
 /**
  * Everyone, one line each in the roster's order, with inactive people folded
  * away at the foot. Active people drag by the handle at the start of their
- * line, and with the handle focused the arrow keys move them a place at a
- * time. Clicking someone opens their panel beside the list, or over it on a
+ * line, the others moving out of the way as they go, and with the handle
+ * focused the arrow keys move them a place at a time. Clicking someone opens their panel beside the list, or over it on a
  * narrow screen, with their leave. What goes under the list comes in as
  * children, and a booking clicked there opens in the same panel.
  */
@@ -65,37 +65,30 @@ export function StaffList({
     refocus.current = null
   }, [rows])
 
-  function move(id: number, gap: number) {
+  /** To the gap among the active lines, 0 above the first. `then` goes in the same step as the move. */
+  function move(id: number, gap: number, then?: () => void) {
     const place = placeAmong(rows, active, id, gap)
     startTransition(async () => {
+      then?.()
       reorder({ id, place })
       setError((await moveStaff(id, place).catch(() => ({ error: UNREACHABLE }))).error)
     })
   }
 
-  const [dragging, setDragging] = useState<number | null>(null)
-  // The gap a drop would land in, 0 above the first line, so it can show it
-  const [gap, setGap] = useState<number | null>(null)
-  const dragFrame = useRef(0)
-  const from = active.findIndex((p) => p.id === dragging)
-  // Either side of the line being dragged is where it already is
-  const shownGap = gap === from || gap === from + 1 ? null : gap
+  // The order a line's being dragged through, the others making room as it goes
+  const [dragged, setDragged] = useState<StaffListRow[] | null>(null)
+  const lines = dragged ?? active
 
-  function startDrag(id: number) {
-    // A frame later, once the browser has its picture of the line, which would otherwise be the dimmed one
-    dragFrame.current = requestAnimationFrame(() => setDragging(id))
-  }
-
-  function endDrag() {
-    cancelAnimationFrame(dragFrame.current)
-    setDragging(null)
-    setGap(null)
-  }
-
-  function drop() {
-    endDrag()
-    if (from < 0 || shownGap === null) return
-    move(active[from].id, shownGap)
+  function drop(id: number) {
+    const from = active.findIndex((p) => p.id === id)
+    const to = lines.findIndex((p) => p.id === id)
+    if (to === from) {
+      setDragged(null)
+      return
+    }
+    // As a gap among the lines as they were: below the one it passed going down, above it going up.
+    // The dragged order holds until the move shows, so the line doesn't jump back between them.
+    move(id, to > from ? to + 1 : to, () => setDragged(null))
   }
 
   /**
@@ -135,30 +128,15 @@ export function StaffList({
           </div>
         )}
         <div className="overflow-hidden rounded-card border border-line bg-surface">
-          <ul
-            onDragLeave={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setGap(null)}
-            // Only while a line's being dragged, so nothing else drops here
-            onDrop={
-              dragging !== null
-                ? (e) => {
-                    e.preventDefault()
-                    drop()
-                  }
-                : undefined
-            }
-          >
-            {active.map((p, i) => (
+          <Reorder.Group as="ul" axis="y" values={lines} onReorder={setDragged}>
+            {lines.map((p, i) => (
               <Line
                 key={p.id}
                 person={p}
                 selected={p.id === selected}
                 onOpen={() => select(p.id)}
                 drag={{
-                  dragged: p.id === dragging,
-                  drop: shownGap === i ? 'above' : shownGap === active.length && i === active.length - 1 ? 'below' : undefined,
-                  onStart: () => startDrag(p.id),
-                  onEnd: endDrag,
-                  onOver: dragging !== null ? (below) => setGap(below ? i + 1 : i) : undefined,
+                  onEnd: () => drop(p.id),
                   // A place up is the gap above the one before; a place down, the gap below the one after
                   onMove: (by) => {
                     const to = by < 0 ? i - 1 : i + 2
@@ -169,7 +147,7 @@ export function StaffList({
                 }}
               />
             ))}
-          </ul>
+          </Reorder.Group>
           {!active.length && (
             <p className="px-3.5 py-3 text-[13px] text-ink-3">No one active. Add someone, or switch someone back on.</p>
           )}
@@ -242,8 +220,8 @@ export function StaffList({
 }
 
 /**
- * One person's line. Active people have a handle to drag them by; while one's
- * being dragged, a line shows where it would land.
+ * One person's line. Active people have a handle to drag them by, by mouse or
+ * finger, and the line lifts off the list as it goes.
  */
 function Line({
   person,
@@ -255,53 +233,30 @@ function Line({
   selected: boolean
   onOpen: () => void
   drag?: {
-    dragged: boolean
-    /** Which edge the line goes on, when a drop would land next to this one */
-    drop?: 'above' | 'below'
-    onStart: () => void
+    /** Let go, wherever it's got to */
     onEnd: () => void
-    /** While a line's being dragged, whether the pointer's over this one's lower half */
-    onOver?: (below: boolean) => void
     /** A place up (-1) or down (1), from the arrow keys */
     onMove: (by: -1 | 1) => void
   }
 }) {
+  const controls = useDragControls()
   const days = DAY_NAMES.filter((_, i) => person.available[i])
   const usually = days.length === 7 ? 'every day' : days.length ? days.join(', ') : 'no days'
   const rate = person.hourlyRate === null ? null : formatRate(person.hourlyRate)
   const hours = person.expectedHours
 
-  return (
-    <li
-      className={`flex items-center border px-1.5 ${selected ? 'highlight' : 'border-transparent border-b-line'} ${drag?.dragged ? 'opacity-40' : ''} ${drag?.drop ? dropLine[drag.drop] : ''} ${person.active ? '' : 'text-ink-3'}`}
-      onDragOver={
-        drag?.onOver &&
-        ((e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-          const { top, height } = e.currentTarget.getBoundingClientRect()
-          drag.onOver!(e.clientY > top + height / 2)
-        })
-      }
-    >
+  const look = `relative flex items-center border px-1.5 ${selected ? 'highlight' : 'border-transparent border-b-line bg-surface'} ${person.active ? '' : 'text-ink-3'}`
+  const content = (
+    <>
       {drag ? (
         <button
-          draggable
           data-handle={person.id}
           data-keeps-panel
           aria-label={`Move ${person.name} up or down, with the arrow keys`}
           title="Drag to reorder, or use the arrow keys"
-          className="grid h-10 w-6 flex-none cursor-grab place-items-center text-ink-3 hover:text-ink"
-          onDragStart={(e) => {
-            // The whole line goes with the pointer, not just the handle
-            const line = e.currentTarget.closest('li')!
-            const { left, top } = line.getBoundingClientRect()
-            e.dataTransfer.setDragImage(line, e.clientX - left, e.clientY - top)
-            e.dataTransfer.effectAllowed = 'move'
-            e.dataTransfer.setData('text/plain', person.name)
-            drag.onStart()
-          }}
-          onDragEnd={drag.onEnd}
+          // touch-none, so a finger on it drags the line rather than scrolling the page
+          className="grid h-10 w-6 flex-none cursor-grab touch-none place-items-center text-ink-3 hover:text-ink active:cursor-grabbing"
+          onPointerDown={(e) => controls.start(e)}
           onKeyDown={(e) => {
             const by = e.key === 'ArrowUp' ? -1 : e.key === 'ArrowDown' ? 1 : 0
             if (!by) return
@@ -347,7 +302,22 @@ function Line({
           {hours !== null && <span className="block text-right text-[10.5px] text-ink-3 sm:hidden">{hours} h/wk</span>}
         </span>
       </button>
-    </li>
+    </>
+  )
+
+  if (!drag) return <li className={look}>{content}</li>
+  return (
+    <Reorder.Item
+      as="li"
+      value={person}
+      dragListener={false}
+      dragControls={controls}
+      whileDrag={{ zIndex: 10, boxShadow: '0 12px 32px rgba(0, 0, 0, 0.18)' }}
+      onDragEnd={drag.onEnd}
+      className={look}
+    >
+      {content}
+    </Reorder.Item>
   )
 }
 
@@ -367,10 +337,4 @@ function Figure({ value, unit, className = '' }: { value: string | null; unit: s
       </span>
     </span>
   )
-}
-
-// A line along the person's top or bottom edge, where the one being dragged would go
-const dropLine = {
-  above: 'shadow-[inset_0_2px_0_var(--color-accent)]',
-  below: 'shadow-[inset_0_-2px_0_var(--color-accent)]',
 }
