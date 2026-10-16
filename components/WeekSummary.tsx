@@ -85,7 +85,7 @@ export function WeekSummary({
                   <span className="flex items-center justify-end gap-2.5">
                     <span aria-hidden className="h-1.25 w-12 flex-none overflow-hidden rounded-full bg-surface-2">
                       <span
-                        className={`block h-full rounded-full ${mark ? barColour[mark] : 'bg-accent'}`}
+                        className={`block h-full rounded-full transition-[width] duration-400 ease-out motion-reduce:transition-none ${mark ? barColour[mark] : 'bg-accent'}`}
                         style={{ width: `${Math.min(100, (hours / BAR_FULL) * 100)}%` }}
                       />
                     </span>

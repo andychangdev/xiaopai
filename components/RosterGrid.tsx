@@ -304,6 +304,7 @@ export function RosterGrid({
         </div>
         <div className="[grid-area:summary]">
           <WeekSummary
+            key={week}
             week={week}
             staff={staff}
             shifts={shifts}
