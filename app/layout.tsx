@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Archivo, IBM_Plex_Mono } from 'next/font/google'
+import { MotionSettings } from '@/components/MotionSettings'
 import { Sidebar } from '@/components/Sidebar'
 import { businessName } from '@/lib/db/queries'
 import { initialOf } from '@/lib/roster/staff'
@@ -29,10 +30,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-AU" className={`${archivo.variable} ${plexMono.variable}`}>
       <body>
-        <div className="sm:grid sm:grid-cols-[72px_minmax(0,1fr)]">
-          <Sidebar businessName={name} initial={initialOf(name)} />
-          <main className="mx-auto w-full max-w-400 p-4 pt-8 pb-[calc(var(--bottom-bar)+16px)]">{children}</main>
-        </div>
+        <MotionSettings>
+          <div className="sm:grid sm:grid-cols-[72px_minmax(0,1fr)]">
+            <Sidebar businessName={name} initial={initialOf(name)} />
+            <main className="mx-auto w-full max-w-400 p-4 pt-8 pb-[calc(var(--bottom-bar)+16px)]">{children}</main>
+          </div>
+        </MotionSettings>
       </body>
     </html>
   )
