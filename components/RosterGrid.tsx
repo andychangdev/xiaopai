@@ -298,8 +298,9 @@ export function RosterGrid({
             </span>
           </div>
         </div>
+        {/* Keyed by the week, so what moves is a change to it, not going to another one */}
         <div className="[grid-area:warnings]">
-          <WarningsPanel warnings={warnings} />
+          <WarningsPanel key={week} warnings={warnings} />
         </div>
         <div className="[grid-area:summary]">
           <WeekSummary
