@@ -1,7 +1,8 @@
 'use client'
 
+import { motion } from 'motion/react'
 import { useRouter } from 'next/navigation'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { publishWeek } from '@/app/actions'
 import type { IsoDate } from '@/lib/roster/dates'
 import { NOTHING_TO_PUBLISH, nothingToPublish, publishQuestion, type PublishState } from '@/lib/roster/publish'
@@ -13,7 +14,7 @@ import { useAsk } from './useAsk'
  * Publish roster for a draft, Publish update once it's been edited since, and
  * Publish update greyed out in between, so the button doesn't come and go.
  * Publishing asks first, naming what's going out and any warnings, which
- * never stop it, then opens Share roster to copy.
+ * never stop it, then draws a tick and opens Share roster to copy.
  */
 export function PublishButton({
   week,
@@ -36,6 +37,30 @@ export function PublishButton({
   // the moment before Share roster opens, could be clicked again
   const publishing = useRef(false)
   const notify = (title: string, body: string) => ask({ title, body, ok: 'OK', cancel: null })
+  const [published, setPublished] = useState(false)
+
+  // Ahead of the greyed-out button, which the week becomes as it's published
+  if (published) {
+    return (
+      <button disabled className="btn btn-primary inline-flex items-center justify-center gap-1.5">
+        <svg aria-hidden width="13" height="13" viewBox="0 0 13 13">
+          <motion.path
+            d="M2 7l3 3 6-7"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            onAnimationComplete={() => router.push(`/share/${week}`)}
+          />
+        </svg>
+        Published
+      </button>
+    )
+  }
 
   // Published and untouched: there's nothing to send until the week changes
   if (state.status === 'published' && !state.changed) {
@@ -64,7 +89,7 @@ export function PublishButton({
       publishing.current = false
       await notify("Couldn't publish", result.error)
     } else {
-      router.push(`/share/${week}`) // publishing stays set: this page is on its way out
+      setPublished(true) // and publishing stays set: once the tick's drawn, this page is on its way out
     }
   }
 
