@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { addDays, weekRange, weekTitle, type IsoDate } from '@/lib/roster/dates'
@@ -18,6 +19,8 @@ const weekLink = `${weekButton} hover:border-line-strong hover:text-ink`
  */
 export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek: IsoDate; items: WeekMenuItem[] }) {
   const [open, setOpen] = useState(false)
+  // The middle of the dates, which the menu grows out of
+  const [origin, setOrigin] = useState(0)
   const wrap = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
@@ -39,6 +42,12 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
     document.addEventListener('pointerdown', away)
     return () => document.removeEventListener('pointerdown', away)
   }, [open])
+
+  function show() {
+    const { offsetLeft, offsetWidth } = button.current!
+    setOrigin(offsetLeft + offsetWidth / 2)
+    setOpen(true)
+  }
 
   function close() {
     setOpen(false)
@@ -82,11 +91,11 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
           aria-controls={id}
           title="Pick another week"
           className={`flex h-8.5 w-full items-center justify-between gap-2.5 rounded-control border bg-surface px-3 text-[17px] font-semibold tracking-[-0.01em] ${open ? 'border-accent' : 'border-line hover:border-line-strong'}`}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => (open ? setOpen(false) : show())}
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown' && !open) {
               e.preventDefault()
-              setOpen(true)
+              show()
             }
           }}
         >
@@ -105,44 +114,50 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
       <WeekArrow href={`/roster/${addDays(week, 7)}`} label="Next week">
         ›
       </WeekArrow>
-      {open && (
-        <div
-          ref={menu}
-          id={id}
-          className="absolute top-full left-0 z-30 mt-1.5 w-80 max-w-[calc(100vw-32px)] rounded-card border border-line-strong bg-surface p-1.5 shadow-popover"
-          onKeyDown={onMenuKey}
-        >
-          <ul aria-label="Weeks">
-            {items.map((item) => (
-              <li key={item.weekStart}>
-                <Link
-                  href={`/roster/${item.weekStart}`}
-                  aria-current={item.open ? 'page' : undefined}
-                  className={`flex items-center justify-between gap-3 rounded-chip px-2.5 py-1.75 text-[13px] ${item.open ? 'highlight' : 'border border-transparent hover:bg-surface-3 focus-visible:bg-surface-3'}`}
-                  onClick={() => setOpen(false)}
-                >
-                  <span className="min-w-0">
-                    <span className={`block whitespace-nowrap ${item.open ? 'font-semibold' : ''}`}>
-                      {weekRange(item.weekStart)}
-                    </span>
-                    <span className={`block text-[11px] ${item.open ? '' : 'text-ink-3'}`}>{item.label}</span>
-                  </span>
-                  {/* The badge says Edited, so no note beside it */}
-                  <WeekState state={item.state} editedNote={false} />
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <Link
-            href={`/history?week=${week}`}
-            className="mt-1.5 flex items-center justify-between rounded-chip border-t border-line px-2.5 pt-2.25 pb-1.75 text-[12.5px] font-semibold text-accent-deep hover:bg-surface-3"
-            onClick={() => setOpen(false)}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            ref={menu}
+            id={id}
+            initial={{ opacity: 0, scale: 0.96, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: -4, transition: { duration: 0.12 } }}
+            style={{ transformOrigin: `${origin}px 0` }}
+            className="absolute top-full left-0 z-30 mt-1.5 w-80 max-w-[calc(100vw-32px)] rounded-card border border-line-strong bg-surface p-1.5 shadow-popover"
+            onKeyDown={onMenuKey}
           >
-            All weeks in History
-            <span aria-hidden>→</span>
-          </Link>
-        </div>
-      )}
+            <ul aria-label="Weeks">
+              {items.map((item) => (
+                <li key={item.weekStart}>
+                  <Link
+                    href={`/roster/${item.weekStart}`}
+                    aria-current={item.open ? 'page' : undefined}
+                    className={`flex items-center justify-between gap-3 rounded-chip px-2.5 py-1.75 text-[13px] ${item.open ? 'highlight' : 'border border-transparent hover:bg-surface-3 focus-visible:bg-surface-3'}`}
+                    onClick={() => setOpen(false)}
+                  >
+                    <span className="min-w-0">
+                      <span className={`block whitespace-nowrap ${item.open ? 'font-semibold' : ''}`}>
+                        {weekRange(item.weekStart)}
+                      </span>
+                      <span className={`block text-[11px] ${item.open ? '' : 'text-ink-3'}`}>{item.label}</span>
+                    </span>
+                    {/* The badge says Edited, so no note beside it */}
+                    <WeekState state={item.state} editedNote={false} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href={`/history?week=${week}`}
+              className="mt-1.5 flex items-center justify-between rounded-chip border-t border-line px-2.5 pt-2.25 pb-1.75 text-[12.5px] font-semibold text-accent-deep hover:bg-surface-3"
+              onClick={() => setOpen(false)}
+            >
+              All weeks in History
+              <span aria-hidden>→</span>
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
