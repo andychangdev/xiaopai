@@ -1,5 +1,6 @@
 'use client'
 
+import { AnimatePresence } from 'motion/react'
 import { useEffect, useOptimistic, useRef, useState, useTransition, type ReactNode } from 'react'
 import { moveStaff } from '@/app/actions'
 import type { LeaveListRow, StaffListRow } from '@/lib/db/queries'
@@ -205,26 +206,32 @@ export function StaffList({
         </div>
       </section>
       <div className="min-w-0 lg:col-start-1 lg:row-start-2">{children}</div>
-      {person ? (
-        // Keyed, so a box half-typed for one person doesn't carry over to the next
-        <StaffPanel
-          key={person.id}
-          person={person}
-          leave={leaveOf(person.id)}
-          today={today}
-          onClose={() => close()}
-          onDismiss={() => close(false)}
-          className="lg:col-start-2 lg:row-[1/span_2]"
-        />
-      ) : booking ? (
-        <LeavePanel
-          key={booking.id}
-          leave={booking}
-          onClose={() => close()}
-          onDismiss={() => close(false)}
-          className="lg:col-start-2 lg:row-start-2"
-        />
-      ) : (
+      {/* Present while it closes, so it can slide away */}
+      <AnimatePresence>
+        {person ? (
+          // Keyed, so a box half-typed for one person doesn't carry over to the next
+          <StaffPanel
+            key={`person-${person.id}`}
+            person={person}
+            leave={leaveOf(person.id)}
+            today={today}
+            onClose={() => close()}
+            onDismiss={() => close(false)}
+            className="lg:col-start-2 lg:row-[1/span_2]"
+          />
+        ) : (
+          booking && (
+            <LeavePanel
+              key={`leave-${booking.id}`}
+              leave={booking}
+              onClose={() => close()}
+              onDismiss={() => close(false)}
+              className="lg:col-start-2 lg:row-start-2"
+            />
+          )
+        )}
+      </AnimatePresence>
+      {!person && !booking && (
         // Level with the list, under its heading
         <p className="mt-13 hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:col-start-2 lg:row-start-1 lg:block">
           Click someone to see and change their hours, rate, availability and notes, or a booking to change it.
