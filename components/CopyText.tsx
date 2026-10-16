@@ -1,9 +1,11 @@
 'use client'
 
+import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
 const SHOWN_FOR = 5000
+const COPIED = 'Copied. Paste it straight into the chat.'
 
 /**
  * The roster text, and a button that copies it for the chat. Where the
@@ -28,7 +30,7 @@ export function CopyText({ text, back }: { text: string; /** The week's grid */ 
   async function copy() {
     try {
       await navigator.clipboard.writeText(text)
-      say('Copied. Paste it straight into the chat.')
+      say(COPIED)
     } catch {
       const range = document.createRange()
       range.selectNodeContents(pre.current!)
@@ -49,14 +51,35 @@ export function CopyText({ text, back }: { text: string; /** The week's grid */ 
         {text}
       </pre>
       <div className="flex flex-wrap items-center gap-2 border-t border-line bg-surface-3 px-3.5 py-3">
-        <button className="btn btn-primary" onClick={copy}>
-          Copy to clipboard
+        {/* Copied ✓ while it's on the clipboard. Both sit in one place, so the button keeps the longer's width. */}
+        <button aria-label="Copy to clipboard" className="btn btn-primary inline-grid overflow-hidden" onClick={copy}>
+          <span aria-hidden className="invisible [grid-area:1/1]">
+            Copy to clipboard
+          </span>
+          <AnimatePresence initial={false}>
+            <motion.span
+              key={message?.words === COPIED ? 'copied' : 'copy'}
+              aria-hidden
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="[grid-area:1/1]"
+            >
+              {message?.words === COPIED ? 'Copied ✓' : 'Copy to clipboard'}
+            </motion.span>
+          </AnimatePresence>
         </button>
         <Link href={back} className="btn">
           Back to roster
         </Link>
         <span role="status" className="text-[12.5px] font-medium text-accent-deep">
-          {message && <span key={message.n}>{message.words}</span>}
+          <AnimatePresence initial={false} mode="wait">
+            {message && (
+              <motion.span key={message.n} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}>
+                {message.words}
+              </motion.span>
+            )}
+          </AnimatePresence>
         </span>
       </div>
     </>
