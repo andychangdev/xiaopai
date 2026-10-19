@@ -32,11 +32,7 @@ export default async function ShareRosterPage({ params }: Props) {
 
   return (
     <div className="max-w-210">
-      <PageHead title="Share roster">
-        Plain text, sized for the group chat. Only people on shift appear: no N/A, no leave, no one sitting the
-        week out. Until the week is published it ends with DRAFT, so a half-built week can&apos;t be taken for
-        the real one.
-      </PageHead>
+      <PageHead title="Share roster" />
       {state.status === 'published' && state.changed && (
         <p
           role="note"

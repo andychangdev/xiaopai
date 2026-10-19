@@ -15,7 +15,7 @@ export default function StaffPage() {
   const now = today()
   return (
     <div className="max-w-300">
-      <PageHead title="Staff">Everyone you roster, and the leave they&apos;ve booked.</PageHead>
+      <PageHead title="Staff" />
       <StaffList staff={staff} leave={leave} today={now}>
         <LeaveTimeline
           leave={leave}

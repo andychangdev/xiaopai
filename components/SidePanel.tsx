@@ -95,7 +95,7 @@ export function SidePanel({
         onPointerDown={(e) => {
           if (sheet && (e.target as Element).closest('[data-grip]')) controls.start(e)
         }}
-        className={`fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-dialog outline-none lg:sticky lg:top-4 lg:z-auto lg:mt-13 lg:max-h-[calc(100dvh-32px)] lg:rounded-card lg:border lg:border-line lg:pb-0 lg:shadow-popover ${className}`}
+        className={`fixed inset-x-0 bottom-0 z-50 max-h-[88dvh] overflow-y-auto rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-dialog outline-none lg:sticky lg:top-4 lg:z-auto lg:mt-11.25 lg:max-h-[calc(100dvh-32px)] lg:rounded-card lg:border lg:border-line lg:pb-0 lg:shadow-popover ${className}`}
         onKeyDown={(e) => {
           // In a box, Esc abandons the edit; in a dialog, it answers no
           const target = e.target as HTMLElement

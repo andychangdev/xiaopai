@@ -19,42 +19,36 @@ export default function SettingsPage() {
   const week = tradingHoursWeek()
   return (
     <div className="max-w-225">
-      <PageHead title="Settings">
-        The things that hold from week to week. Anything about one week is done on the roster.
-      </PageHead>
+      <PageHead title="Settings" />
       <div className="@container rounded-card border border-line bg-surface">
-        <Section id="business" title="Business name" note="Heads every page and the roster text you paste into the group chat.">
+        <Section id="business" title="Business name" note="Shown on every page and the shared roster.">
           <BusinessName name={businessName()} />
         </Section>
         <Section
           id="trading-hours"
           title="Trading hours"
-          note="Shown under the roster. Nothing else depends on them, so a shift can still start or end outside them."
+          note="Shown under the roster."
         >
           <TradingHours week={week} />
         </Section>
         <Section
           id="shift-templates"
           title="Shift templates"
-          note="One click each when you add a shift. Changing or removing one leaves shifts already placed as they are."
+          note="Quick picks when adding a shift."
         >
           <Templates templates={templateList()} week={week} />
         </Section>
         <Section
           id="pay-rates"
           title="Pay rates"
-          note="For the estimated cost on the roster, as a share of each person's hourly rate."
+          note="As a percentage of each person's hourly rate, for the estimated roster cost."
         >
           <PayRateFields {...payRates()} />
-          <p className="mt-2.5 text-[11.5px] leading-snug text-ink-3">
-            125% is time and a quarter, and 100% is nothing extra. The weekend is Saturday and Sunday, and a public
-            holiday at the weekend takes whichever rate is higher.
-          </p>
         </Section>
         <Section
           id="public-holidays"
           title="Public holidays"
-          note="Costed at the public holiday rate. Nothing else changes: if the shop shuts, close the day on the roster too."
+          note="Paid at the public holiday rate."
         >
           <div className={flush}>
             <HolidaysTable holidays={holidayList()} today={today()} />
@@ -63,12 +57,7 @@ export default function SettingsPage() {
         <Section
           id="backup"
           title="Backup"
-          note={
-            <>
-              Everything as one JSON file, named with today&apos;s date, to read and keep. It can&apos;t be loaded back
-              in: the real backup is a copy of <code className="font-mono">xiaopai.db</code>.
-            </>
-          }
+          note="Download everything as a JSON file. It can't be imported back in."
         >
           {/* A plain link, not next/link: the file downloads rather than opening as a page */}
           <a href="/settings/backup" download className="btn">

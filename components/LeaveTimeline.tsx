@@ -49,7 +49,6 @@ export function LeaveTimeline({
       <ListHead
         id="leave-title"
         title="Upcoming leave"
-        note="Leave blocks rostering on those days. It spans as many weeks as it needs, and Clear week never touches it."
         action={
           staff.length > 0 &&
           !booking && (

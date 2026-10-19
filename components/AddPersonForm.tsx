@@ -73,9 +73,6 @@ export function AddPersonForm({ onDone }: { onDone: () => void }) {
         </p>
       )}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <span className="mr-auto text-[11.5px] text-ink-3">
-          They join the end of the order, usually available every day. Click them afterwards to change that.
-        </span>
         <button type="button" className="btn" onClick={onDone}>
           Cancel
         </button>

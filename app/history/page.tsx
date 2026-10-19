@@ -1,10 +1,9 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { HistoryTable } from '@/components/HistoryTable'
 import { Card, PageHead } from '@/components/Page'
 import { history, openWeek } from '@/lib/db/queries'
-import { canonicalWeek, weekTitle } from '@/lib/roster/dates'
+import { canonicalWeek } from '@/lib/roster/dates'
 
 // Reads the database, which Next can't see, so render on every request
 export const dynamic = 'force-dynamic'
@@ -25,14 +24,7 @@ export default async function HistoryPage({ searchParams }: Props) {
 
   return (
     <div className="max-w-210">
-      <PageHead title="History">
-        Every week that has shifts or has been published, newest first, with the week you have open,{' '}
-        <Link href={`/roster/${week}`} className="text-link">
-          {weekTitle(week)}
-        </Link>
-        , marked. Published weeks keep the names and times they went out with, so changing the staff list never rewrites
-        a roster people already worked.
-      </PageHead>
+      <PageHead title="History" />
       <Card title="Weeks">
         <HistoryTable rows={history(week)} />
       </Card>

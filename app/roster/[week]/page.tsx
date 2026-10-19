@@ -44,10 +44,7 @@ export default async function RosterPage({ params }: Props) {
 
   return (
     <>
-      <PageHead title="Roster">
-        One week at a time. Click a cell to add a shift, or drag one to move it. Nothing reaches staff until you
-        publish the week and share it.
-      </PageHead>
+      <PageHead title="Roster" />
       <div className="mb-3.5 flex flex-wrap items-center gap-x-3 gap-y-2">
         {/* Keyed by week, so the menu is closed on the week it takes you to */}
         <WeekPicker
@@ -102,14 +99,14 @@ function NoRows({ everyoneInactive }: { everyoneInactive: boolean }) {
         <>
           <p className="font-semibold">Everyone is inactive</p>
           <p className="mt-1 text-[13px] text-ink-2">
-            Switch Active back on for anyone working again on the {staffPage}, and they get their row back.
+            Switch someone back on from the {staffPage}.
           </p>
         </>
       ) : (
         <>
           <p className="font-semibold">No one to roster yet</p>
           <p className="mt-1 text-[13px] text-ink-2">
-            Add your team on the {staffPage}, and each person gets a row here.
+            Add your team on the {staffPage}.
           </p>
         </>
       )}

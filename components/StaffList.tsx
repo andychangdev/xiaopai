@@ -113,7 +113,6 @@ export function StaffList({
         <ListHead
           id="people-title"
           title="People"
-          note="In roster order. Drag the handle to rearrange, and click someone to change their details."
           action={
             !adding && (
               <button className="btn" onClick={() => setAdding(true)}>
@@ -211,8 +210,8 @@ export function StaffList({
       </AnimatePresence>
       {!person && !booking && (
         // Level with the list, under its heading
-        <p className="mt-13 hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:col-start-2 lg:row-start-1 lg:block">
-          Click someone to see and change their hours, rate, availability and notes, or a booking to change it.
+        <p className="mt-11.25 hidden rounded-card border border-dashed border-line-strong px-4 py-5 text-[12.5px] text-ink-3 lg:col-start-2 lg:row-start-1 lg:block">
+          Select a person or booking to see the details.
         </p>
       )}
     </div>

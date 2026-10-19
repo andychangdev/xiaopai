@@ -164,10 +164,6 @@ function Person({
           Notes
           <SaveOnBlur className="field" placeholder="Optional" value={person.notes ?? ''} onSave={(notes) => save({ notes })} />
         </label>
-        <p className="text-[11.5px] leading-snug text-ink-3">
-          Rostering them on a day they aren&apos;t usually available warns, but is never blocked. Switching Active off
-          takes them off new weeks and leaves any week they already have shifts on.
-        </p>
         <PersonLeave person={person} leave={leave} today={today} />
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line px-3.5 py-2.5">

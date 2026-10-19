@@ -35,15 +35,11 @@ export function LeavePanel({
       <PanelHead title={title} onClose={onClose} />
       <div className="grid gap-3.5 px-3.5 py-3.5">
         <LeaveForm leave={l} onSave={(b) => change(l.id, b, l.name)} onDone={onClose} />
-        <p className="text-[11.5px] leading-snug text-ink-3">
-          Leave blocks rostering on those days. Moving it over shifts already rostered asks what to do with them.
-        </p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-line px-3.5 py-2.5">
         <button className="text-link text-crit-deep" onClick={async () => (await cancel(l)) && onClose()}>
           Cancel leave
         </button>
-        <span className="text-[11px] text-ink-3">Those days can take shifts again</span>
       </div>
       {error && (
         <p role="alert" className="border-t border-line px-3.5 py-2.5 text-[12.5px] text-crit-deep">
