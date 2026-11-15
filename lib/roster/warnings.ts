@@ -13,7 +13,8 @@ import { shiftsByCell, type Shift } from './shifts'
 import { DAY_END, formatHours, type Minutes } from './time'
 
 /** 'high' is something that shouldn't happen; 'low' is worth a second look. */
-export type Warning = { level: 'high' | 'low'; who: string; text: string }
+/** `date` is the day it's about, when it's about one, so a day on its own can show its warnings. */
+export type Warning = { level: 'high' | 'low'; who: string; text: string; date?: IsoDate }
 
 type Person = { id: number; name: string; expectedHours: number | null; available: boolean[] }
 
@@ -74,7 +75,8 @@ export function buildWarnings({
   const warnings = staff.flatMap((person) => {
     const theirs = shifts.filter((s) => s.staffId === person.id)
     const out: Warning[] = []
-    const warn = (level: Warning['level'], text: string) => out.push({ level, who: person.name, text })
+    const warn = (level: Warning['level'], text: string, date?: IsoDate) =>
+      out.push({ level, who: person.name, text, date })
 
     if (theirs.some((s) => overlapping.has(s.id))) warn('high', 'Two shifts overlap on the same day.')
 
@@ -97,7 +99,7 @@ export function buildWarnings({
     for (const date of weekDates(weekStart)) {
       if (!theirs.some((s) => s.date === date)) continue
       const why = leaveOn(leave, person.id, date) ? 'leave' : naReason(person, date, naNotes)
-      if (why) warn('high', dayWarning[why](date))
+      if (why) warn('high', dayWarning[why](date), date)
     }
 
     const { expectedHours } = person
@@ -141,6 +143,6 @@ function shortDays({
     const [only] = on
     const who = staff.find((p) => p.id === only)?.name
     const text = who ? `Only ${who} rostered — needs at least two.` : 'No one rostered — needs at least two.'
-    return [{ level: 'low' as const, who: dayLabel(date), text }]
+    return [{ level: 'low' as const, who: dayLabel(date), text, date }]
   })
 }

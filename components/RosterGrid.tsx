@@ -14,7 +14,7 @@ import type { PublishState } from '@/lib/roster/publish'
 import { cellKey, copyShift, shiftsByCell, shiftsLabel, type NewShift, type Shift } from '@/lib/roster/shifts'
 import { firstName } from '@/lib/roster/staff'
 import { formatHours, formatRange, type Minutes } from '@/lib/roster/time'
-import { buildWarnings, overlappingShifts } from '@/lib/roster/warnings'
+import { buildWarnings, overlappingShifts, type Warning } from '@/lib/roster/warnings'
 import { CopyPreviousWeek } from './CopyPreviousWeek'
 import { LeavePopover } from './LeavePopover'
 import type { PopoverTarget } from './Popover'
@@ -93,6 +93,8 @@ export function RosterGrid({
   )
   const [, startTransition] = useTransition()
   const days = weekDates(week)
+  // The one day a phone shows: today, when it's this week, else Monday
+  const [day, setDay] = useState(() => Math.max(0, days.indexOf(today)))
   const cells = shiftsByCell(shifts)
   const overlapping = overlappingShifts(shifts)
   const notOut = new Set(unpublished)
@@ -249,10 +251,20 @@ export function RosterGrid({
     <>
       <div className="roster-layout">
         <div className="overflow-hidden rounded-card border border-line bg-surface [grid-area:grid]">
+          <PhoneDays
+            days={days}
+            day={day}
+            onPick={setDay}
+            closedDays={closedDays}
+            today={today}
+            shifts={shifts}
+            warnings={warnings}
+            onClose={() => setClosed(days[day], !closedDays[day])}
+          />
           {/* layoutScroll, so chips sliding into place allow for the grid scrolled sideways */}
           <motion.div layoutScroll className="overflow-x-auto">
             <div className="roster-grid">
-              <div className={`${headCell} border-r border-r-line text-ink-2`}>Staff</div>
+              <div className={`${headCell} border-r border-r-line text-ink-2 max-sm:hidden`}>Staff</div>
               {days.map((date, i) => (
                 <DayHeading
                   key={date}
@@ -266,7 +278,8 @@ export function RosterGrid({
               {staff.map((person) => (
                 <Row key={person.id} person={person} hours={hoursFor(person.id, shifts)}>
                   {days.map((date, i) => {
-                    if (closedDays[i]) return <ClosedCell key={date} />
+                    const hidden = i === day ? '' : 'max-sm:hidden'
+                    if (closedDays[i]) return <ClosedCell key={date} className={hidden} />
                     const key = cellKey(person.id, date)
                     const inCell = cells.get(key) ?? []
                     const away = leaveOn(leave, person.id, date)
@@ -303,6 +316,7 @@ export function RosterGrid({
                         drop={canDrop ? (over === key ? 'over' : 'open') : undefined}
                         drag={drag}
                         delay={bulk ? i * 0.04 : 0}
+                        className={hidden}
                       />
                     )
                   })}
@@ -390,7 +404,7 @@ function DayHeading({
     <button
       aria-label={`${dayLabel(date)}${today ? ', today' : ''}${closed ? ', closed' : ''}. ${action}`}
       title={today ? `Today. ${action}` : action}
-      className={`${headCell} group relative text-center ${colour} ${today ? 'shadow-[inset_0_-2px_0_var(--color-accent)]' : ''} hover:bg-surface-2`}
+      className={`${headCell} group relative text-center ${colour} ${today ? 'shadow-[inset_0_-2px_0_var(--color-accent)]' : ''} hover:bg-surface-2 max-sm:hidden`}
       onClick={onClick}
     >
       {dayName(date)}
@@ -409,10 +423,89 @@ function DayHeading({
   )
 }
 
-/** A day closed this week. It takes no shifts, so there's nothing to click. */
-function ClosedCell() {
+/**
+ * On a phone, where the grid shows one day: the week's days to pick from, then
+ * the picked day's warnings and the way to close or reopen it. A day's dots
+ * are the people on it, in the colour of its worst warning.
+ */
+function PhoneDays({
+  days,
+  day,
+  onPick,
+  closedDays,
+  today,
+  shifts,
+  warnings,
+  onClose,
+}: {
+  days: IsoDate[]
+  day: number
+  onPick: (day: number) => void
+  closedDays: boolean[]
+  today: IsoDate
+  shifts: Shift[]
+  warnings: Warning[]
+  /** Closes the picked day, or reopens it */
+  onClose: () => void
+}) {
+  const date = days[day]
   return (
-    <div className="cell-closed grid min-h-14 place-items-center border-r border-b border-line">
+    <div className="sm:hidden">
+      <div className="grid grid-cols-7 gap-1 border-b border-line bg-surface-3 p-1.5">
+        {days.map((d, i) => {
+          const on = new Set(shifts.filter((s) => s.date === d).map((s) => s.staffId)).size
+          const flagged = warnings.filter((w) => w.date === d)
+          const dot = flagged.some((w) => w.level === 'high') ? 'bg-crit' : flagged.length ? 'bg-warn' : 'bg-accent'
+          const picked = i === day
+          const label = picked ? '' : d === today ? 'text-accent-deep' : 'text-ink-2'
+          return (
+            <button
+              key={d}
+              aria-pressed={picked}
+              aria-label={`${dayLabel(d)}${d === today ? ', today' : ''}${closedDays[i] ? ', closed' : `, ${on} on`}${flagged.length ? `, ${flagged.length} ${flagged.length === 1 ? 'warning' : 'warnings'}` : ''}`}
+              className={`flex h-15 flex-col items-center justify-center rounded-control border ${picked ? 'highlight' : `border-transparent ${closedDays[i] ? 'cell-closed' : ''}`}`}
+              onClick={() => onPick(i)}
+            >
+              <span className={`text-[10px] font-semibold tracking-[0.08em] uppercase ${label}`}>{dayName(d)}</span>
+              <span className="text-[16px] leading-tight font-semibold">{Number(d.slice(-2))}</span>
+              <span aria-hidden className="mt-1 flex h-1.25 gap-0.75">
+                {/* shortcut: five dots at most, so a busy day fits its tab; show a number if days often run past five */}
+                {Array.from({ length: Math.min(on, 5) }, (_, k) => (
+                  <span key={k} className={`size-1.25 rounded-full ${dot}`} />
+                ))}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      <div className="grid gap-2 px-3.5 py-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-[15px] font-semibold">{dayLabel(date)}</h2>
+          <button className="text-link" onClick={onClose}>
+            {closedDays[day] ? 'Reopen' : 'Close'} {dayName(date)}
+          </button>
+        </div>
+        {warnings
+          .filter((w) => w.date === date)
+          .map((w) => (
+            <p
+              key={w.who + w.text}
+              className={`rounded-control border px-2.5 py-1.75 text-[12.5px] leading-snug ${w.level === 'high' ? 'border-crit-line bg-crit-bg text-crit-deep' : 'border-warn-line bg-warn-bg text-warn-deep'}`}
+            >
+              {/* A day's own warning is named for the day, which the heading already says */}
+              {w.who !== dayLabel(date) && <b className="font-semibold">{w.who}: </b>}
+              {w.text}
+            </p>
+          ))}
+      </div>
+    </div>
+  )
+}
+
+/** A day closed this week. It takes no shifts, so there's nothing to click. */
+function ClosedCell({ className }: { className: string }) {
+  return (
+    <div className={`cell-closed grid min-h-14 place-items-center border-r border-b border-line max-sm:border-r-0 ${className}`}>
       <span className="font-mono text-[10px] tracking-[0.12em] text-ink-3">CLOSED</span>
     </div>
   )
@@ -425,7 +518,7 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
   const mark = againstExpected(hours, person.expectedHours)
   return (
     <>
-      <div className="border-r border-b border-line bg-surface-3 px-2.5 py-2.25">
+      <div className="border-r border-b border-line bg-surface-3 px-2.5 py-2.25 max-sm:px-3.5">
         <div className="text-[13.5px] font-semibold tracking-[-0.005em]">{person.name}</div>
         <div
           title={mark ? AGAINST_EXPECTED[mark] : undefined}
@@ -466,6 +559,10 @@ function Row({ person, hours, children }: { person: StaffRow; hours: Minutes; ch
  * A day they're on leave says LEAVE instead, and takes nothing new: clicking
  * it shows the booking. Shifts kept on it when the leave was booked still
  * show, and still open.
+ *
+ * On a phone, the cell is the rest of the person's row, so it lays out
+ * across: chips at the right end, and an empty cell's add button showing,
+ * as there's no hover to find it by. Removing is the popover's there.
  */
 function Cell({
   person,
@@ -482,6 +579,7 @@ function Cell({
   drop,
   drag,
   delay,
+  className,
 }: {
   person: Person
   date: IsoDate
@@ -504,6 +602,7 @@ function Cell({
   drag: Drag
   /** How long the cell's chips wait to come or go, in seconds */
   delay: number
+  className: string
 }) {
   const filled = shifts.length > 0
   const where = `${person.name} on ${dayLabel(date)}`
@@ -533,7 +632,7 @@ function Cell({
       data-staff={person.id}
       data-date={date}
       title={leave ?? na}
-      className={`relative flex min-h-14 flex-col border-r border-b border-line ${filled ? 'gap-1 p-1.25' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''}`}
+      className={`relative flex min-h-14 flex-col border-r border-b border-line max-sm:flex-row max-sm:border-r-0 max-sm:flex-wrap max-sm:justify-end max-sm:px-3.5 max-sm:py-2 ${filled ? 'gap-1 p-1.25' : ''} ${na ? 'bg-unavail' : ''} ${modeStyle} ${drop === 'over' ? 'outline-2 -outline-offset-2 outline-accent outline-dashed' : ''} ${className}`}
       // The padding and the gaps between chips paste too
       onClick={mode === 'paste' ? (e) => e.target === e.currentTarget && onClick(e) : undefined}
     >
@@ -553,10 +652,10 @@ function Cell({
               <button
                 aria-label={`${person.name}, ${dayLabel(date)}, ${times}${overlaps ? ', overlaps another shift' : ''}${notOut ? ', not published yet' : ''}. ${action}`}
                 title={overlaps ? `Overlaps another shift. ${tip}` : notOut ? `Not published yet. ${tip}` : tip}
-                className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : notOut ? 'unpublished' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
+                className={`flex w-full items-center rounded-chip border py-1 pl-2 text-left max-sm:py-1.75 max-sm:pr-2.5 max-sm:pl-2.5 ${mode === 'edit' ? 'pr-5' : 'pr-1.5'} ${chipColours[overlaps ? 'overlaps' : notOut ? 'unpublished' : 'usual']} ${picked ? 'outline-2 outline-offset-1 outline-accent outline-dashed focus-visible:outline-offset-2 focus-visible:outline-solid' : ''}`}
                 onClick={(e) => onClick(e, s)}
               >
-                <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] whitespace-nowrap tabular-nums">
+                <span className="font-mono text-[11.5px] font-medium tracking-[-0.02em] whitespace-nowrap tabular-nums max-sm:text-[13px]">
                   {times}
                 </span>
               </button>
@@ -565,7 +664,7 @@ function Cell({
                 <button
                   aria-label={`Remove ${person.name}'s ${times} on ${dayLabel(date)}`}
                   title="Remove"
-                  className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit-deep focus-visible:opacity-100"
+                  className="absolute inset-y-0 right-0 grid w-5 place-items-center rounded-chip text-[13px] leading-none text-ink-3 opacity-0 group-hover/chip:opacity-100 hover:text-crit-deep focus-visible:opacity-100 max-sm:hidden"
                   onClick={(e) => onRemove(s, e.currentTarget)}
                 >
                   ×
@@ -580,7 +679,8 @@ function Cell({
         aria-label={na ? `${add}. ${na}` : add}
         // While copying, what a click would paste matters more than why the day is N/A
         title={mode !== 'edit' ? add : (leave ?? (filled ? 'Add another shift' : (na ?? add)))}
-        className={`group grid flex-1 place-items-center ${inert ? '' : hover} ${filled ? 'min-h-4.5 rounded-chip' : ''}`}
+        // On a phone it's first, so it fills the row left of the chips
+        className={`group grid flex-1 place-items-center max-sm:order-first max-sm:justify-items-end ${inert ? '' : hover} ${filled ? 'min-h-4.5 rounded-chip' : ''}`}
         onClick={(e) => onClick(e)}
       >
         {/* A chip leaves no room for it, so a filled cell keeps just the tint */}
@@ -600,7 +700,7 @@ function Cell({
             LEAVE
           </span>
         ) : (
-          !inert && <Plus small={filled} times={mode === 'paste' ? copyTimes : undefined} />
+          !inert && <Plus small={filled} button={!filled && !na} times={mode === 'paste' ? copyTimes : undefined} />
         )}
       </button>
     </div>
@@ -691,7 +791,7 @@ function Chip({
       onDragTransitionEnd={() => setLifted(false)}
       // Lifted, it lets the pointer through to the cell it's over
       style={lifted ? { x, y, zIndex: 30, pointerEvents: 'none' } : { x, y }}
-      className="group/chip relative rounded-chip select-none"
+      className="group/chip relative rounded-chip select-none max-sm:self-center"
       onPointerDown={(e) => {
         if (drag && e.pointerType === 'mouse' && e.button === 0) controls.start(e)
       }}
@@ -709,14 +809,19 @@ const chipColours = {
   overlaps: 'border-crit-line bg-crit-bg group-hover/chip:border-crit',
 }
 
-/** The + on hover, and while pasting the times that would go in. */
-function Plus({ small = false, times }: { small?: boolean; times?: string }) {
+// An empty cell's + on a phone, which has no hover to show it
+const plusButton =
+  'max-sm:rounded-control max-sm:border max-sm:border-dashed max-sm:border-line-strong max-sm:px-3 max-sm:py-2.25 max-sm:text-[13px] max-sm:font-medium max-sm:text-ink-2 max-sm:opacity-100'
+
+/** The + on hover, and while pasting the times that would go in. `button` shows it on a phone, as a button. */
+function Plus({ small = false, button = false, times }: { small?: boolean; button?: boolean; times?: string }) {
   return (
     <span
       aria-hidden
-      className={`col-start-1 row-start-1 leading-none text-ink-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 ${small ? 'text-[14px]' : 'text-[17px]'}`}
+      className={`col-start-1 row-start-1 leading-none text-ink-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 ${small ? 'text-[14px]' : 'text-[17px]'} ${button ? plusButton : ''}`}
     >
       +{times && <span className="ml-1 font-mono text-[11px] tracking-[-0.02em] tabular-nums">{times}</span>}
+      {button && !times && <span className="sm:hidden"> Add shift</span>}
     </span>
   )
 }

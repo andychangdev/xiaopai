@@ -167,6 +167,10 @@ describe('buildWarnings', () => {
       expect(texts([WEEKDAYS_ONLY], [shift(7, SUN, h(10), h(18))])).toEqual(['Rostered on Sun — not usually available.'])
     })
 
+    it('says which day it is about', () => {
+      expect(warnings([WEEKDAYS_ONLY], [shift(7, SUN, h(10), h(18))])[0].date).toBe(SUN)
+    })
+
     it('warns once a day, however many shifts are on it', () => {
       const shifts = [shift(7, SAT, h(10), h(14)), shift(7, SAT, h(17), h(21)), shift(7, SUN, h(10), h(18))]
       expect(texts([WEEKDAYS_ONLY], shifts)).toEqual([
@@ -326,7 +330,7 @@ describe('buildWarnings', () => {
 
     it('flags an open day with one person on, naming them, as a caution', () => {
       expect(short([...restOfWeek, shift(7, MON, h(10), h(18))])).toEqual([
-        { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.' },
+        { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.', date: MON },
       ])
     })
 
@@ -337,7 +341,7 @@ describe('buildWarnings', () => {
 
     it('flags an open day with no one on', () => {
       expect(short(restOfWeek)).toEqual([
-        { level: 'low', who: 'Mon 5 Oct', text: 'No one rostered — needs at least two.' },
+        { level: 'low', who: 'Mon 5 Oct', text: 'No one rostered — needs at least two.', date: MON },
       ])
     })
 
@@ -353,8 +357,8 @@ describe('buildWarnings', () => {
       const monTueOpen = [false, false, true, true, true, true, true]
       expect(published([shift(7, MON, h(12), h(23)), shift(7, TUE, h(7), h(15))], monTueOpen)).toEqual([
         { level: 'low', who: 'John Reyes', text: 'Only 8h between Mon close and Tue start.' },
-        { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.' },
-        { level: 'low', who: 'Tue 6 Oct', text: 'Only John Reyes rostered — needs at least two.' },
+        { level: 'low', who: 'Mon 5 Oct', text: 'Only John Reyes rostered — needs at least two.', date: MON },
+        { level: 'low', who: 'Tue 6 Oct', text: 'Only John Reyes rostered — needs at least two.', date: TUE },
         { level: 'low', who: 'Week total', text: '19h rostered — needs at least 98h.' },
       ])
     })

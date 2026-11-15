@@ -583,6 +583,10 @@ The grid itself is CSS Grid, not a table, in plain CSS classes:
 }
 ```
 
+On a phone (under `sm`) it's the name column and one day: tabs above the grid
+pick which (`PhoneDays` in `RosterGrid.tsx`), and the other days' cells are
+hidden, so it never scrolls sideways.
+
 `.cell-closed` hatches a closed day down its whole column. The other pages
 are tables inside `Card`s under a `PageHead` (`components/Page.tsx`), which
 also exports the `th` and `td` class strings they share. The Staff page is

@@ -185,6 +185,10 @@ Speed matters more than anything else here:
   closed days — none of them are shifts.
 - **Undo** the last grid action, Clear week included.
 
+On a phone the grid shows one day at a time, picked from a row of the week's
+days. Each day has a dot for everyone on it, coloured by its worst warning,
+and the picked day's own warnings sit above its shifts.
+
 **Week summary** sits in a narrow panel beside the grid, and **Warnings** in a
 panel below it, so the hours and cost stay in view while rostering. On a
 screen too narrow for the grid and the summary side by side, the summary

@@ -114,11 +114,19 @@
   }
 }
 
-/* The roster grid: a name column, then seven day columns (ARCHITECTURE §7) */
+/* The roster grid: a name column, then seven day columns (ARCHITECTURE §7).
+   On a phone, the name column and the one day picked above the grid, with
+   the other days' cells hidden. The breakpoint is Tailwind's sm. */
 .roster-grid {
   display: grid;
   grid-template-columns: 168px repeat(7, minmax(112px, 1fr));
   min-width: 960px;
+}
+@media (width < 40rem) {
+  .roster-grid {
+    grid-template-columns: 104px minmax(0, 1fr);
+    min-width: 0;
+  }
 }
 
 /* What a page leaves clear at its foot for the phone's bottom bar. Beside
