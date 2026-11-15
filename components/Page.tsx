@@ -1,9 +1,13 @@
 import type { ReactNode } from 'react'
 
-// The admin pages' frame: a heading, then cards
+// The admin pages' frame: a heading over a rule, then cards
 
 export function PageHead({ title }: { title: string }) {
-  return <h1 className="mb-4 text-[30px] leading-tight font-semibold tracking-[-0.02em]">{title}</h1>
+  return (
+    <h1 className="mb-5 border-b border-line pb-3 text-[30px] leading-tight font-semibold tracking-[-0.02em]">
+      {title}
+    </h1>
+  )
 }
 
 /**
