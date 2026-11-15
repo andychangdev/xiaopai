@@ -258,7 +258,7 @@ the panel, to change its days or reason, or cancel it; shifts on days it
 adds are asked about as when booking. On a phone it's a list, soonest first. Leave is booked there or in the person's panel, and
 the roster can't book any. Settings holds the business
 name, trading hours per weekday — opens, closes — the shift templates, the weekend and public holiday
-rates, and the public holidays: date and an optional name, past ones greyed. Nothing week-specific.
+rates, and the public holidays: date and an optional name, each editable in place, past ones greyed. Nothing week-specific.
 
 ### History
 

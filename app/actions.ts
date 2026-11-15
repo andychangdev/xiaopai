@@ -661,6 +661,23 @@ export async function addHoliday(input: { date: string; name: string }): Promise
   return {}
 }
 
+export async function updateHoliday(id: number, input: { date: string; name: string }): Promise<ActionResult> {
+  checkId(id)
+  const holiday = parseHoliday({ date: text(input?.date), name: text(input?.name) })
+  if ('error' in holiday) return holiday
+  const db = getDb()
+  if (!db.select({ id: holidays.id }).from(holidays).where(eq(holidays.id, id)).get()) {
+    return { error: 'That public holiday has already been removed.' }
+  }
+  const taken = and(eq(holidays.date, holiday.date), ne(holidays.id, id))
+  if (db.select({ id: holidays.id }).from(holidays).where(taken).get()) {
+    return { error: holidayTakenError(holiday.date) }
+  }
+  db.update(holidays).set(holiday).where(eq(holidays.id, id)).run()
+  settingsChanged()
+  return {}
+}
+
 export async function removeHoliday(id: number): Promise<ActionResult> {
   checkId(id)
   getDb().delete(holidays).where(eq(holidays.id, id)).run()
