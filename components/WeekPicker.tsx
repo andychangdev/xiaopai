@@ -19,8 +19,8 @@ const weekLink = `${weekButton} hover:border-line-strong hover:text-ink`
  */
 export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek: IsoDate; items: WeekMenuItem[] }) {
   const [open, setOpen] = useState(false)
-  // The middle of the dates, which the menu grows out of
-  const [origin, setOrigin] = useState(0)
+  // Where the menu's left edge sits, and the middle of the dates, which it grows out of
+  const [at, setAt] = useState({ left: 0, origin: 0 })
   const wrap = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
@@ -45,7 +45,9 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
 
   function show() {
     const { offsetLeft, offsetWidth } = button.current!
-    setOrigin(offsetLeft + offsetWidth / 2)
+    // Under the dates, but from the row's start on a phone, where it wouldn't fit there
+    const left = matchMedia('(min-width: 40rem)').matches ? offsetLeft : 0
+    setAt({ left, origin: offsetLeft - left + offsetWidth / 2 })
     setOpen(true)
   }
 
@@ -122,8 +124,8 @@ export function WeekPicker({ week, thisWeek, items }: { week: IsoDate; thisWeek:
             initial={{ opacity: 0, scale: 0.96, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -4, transition: { duration: 0.12 } }}
-            style={{ transformOrigin: `${origin}px 0` }}
-            className="absolute top-full left-0 z-30 mt-1.5 w-80 max-w-[calc(100vw-32px)] rounded-card border border-line-strong bg-surface p-1.5 shadow-popover"
+            style={{ left: at.left, transformOrigin: `${at.origin}px 0` }}
+            className="absolute top-full z-30 mt-1.5 w-80 max-w-[calc(100vw-32px)] rounded-card border border-line-strong bg-surface p-1.5 shadow-popover"
             onKeyDown={onMenuKey}
           >
             <ul aria-label="Weeks">
