@@ -34,8 +34,15 @@ These tickets build the app described in SPEC.md, following ARCHITECTURE.md, wit
 | 28 | [Settings sections and side index](completed/28-settings-sections.md) | 22 |
 | 29 | [Trading hours week strip](completed/29-trading-hours-strip.md) | 28 |
 | 30 | [Shift template bars](completed/30-template-bars.md) | 28 |
+| 31 | [Database over a URL](to-do/31-database-over-a-url.md) | — |
+| 32 | [Undo kept in the database](to-do/32-undo-in-the-database.md) | 31 |
+| 33 | [Today in the restaurant's time zone](to-do/33-today-in-local-time.md) | — |
+| 34 | [Login](to-do/34-login.md) | 31 |
+| 35 | [Go live on Vercel and Turso](to-do/35-go-live.md) | 31, 32, 33, 34 |
 
 Tickets 21–30 are the redesign of the navigation, Staff and Settings pages. Their visual reference is `mockup/redesign.html`, not the original mockup.
+
+Tickets 31–35 put the app online, so it can be reached from anywhere with the Mac off: Vercel's free Hobby plan for the app, Turso's free plan for the database (hosted SQLite, so the schema and migrations carry over), and a password login. It's for the manager's own planning, which Hobby's non-commercial terms allow. They change SPEC §1's "localhost, no login", and the calls below on Undo (17) and the Dock launcher (19).
 
 ## Calls made where the docs disagree
 
@@ -53,6 +60,8 @@ Tickets 21–30 are the redesign of the navigation, Staff and Settings pages. Th
   - If the server doesn't start, an alert names the log, so the icon never seems to do nothing.
 - **Undo** (17): goes back one action at a time, up to 50 per week, rather than only the last. ⌘Z does the same unless you're typing. Each week's history lives in the server's memory, not the database, so it's gone once the server stops. Undo is only offered while the week is as its last action left it: anything that changes the week from outside the grid turns it off for that week, such as leave booked or cancelled during it, or shifts removed by a booking. Deactivating someone or changing their availability doesn't, and Undo can bring back a shift or N/A note the grid would now refuse, just as the week had it.
 - **JSON export** (18): the file comes from a route, `/settings/backup`, because a Server Action can't hand the browser a download. It's the one route that isn't a page. The route reads the schema to find every table, so a table added later is exported too. Lists of plain values, like the seven weekday flags, stay on one line so the file is easier to read.
+
+- **Going online** (31–35): Turso over Postgres (Neon, Supabase), because it's SQLite, so only the driver changes. Vercel's own Deployment Protection doesn't cover the production address on Hobby, so the app has its own login. It uses a login page rather than the browser's password box, which keeps asking on a phone. Undo moves into the database (32), because serverless servers don't keep memory between requests. `today()` names its time zone, Australia/Brisbane (33), because Vercel runs on UTC and won't let `TZ` be set. The Dock launcher (19) is retired (35), since the live site replaces it.
 
 ## Not ticketed
 
