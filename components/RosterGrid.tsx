@@ -5,7 +5,7 @@ import { useCallback, useEffect, useOptimistic, useRef, useState, useTransition 
 import { addShift, clearWeek, moveShift, removeShift, setDayClosed } from '@/app/actions'
 import type { Template } from '@/lib/db/queries'
 import { closedThisWeek } from '@/lib/roster/closed'
-import type { Cents, PayRates } from '@/lib/roster/cost'
+import type { Cents, Holiday, PayRates } from '@/lib/roster/cost'
 import { dayLabel, dayName, shortDate, weekDates, weekRange, type IsoDate } from '@/lib/roster/dates'
 import { AGAINST_EXPECTED, againstExpected, hoursAgainst, hoursFor, weekTotal } from '@/lib/roster/hours'
 import { leaveOn, onLeaveNote, type Leave } from '@/lib/roster/leave'
@@ -257,6 +257,7 @@ export function RosterGrid({
             onPick={setDay}
             closedDays={closedDays}
             today={today}
+            holidays={payRates.holidays}
             shifts={shifts}
             warnings={warnings}
             onClose={() => setClosed(days[day], !closedDays[day])}
@@ -271,6 +272,7 @@ export function RosterGrid({
                   date={date}
                   closed={closedDays[i]}
                   today={date === today}
+                  holiday={payRates.holidays.find((h) => h.date === date)}
                   onClick={() => setClosed(date, !closedDays[i])}
                 />
               ))}
@@ -386,24 +388,34 @@ export function RosterGrid({
   )
 }
 
-/** Closes the day for this week, or reopens it. Today's is underlined in the accent, closed or not. */
+/** 'Public holiday', and its name if it has one */
+function holidayLabel(holiday: Holiday): string {
+  return holiday.name ? `Public holiday, ${holiday.name}` : 'Public holiday'
+}
+
+/**
+ * Closes the day for this week, or reopens it. Today's is underlined in the
+ * accent, closed or not. A public holiday's name shows under the date.
+ */
 function DayHeading({
   date,
   closed,
   today,
+  holiday,
   onClick,
 }: {
   date: IsoDate
   closed: boolean
   today: boolean
+  holiday?: Holiday
   onClick: () => void
 }) {
   const action = `${closed ? 'Reopen' : 'Close'} ${dayName(date)}`
   const colour = closed ? 'text-ink-3' : today ? 'text-accent-deep' : 'text-ink-2 hover:text-ink'
   return (
     <button
-      aria-label={`${dayLabel(date)}${today ? ', today' : ''}${closed ? ', closed' : ''}. ${action}`}
-      title={today ? `Today. ${action}` : action}
+      aria-label={`${dayLabel(date)}${today ? ', today' : ''}${holiday ? `, ${holidayLabel(holiday)}` : ''}${closed ? ', closed' : ''}. ${action}`}
+      title={`${today ? 'Today. ' : ''}${holiday ? `${holidayLabel(holiday)}. ` : ''}${action}`}
       className={`${headCell} group relative text-center ${colour} ${today ? 'shadow-[inset_0_-2px_0_var(--color-accent)]' : ''} hover:bg-surface-2 max-sm:hidden`}
       onClick={onClick}
     >
@@ -413,6 +425,11 @@ function DayHeading({
       >
         {closed ? 'closed' : shortDate(date)}
       </span>
+      {holiday && (
+        <span className="block truncate text-[10px] font-medium tracking-normal text-warn-deep normal-case">
+          {holiday.name ?? 'Public holiday'}
+        </span>
+      )}
       <span
         aria-hidden
         className="absolute top-1.5 right-1.25 text-[10px] font-normal tracking-normal normal-case opacity-0 group-hover:opacity-75 group-focus-visible:opacity-75"
@@ -426,7 +443,8 @@ function DayHeading({
 /**
  * On a phone, where the grid shows one day: the week's days to pick from, then
  * the picked day's warnings and the way to close or reopen it. A day's dots
- * are the people on it, in the colour of its worst warning.
+ * are the people on it, in the colour of its worst warning. A public
+ * holiday's date is in amber, and its name follows the picked day's heading.
  */
 function PhoneDays({
   days,
@@ -434,6 +452,7 @@ function PhoneDays({
   onPick,
   closedDays,
   today,
+  holidays,
   shifts,
   warnings,
   onClose,
@@ -443,12 +462,15 @@ function PhoneDays({
   onPick: (day: number) => void
   closedDays: boolean[]
   today: IsoDate
+  holidays: Holiday[]
   shifts: Shift[]
   warnings: Warning[]
   /** Closes the picked day, or reopens it */
   onClose: () => void
 }) {
   const date = days[day]
+  const holidayOn = (d: IsoDate) => holidays.find((h) => h.date === d)
+  const holiday = holidayOn(date)
   return (
     <div className="sm:hidden">
       <div className="grid grid-cols-7 gap-1 border-b border-line bg-surface-3 p-1.5">
@@ -458,16 +480,19 @@ function PhoneDays({
           const dot = flagged.some((w) => w.level === 'high') ? 'bg-crit' : flagged.length ? 'bg-warn' : 'bg-accent'
           const picked = i === day
           const label = picked ? '' : d === today ? 'text-accent-deep' : 'text-ink-2'
+          const hol = holidayOn(d)
           return (
             <button
               key={d}
               aria-pressed={picked}
-              aria-label={`${dayLabel(d)}${d === today ? ', today' : ''}${closedDays[i] ? ', closed' : `, ${on} on`}${flagged.length ? `, ${flagged.length} ${flagged.length === 1 ? 'warning' : 'warnings'}` : ''}`}
+              aria-label={`${dayLabel(d)}${d === today ? ', today' : ''}${hol ? `, ${holidayLabel(hol)}` : ''}${closedDays[i] ? ', closed' : `, ${on} on`}${flagged.length ? `, ${flagged.length} ${flagged.length === 1 ? 'warning' : 'warnings'}` : ''}`}
               className={`flex h-15 flex-col items-center justify-center rounded-control border ${picked ? 'highlight' : `border-transparent ${closedDays[i] ? 'cell-closed' : ''}`}`}
               onClick={() => onPick(i)}
             >
               <span className={`text-[10px] font-semibold tracking-[0.08em] uppercase ${label}`}>{dayName(d)}</span>
-              <span className="text-[16px] leading-tight font-semibold">{Number(d.slice(-2))}</span>
+              <span className={`text-[16px] leading-tight font-semibold ${hol && !picked ? 'text-warn-deep' : ''}`}>
+                {Number(d.slice(-2))}
+              </span>
               <span aria-hidden className="mt-1 flex h-1.25 gap-0.75">
                 {/* shortcut: five dots at most, so a busy day fits its tab; show a number if days often run past five */}
                 {Array.from({ length: Math.min(on, 5) }, (_, k) => (
@@ -480,7 +505,10 @@ function PhoneDays({
       </div>
       <div className="grid gap-2 px-3.5 py-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-[15px] font-semibold">{dayLabel(date)}</h2>
+          <h2 className="text-[15px] font-semibold">
+            {dayLabel(date)}
+            {holiday && <span className="font-normal text-warn-deep"> · {holiday.name ?? 'Public holiday'}</span>}
+          </h2>
           <button className="text-link" onClick={onClose}>
             {closedDays[day] ? 'Reopen' : 'Close'} {dayName(date)}
           </button>

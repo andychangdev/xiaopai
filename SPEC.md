@@ -64,8 +64,8 @@ days** — see below.
 
 **Holiday** — `id`, `date`, `name?`
 A public holiday, entered once in Settings. Like leave it belongs to a real
-date, not a week, and it does nothing but raise that day's cost estimate to
-the holiday rate. It doesn't close the day.
+date, not a week. Its name shows under the day on the roster, and it raises
+that day's cost estimate to the holiday rate. It doesn't close the day.
 
 **Leave** — `id`, `employee_id`, `from_date`, `to_date`, `note?`
 A booked period of absence — one day or three weeks, whatever the person asked
